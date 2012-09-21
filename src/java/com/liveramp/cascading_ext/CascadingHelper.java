@@ -6,7 +6,7 @@ import org.apache.hadoop.mapred.JobConf;
 
 import java.util.*;
 
-class CascadingHelper {
+public class CascadingHelper {
   private static final CascadingHelper instance = new CascadingHelper();
 
   public static CascadingHelper get() {
