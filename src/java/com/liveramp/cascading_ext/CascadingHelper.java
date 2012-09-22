@@ -1,6 +1,10 @@
 package com.liveramp.cascading_ext;
 
-import com.liveramp.cascading_ext.helpers.StringHelper;
+import cascading.flow.FlowConnector;
+import cascading.flow.FlowProcess;
+import cascading.flow.FlowStepStrategy;
+import cascading.flow.hadoop.HadoopFlowProcess;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -13,14 +17,15 @@ public class CascadingHelper {
     return instance;
   }
 
-  private CascadingHelper(){}
+  protected CascadingHelper(){}
 
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
-  private final Map<String, String> defaultProperties = new HashMap<String, String>();
+  private final Map<Object, Object> defaultProperties = new HashMap<Object, Object>();
+  private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private transient JobConf conf = null;
 
-  protected void setDefaultProperty(String key, String value){
+  protected void setDefaultProperty(Object key, Object value){
     defaultProperties.put(key, value);
     conf = null;
   }
@@ -40,36 +45,80 @@ public class CascadingHelper {
     serializationTokens.put(token, klass);
   }
 
+  protected void addDefaultFlowStepStrategy(FlowStepStrategyFactory<JobConf> flowStepStrategyFactory){
+    defaultFlowStepStrategies.add(flowStepStrategyFactory);
+  }
+
+  protected void addDefaultFlowStepStrategy(Class<? extends FlowStepStrategy<JobConf>> klass){
+    defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
+  }
+
+  private String getSerializationsProperty(){
+    // Get the existing serializations
+    List<String> strings = new ArrayList<String>();
+
+    String existing = new JobConf().get("io.serializations");
+    if(existing != null)
+      strings.add(existing);
+
+    // Append our custom serializations
+    for(Class<? extends Serialization> klass : serializations){
+      strings.add(klass.getName());
+    }
+
+    return StringUtils.join(strings, ",");
+  }
+
+  private String getSerializationTokensProperty(){
+    List<String> strings = new ArrayList<String>();
+    for(Map.Entry<Integer, Class<?>> entry : serializationTokens.entrySet()){
+      strings.add(entry.getKey() + "=" + entry.getValue().getName());
+    }
+    return StringUtils.join(strings, ",");
+  }
+
   public JobConf getJobConf(){
     if(conf == null){
       conf = new JobConf();
-
-      // Get the existing serializations
-      List<String> strings = new ArrayList<String>();
-      String existing = conf.get("io.serializations");
-      if(existing != null)
-        strings.add(existing);
-
-      // Append our custom serializations
-      for(Class<? extends Serialization> klass : serializations){
-        strings.add(klass.getName());
-      }
-
-      conf.set("io.serializations", StringHelper.join(strings, ","));
-
-      // Set serialization tokens
-      strings = new ArrayList<String>();
-      for(Map.Entry<Integer, Class<?>> entry : serializationTokens.entrySet()){
-        strings.add(entry.getKey() + "=" + entry.getValue().getName());
-      }
-
-      conf.set("cascading.serialization.tokens", StringHelper.join(strings, ","));
-
-      // Set all of the default properties
-      for(Map.Entry<String, String> entry : defaultProperties.entrySet()){
-        conf.set(entry.getKey(), entry.getValue());
-      }
+      conf.set("io.serializations", getSerializationsProperty());
+      conf.set("cascading.serialization.tokens", getSerializationTokensProperty());
     }
     return new JobConf(conf);
+  }
+
+  public FlowConnector getFlowConnector() {
+    return getFlowConnector(Collections.<Object, Object>emptyMap());
+  }
+
+  public FlowConnector getFlowConnector(Map<Object, Object> properties) {
+    return getFlowConnector(properties, Collections.<FlowStepStrategy<JobConf>>emptyList());
+  }
+
+  public FlowConnector getFlowConnector(List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+    return getFlowConnector(Collections.<Object, Object>emptyMap(), flowStepStrategies);
+  }
+
+  public FlowConnector getFlowConnector(Map<Object, Object> properties, List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+    //Add in default properties
+    Map<Object, Object> combinedProperties = new HashMap<Object, Object>(properties);
+    combinedProperties.putAll(defaultProperties);
+    combinedProperties.put("io.serializations", getSerializationsProperty());
+    combinedProperties.put("cascading.serialization.tokens", getSerializationTokensProperty());
+
+    //Add in default flow step strategies
+    List<FlowStepStrategy<JobConf>> combinedStrategies = new ArrayList<FlowStepStrategy<JobConf>>(flowStepStrategies);
+    for(FlowStepStrategyFactory<JobConf> flowStepStrategyFactory : defaultFlowStepStrategies){
+      combinedStrategies.add(flowStepStrategyFactory.getFlowStepStrategy());
+    }
+
+    return new LoggingFlowConnector(combinedProperties, new MultiFlowStepStrategy(combinedStrategies));
+  }
+
+  public FlowProcess<JobConf> getFlowProcess() {
+    return getFlowProcess(getJobConf());
+  }
+
+  public FlowProcess<JobConf> getFlowProcess(JobConf jobConf) {
+    return new HadoopFlowProcess(jobConf);
   }
 }
