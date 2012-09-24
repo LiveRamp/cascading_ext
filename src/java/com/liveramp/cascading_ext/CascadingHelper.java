@@ -13,7 +13,7 @@ import java.util.*;
 public class CascadingHelper {
   private static final CascadingHelper instance = new CascadingHelper();
 
-  public static CascadingHelper get() {
+  protected static CascadingHelper get() {
     return instance;
   }
 
