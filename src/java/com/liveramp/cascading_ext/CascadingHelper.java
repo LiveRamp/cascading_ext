@@ -77,6 +77,14 @@ public class CascadingHelper {
     return StringUtils.join(strings, ",");
   }
 
+  public Map<Object, Object> getDefaultProperties(){
+    Map<Object, Object> properties = new HashMap<Object, Object>();
+    properties.put("io.serializations", getSerializationsProperty());
+    properties.put("cascading.serialization.tokens", getSerializationTokensProperty());
+    properties.putAll(defaultProperties);
+    return properties;
+  }
+
   public JobConf getJobConf(){
     if(conf == null){
       conf = new JobConf();
@@ -100,10 +108,8 @@ public class CascadingHelper {
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties, List<FlowStepStrategy<JobConf>> flowStepStrategies) {
     //Add in default properties
-    Map<Object, Object> combinedProperties = new HashMap<Object, Object>(properties);
-    combinedProperties.putAll(defaultProperties);
-    combinedProperties.put("io.serializations", getSerializationsProperty());
-    combinedProperties.put("cascading.serialization.tokens", getSerializationTokensProperty());
+    Map<Object, Object> combinedProperties = getDefaultProperties();
+    combinedProperties.putAll(properties);
 
     //Add in default flow step strategies
     List<FlowStepStrategy<JobConf>> combinedStrategies = new ArrayList<FlowStepStrategy<JobConf>>(flowStepStrategies);
