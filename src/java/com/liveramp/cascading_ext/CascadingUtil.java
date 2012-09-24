@@ -18,7 +18,7 @@ import java.util.*;
 public class CascadingUtil {
   private static final CascadingUtil INSTANCE = new CascadingUtil();
 
-  protected static CascadingUtil get() {
+  public static CascadingUtil get() {
     return INSTANCE;
   }
 
