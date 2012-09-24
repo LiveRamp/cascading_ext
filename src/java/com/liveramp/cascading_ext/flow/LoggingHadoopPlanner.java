@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext;
+package com.liveramp.cascading_ext.flow;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowDef;

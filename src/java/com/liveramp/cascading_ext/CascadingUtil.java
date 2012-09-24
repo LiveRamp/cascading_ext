@@ -4,6 +4,7 @@ import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.mapred.JobConf;

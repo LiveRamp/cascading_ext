@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext;
+package com.liveramp.cascading_ext.flow;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowDef;
@@ -26,10 +26,10 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
 
     return planner
       .buildFlow(new FlowDef()
-      .setName(name)
-      .addTails(tails)
-      .addSources(sources)
-      .addSinks(sinks)
-      .addTraps(traps));
+              .setName(name)
+              .addTails(tails)
+              .addSources(sources)
+              .addSinks(sinks)
+              .addTraps(traps));
   }
 }
