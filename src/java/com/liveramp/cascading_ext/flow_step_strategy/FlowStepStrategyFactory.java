@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext;
+package com.liveramp.cascading_ext.flow_step_strategy;
 
 import cascading.flow.FlowStepStrategy;
 
