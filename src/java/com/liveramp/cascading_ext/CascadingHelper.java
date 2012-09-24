@@ -36,8 +36,8 @@ public class CascadingHelper {
   }
 
   public void addSerializationToken(int token, Class<?> klass){
-    if(token <= 128)
-      throw new IllegalArgumentException("Serialization tokens must be greater than 128 (lower numbers are reserved by Cascading)");
+    if(token < 128)
+      throw new IllegalArgumentException("Serialization tokens must be >= 128 (lower numbers are reserved by Cascading)");
 
     if(serializationTokens.containsKey(token) && !serializationTokens.get(token).equals(klass))
       throw new IllegalArgumentException("Token " + token + " is already assigned to class " + serializationTokens.get(token));
