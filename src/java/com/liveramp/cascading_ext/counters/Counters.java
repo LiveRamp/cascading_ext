@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext;
+package com.liveramp.cascading_ext.counters;
 
 import cascading.flow.Flow;
 import cascading.stats.FlowStats;

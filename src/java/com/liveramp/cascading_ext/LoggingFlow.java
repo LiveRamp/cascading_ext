@@ -8,6 +8,7 @@ import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
+import com.liveramp.cascading_ext.counters.Counters;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
