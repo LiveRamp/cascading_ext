@@ -10,14 +10,14 @@ import org.apache.hadoop.mapred.JobConf;
 
 import java.util.*;
 
-public class CascadingHelper {
-  private static final CascadingHelper instance = new CascadingHelper();
+public class CascadingUtil {
+  private static final CascadingUtil INSTANCE = new CascadingUtil();
 
-  protected static CascadingHelper get() {
-    return instance;
+  protected static CascadingUtil get() {
+    return INSTANCE;
   }
 
-  protected CascadingHelper(){}
+  protected CascadingUtil(){}
 
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
