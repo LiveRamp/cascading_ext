@@ -7,6 +7,7 @@ import cascading.flow.hadoop.HadoopFlowProcess;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
+import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -21,7 +22,9 @@ public class CascadingUtil {
     return INSTANCE;
   }
 
-  protected CascadingUtil(){}
+  protected CascadingUtil() {
+    addDefaultFlowStepStrategy(RenameJobStrategy.class);
+  }
 
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
