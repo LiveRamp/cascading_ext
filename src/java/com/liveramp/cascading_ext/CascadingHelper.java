@@ -25,17 +25,17 @@ public class CascadingHelper {
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private transient JobConf conf = null;
 
-  protected void setDefaultProperty(Object key, Object value){
+  public void setDefaultProperty(Object key, Object value){
     defaultProperties.put(key, value);
     conf = null;
   }
 
-  protected void addSerialization(Class<? extends Serialization> serialization){
+  public void addSerialization(Class<? extends Serialization> serialization){
     serializations.add(serialization);
     conf = null;
   }
 
-  protected void addSerializationToken(int token, Class<?> klass){
+  public void addSerializationToken(int token, Class<?> klass){
     if(token <= 128)
       throw new IllegalArgumentException("Serialization tokens must be greater than 128 (lower numbers are reserved by Cascading)");
 
@@ -45,11 +45,11 @@ public class CascadingHelper {
     serializationTokens.put(token, klass);
   }
 
-  protected void addDefaultFlowStepStrategy(FlowStepStrategyFactory<JobConf> flowStepStrategyFactory){
+  public void addDefaultFlowStepStrategy(FlowStepStrategyFactory<JobConf> flowStepStrategyFactory){
     defaultFlowStepStrategies.add(flowStepStrategyFactory);
   }
 
-  protected void addDefaultFlowStepStrategy(Class<? extends FlowStepStrategy<JobConf>> klass){
+  public void addDefaultFlowStepStrategy(Class<? extends FlowStepStrategy<JobConf>> klass){
     defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
   }
 
