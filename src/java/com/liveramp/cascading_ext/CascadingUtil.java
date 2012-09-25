@@ -87,7 +87,9 @@ public class CascadingUtil {
   public Map<Object, Object> getDefaultProperties(){
     Map<Object, Object> properties = new HashMap<Object, Object>();
     properties.put("io.serializations", getSerializationsProperty());
-    properties.put("cascading.serialization.tokens", getSerializationTokensProperty());
+    String serializationTokensProperty = getSerializationTokensProperty();
+    if(!serializationTokensProperty.equals(""))
+      properties.put("cascading.serialization.tokens", serializationTokensProperty);
     properties.putAll(defaultProperties);
     return properties;
   }
@@ -96,7 +98,9 @@ public class CascadingUtil {
     if(conf == null){
       conf = new JobConf();
       conf.set("io.serializations", getSerializationsProperty());
-      conf.set("cascading.serialization.tokens", getSerializationTokensProperty());
+      String serializationTokensProperty = getSerializationTokensProperty();
+      if(!serializationTokensProperty.equals(""))
+        conf.set("cascading.serialization.tokens", serializationTokensProperty);
     }
     return new JobConf(conf);
   }
