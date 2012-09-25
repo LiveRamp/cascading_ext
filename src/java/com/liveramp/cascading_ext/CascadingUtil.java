@@ -9,6 +9,7 @@ import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
+import com.liveramp.cascading_ext.serialization.MapSerialization;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.mapred.JobConf;
