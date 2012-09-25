@@ -24,6 +24,7 @@ public class CascadingUtil {
 
   protected CascadingUtil() {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
+    addSerialization(MapSerialization.class);
   }
 
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
