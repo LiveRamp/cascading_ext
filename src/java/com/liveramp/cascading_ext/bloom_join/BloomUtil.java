@@ -4,7 +4,9 @@ import cascading.tap.Tap;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
 import cascading.util.Pair;
+import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import org.apache.hadoop.io.BytesWritable;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -35,11 +37,11 @@ public class BloomUtil {
 
   public synchronized static BytesBloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
-    TupleEntryIterator itr = tap.openForRead(CascadingHelper.getFlowProcess());
+    TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
       TupleEntry cur = itr.next();
       long split = cur.getLong(0);
-      FixedSizeBitSet curSet = new FixedSizeBitSet(splitSize, ((RapleafBytesWritable) cur.getObject(1)).getWithPadding());
+      FixedSizeBitSet curSet = new FixedSizeBitSet(splitSize, ((BytesWritable) cur.getObject(1)).getBytes());
       for (long i = 0; i < curSet.numBits(); i++ ) {
         if (curSet.get(i)) {
           bitSet.set(split * splitSize + i);

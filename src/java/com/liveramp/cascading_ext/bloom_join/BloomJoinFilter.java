@@ -17,7 +17,7 @@ import java.io.IOException;
 public class BloomJoinFilter extends BloomFilterOperation implements Filter {
   private transient TupleSerializationUtil tupleSerializationUtil;
 
-  public BloomJoinFilter(RelevanceFilterLoader loader, String job_id, boolean cleanUpFilter) {
+  public BloomJoinFilter(BloomFilterLoader loader, String job_id, boolean cleanUpFilter) {
     super(loader, job_id, cleanUpFilter, Fields.ALL);
   }
 

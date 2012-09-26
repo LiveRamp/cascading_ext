@@ -11,6 +11,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class CreateBloomFilterFromIndices2 extends BaseOperation implements Aggr
   public void complete(FlowProcess flow, AggregatorCall call) {
     Context c = (Context) call.getContext();
     TupleEntry group = call.getGroup();
-    collector.add(new Tuple(group.getObject("split"), new RapleafBytesWritable(c.bitSet.getRaw())));
+    collector.add(new Tuple(group.getObject("split"), new BytesWritable(c.bitSet.getRaw())));
   }
 
   @Override

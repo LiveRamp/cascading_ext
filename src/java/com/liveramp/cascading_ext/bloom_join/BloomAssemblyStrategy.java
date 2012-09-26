@@ -16,6 +16,7 @@ import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.clearspring.analytics.stream.cardinality.ICardinality;
 import com.liveramp.cascading_ext.Bytes;
+import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -132,7 +133,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
    */
   private static long getApproxDistinctKeysCount(Tap parts) {
     try {
-      TupleEntryIterator in = parts.openForRead(get().getFlowProcess());
+      TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
       List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
 
       while (in.hasNext()) {

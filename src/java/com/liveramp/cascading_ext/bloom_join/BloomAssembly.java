@@ -144,7 +144,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
       // Load the bloom filter into memory and apply it to the LHS.
       filterPipe = new Each(filterPipe, largeJoinFields,
-              new BloomJoinFilter(new BytesRelevance.BytesRelevanceFilterLoader(), bloomJobID, false));
+              new BloomJoinFilter(new BytesBloomFilterLoader(), bloomJobID, false));
 
       // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
       // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
