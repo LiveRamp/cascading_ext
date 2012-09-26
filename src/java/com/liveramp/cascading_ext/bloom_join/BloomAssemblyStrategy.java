@@ -18,6 +18,7 @@ import com.clearspring.analytics.stream.cardinality.ICardinality;
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
+import com.liveramp.cascading_ext.bloom_join.assembly.BloomJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
