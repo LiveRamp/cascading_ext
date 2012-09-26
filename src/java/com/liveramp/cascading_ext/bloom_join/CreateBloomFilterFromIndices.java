@@ -16,12 +16,12 @@ import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
 
-public class CreateBloomFilterFromIndices2 extends BaseOperation implements Aggregator {
+public class CreateBloomFilterFromIndices extends BaseOperation implements Aggregator {
   private long numBits;
   private final Tap sideBucket;
   private TupleEntryCollector collector;
 
-  public CreateBloomFilterFromIndices2(Tap sideBucket) {
+  public CreateBloomFilterFromIndices(Tap sideBucket) {
     super(Fields.NONE);
     this.sideBucket = sideBucket;
   }

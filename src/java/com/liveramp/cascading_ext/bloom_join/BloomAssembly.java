@@ -129,7 +129,7 @@ public abstract class BloomAssembly extends SubAssembly {
       smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(), new Fields("split", "index"));
       smallPipe = new Each(smallPipe, new Fields("split", "index"), new Unique.FilterPartialDuplicates());
       smallPipe = new GroupBy(smallPipe, new Fields("split"));
-      smallPipe = new Every(smallPipe, new Fields("index"), new CreateBloomFilterFromIndices2(bloomParts), Fields.ALL);
+      smallPipe = new Every(smallPipe, new Fields("index"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
 
       ConfigDef bloomDef = smallPipe.getStepConfigDef();
       bloomDef.setProperty("target.bloom.filter.id", bloomJobID);
