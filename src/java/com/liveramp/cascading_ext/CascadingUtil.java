@@ -4,6 +4,7 @@ import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import com.liveramp.cascading_ext.bloom_join.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
@@ -25,6 +26,7 @@ public class CascadingUtil {
 
   protected CascadingUtil() {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
+    addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
     addSerialization(MapSerialization.class);
   }
 
