@@ -19,6 +19,7 @@ import cascading.tuple.TupleEntryCollector;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
+import com.liveramp.cascading_ext.joiner.LimitJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;

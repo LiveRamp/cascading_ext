@@ -1,5 +1,6 @@
 package com.liveramp.cascading_ext.bloom_join;
 
+import com.liveramp.cascading_ext.hash.Hash64;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;

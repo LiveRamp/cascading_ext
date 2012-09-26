@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.hash;
 
 /**
  * This class represents a common API for hashing functions.

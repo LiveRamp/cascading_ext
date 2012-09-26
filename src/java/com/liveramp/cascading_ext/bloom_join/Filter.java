@@ -1,5 +1,7 @@
 package com.liveramp.cascading_ext.bloom_join;
 
+import com.liveramp.cascading_ext.hash.Hash;
+import com.liveramp.cascading_ext.hash.Hash64Function;
 import org.apache.hadoop.io.Writable;
 
 import java.io.DataInput;
@@ -44,7 +46,7 @@ public abstract class Filter implements Writable {
    *
    * @param vectorSize The vector size of <i>this</i> filter.
    * @param nbHash The number of hash functions to consider.
-   * @param hashType type of the hashing function (see {@link Hash}).
+   * @param hashType type of the hashing function (see {@link com.liveramp.cascading_ext.hash.Hash}).
    */
   protected Filter(long vectorSize, int nbHash, int hashType) {
     this.vectorSize = vectorSize;

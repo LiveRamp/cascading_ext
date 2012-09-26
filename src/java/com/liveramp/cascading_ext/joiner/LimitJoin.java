@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.joiner;
 
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.JoinerClosure;

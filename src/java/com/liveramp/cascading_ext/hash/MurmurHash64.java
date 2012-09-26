@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.hash;
 
 /**
  * This is a very fast, non-cryptographic hash suitable for general hash-based

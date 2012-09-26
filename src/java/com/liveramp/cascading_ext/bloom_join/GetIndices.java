@@ -8,6 +8,8 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
+import com.liveramp.cascading_ext.hash.Hash64;
+import com.liveramp.cascading_ext.hash.Hash64Function;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
