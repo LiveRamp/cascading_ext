@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.assembly;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.planner.Scope;
@@ -19,9 +19,10 @@ import cascading.tuple.TupleEntryCollector;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.cascading_ext.bloom_join.operation.BloomJoinFilter;
-import com.liveramp.cascading_ext.bloom_join.operation.CreateBloomFilterFromIndices;
-import com.liveramp.cascading_ext.bloom_join.operation.GetIndices;
+import com.liveramp.cascading_ext.bloom.BytesBloomFilterLoader;
+import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
+import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
+import com.liveramp.cascading_ext.bloom.operation.GetIndices;
 import com.liveramp.cascading_ext.joiner.LimitJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;

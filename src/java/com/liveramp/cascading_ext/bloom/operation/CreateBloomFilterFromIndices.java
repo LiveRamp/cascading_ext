@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join.operation;
+package com.liveramp.cascading_ext.bloom.operation;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.Aggregator;

@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join.operation;
+package com.liveramp.cascading_ext.bloom.operation;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.Filter;
@@ -8,8 +8,8 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.cascading_ext.bloom_join.BloomFilterLoader;
-import com.liveramp.cascading_ext.bloom_join.BloomFilterOperation;
+import com.liveramp.cascading_ext.bloom.BloomFilterLoader;
+import com.liveramp.cascading_ext.bloom.BloomFilterOperation;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 

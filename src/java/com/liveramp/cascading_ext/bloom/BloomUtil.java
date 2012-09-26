@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.bloom;
 
 import cascading.tap.Tap;
 import cascading.tuple.TupleEntry;

@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.bloom;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowStep;
@@ -18,7 +18,8 @@ import com.clearspring.analytics.stream.cardinality.ICardinality;
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
-import com.liveramp.cascading_ext.bloom_join.assembly.BloomJoin;
+import com.liveramp.cascading_ext.assembly.BloomAssembly;
+import com.liveramp.cascading_ext.assembly.BloomJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;

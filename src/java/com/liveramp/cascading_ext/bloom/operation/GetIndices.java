@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join.operation;
+package com.liveramp.cascading_ext.bloom.operation;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
@@ -8,7 +8,7 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
-import com.liveramp.cascading_ext.bloom_join.Key;
+import com.liveramp.cascading_ext.bloom.Key;
 import com.liveramp.cascading_ext.hash.Hash64;
 import com.liveramp.cascading_ext.hash.Hash64Function;
 import org.apache.hadoop.io.BytesWritable;

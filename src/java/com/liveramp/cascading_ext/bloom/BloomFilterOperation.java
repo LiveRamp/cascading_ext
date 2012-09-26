@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.bloom;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowProcess;

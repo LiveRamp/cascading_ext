@@ -1,9 +1,8 @@
-package com.liveramp.cascading_ext.bloom_join.assembly;
+package com.liveramp.cascading_ext.assembly;
 
 import cascading.pipe.Pipe;
 import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
-import com.liveramp.cascading_ext.bloom_join.BloomAssembly;
 
 /**
  * This SubAssembly behaves exactly like CoGroup, except that the LHS is filtered using a bloom filter

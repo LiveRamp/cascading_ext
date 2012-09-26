@@ -1,8 +1,7 @@
-package com.liveramp.cascading_ext.bloom_join.assembly;
+package com.liveramp.cascading_ext.assembly;
 
 import cascading.pipe.Pipe;
 import cascading.tuple.Fields;
-import com.liveramp.cascading_ext.bloom_join.BloomAssembly;
 
 /**
  * This SubAssembly filters the LHS against a bloom filter created from the keys on the RHS.

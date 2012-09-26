@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.bloom_join;
+package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.hash.Hash;
 import com.liveramp.cascading_ext.hash.Hash64Function;

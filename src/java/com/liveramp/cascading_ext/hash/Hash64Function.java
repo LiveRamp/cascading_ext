@@ -1,6 +1,6 @@
 package com.liveramp.cascading_ext.hash;
 
-import com.liveramp.cascading_ext.bloom_join.Key;
+import com.liveramp.cascading_ext.bloom.Key;
 
 public final class Hash64Function {
   /** The number of hashed values. */
