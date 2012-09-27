@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 /**
  * @author eddie
  */
-public class BaseTestCase extends TestCase {
+public abstract class BaseTestCase extends TestCase {
   private static final String TEST_ROOT = "/tmp/cascading_ext_tests";
   protected static final FileSystem fs = FileSystemHelper.getFS();
 

@@ -10,7 +10,7 @@ import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.io.BytesWritable;
 
-public class BloomAssemblyTestCase extends BaseTestCase {
+public abstract class BloomAssemblyTestCase extends BaseTestCase {
 
   protected Tap lhsStore;
   protected Tap rhsStore;
