@@ -7,7 +7,9 @@ import cascading.util.Pair;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BloomUtil {
+  private static Logger LOG = Logger.getLogger(BloomUtil.class);
 
   public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems){
     double falsePositiveRate = BloomFilter.falsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
@@ -61,6 +64,7 @@ public class BloomUtil {
 
   public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath){
     try {
+      LOG.info("Writing bloom filter to filesystem: "+FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
       return Collections.singletonMap("mapred.cache.files", FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
