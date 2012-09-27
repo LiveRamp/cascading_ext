@@ -9,10 +9,10 @@ package com.liveramp.cascading_ext.hash;
  * </p>
  */
 public class MurmurHash extends Hash {
-  private static MurmurHash _instance = new MurmurHash();
+  private static MurmurHash instance = new MurmurHash();
 
   public static Hash getInstance() {
-    return _instance;
+    return instance;
   }
 
   @Override

@@ -20,8 +20,8 @@ public class FixedSizeBitSet {
     return (int) ((numBits + 7) / 8);
   }
 
-  private final byte[] _bytes;
-  private final long _numBits;
+  private final byte[] bytes;
+  private final long numBits;
 
   /**
    * Create a new FixedSizeBitSet with numBits bit positions. It will be initialized
@@ -53,70 +53,70 @@ public class FixedSizeBitSet {
               + " is too small to support a bitvector of " + numBits + " bits.");
     }
 
-    _numBits = numBits;
-    _bytes = arr;
+    this.numBits = numBits;
+    bytes = arr;
   }
 
   public long numBits() {
-    return _numBits;
+    return numBits;
   }
 
   public byte[] getRaw() {
-    return _bytes;
+    return bytes;
   }
 
   public void clear() {
-    Arrays.fill(_bytes, (byte) 0);
+    Arrays.fill(bytes, (byte) 0);
   }
 
   public void fill() {
-    Arrays.fill(_bytes, (byte) 0xff);
+    Arrays.fill(bytes, (byte) 0xff);
   }
 
   public boolean get(long pos) {
-    return (_bytes[byteNum(pos)] & bitValue(pos)) != 0;
+    return (bytes[byteNum(pos)] & bitValue(pos)) != 0;
   }
 
   public void set(long pos) {
     int byteNum = byteNum(pos);
-    _bytes[byteNum] = (byte) (_bytes[byteNum] | bitValue(pos));
+    bytes[byteNum] = (byte) (bytes[byteNum] | bitValue(pos));
   }
 
   public void unset(long pos) {
     int byteNum = byteNum(pos);
-    _bytes[byteNum] = (byte) (_bytes[byteNum] ^ bitValue(pos));
+    bytes[byteNum] = (byte) (bytes[byteNum] ^ bitValue(pos));
   }
 
   public void flip() {
-    for (int i = 0; i < _bytes.length; i++ ) {
-      _bytes[i] = (byte) ~_bytes[i];
+    for (int i = 0; i < bytes.length; i++ ) {
+      bytes[i] = (byte) ~bytes[i];
     }
   }
 
   public void or(FixedSizeBitSet other) {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
-    byte[] otherBytes = other._bytes;
-    for (int i = 0; i < _bytes.length; i++ ) {
-      _bytes[i] = (byte) (_bytes[i] | otherBytes[i]);
+    byte[] otherBytes = other.bytes;
+    for (int i = 0; i < bytes.length; i++ ) {
+      bytes[i] = (byte) (bytes[i] | otherBytes[i]);
     }
   }
 
   public void and(FixedSizeBitSet other) {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
-    byte[] otherBytes = other._bytes;
-    for (int i = 0; i < _bytes.length; i++ ) {
-      _bytes[i] = (byte) (_bytes[i] & otherBytes[i]);
+    byte[] otherBytes = other.bytes;
+    for (int i = 0; i < bytes.length; i++ ) {
+      bytes[i] = (byte) (bytes[i] & otherBytes[i]);
     }
   }
 
   public void xor(FixedSizeBitSet other) {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
-    byte[] otherBytes = other._bytes;
-    for (int i = 0; i < _bytes.length; i++ ) {
-      _bytes[i] = (byte) (_bytes[i] ^ otherBytes[i]);
+    byte[] otherBytes = other.bytes;
+    for (int i = 0; i < bytes.length; i++ ) {
+      bytes[i] = (byte) (bytes[i] ^ otherBytes[i]);
     }
   }
 

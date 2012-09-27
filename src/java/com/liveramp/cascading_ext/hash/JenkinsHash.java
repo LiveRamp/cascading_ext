@@ -21,10 +21,10 @@ public class JenkinsHash extends Hash {
   private static long INT_MASK = 0x00000000ffffffffL;
   private static long BYTE_MASK = 0x00000000000000ffL;
 
-  private static JenkinsHash _instance = new JenkinsHash();
+  private static JenkinsHash instance = new JenkinsHash();
 
   public static Hash getInstance() {
-    return _instance;
+    return instance;
   }
 
   private static long rot(long val, int pos) {

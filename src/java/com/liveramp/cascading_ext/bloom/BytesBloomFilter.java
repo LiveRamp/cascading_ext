@@ -12,7 +12,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class BytesBloomFilter implements Writable {
-  private BloomFilter _filter;
+  private BloomFilter filter;
 
   public static BytesBloomFilter readFromFileSystem(FileSystem fs, Path p) throws IOException {
     BytesBloomFilter ret = new BytesBloomFilter();
@@ -23,39 +23,39 @@ public class BytesBloomFilter implements Writable {
   }
 
   public BytesBloomFilter() {
-    _filter = new BloomFilter();
+    filter = new BloomFilter();
   }
 
   public BytesBloomFilter(long vectorLength, int numHashes) {
-    _filter = new BloomFilter(vectorLength, numHashes, Hash64.MURMUR_HASH64);
+    filter = new BloomFilter(vectorLength, numHashes, Hash64.MURMUR_HASH64);
   }
 
   public BytesBloomFilter(long vectorLength, int numHashes, byte[] arr) {
-    _filter = new BloomFilter(vectorLength, numHashes, Hash64.MURMUR_HASH64, arr);
+    filter = new BloomFilter(vectorLength, numHashes, Hash64.MURMUR_HASH64, arr);
   }
 
   public void add(byte[] bytes) {
-    _filter.add(new Key(bytes));
+    filter.add(new Key(bytes));
   }
 
   public boolean mayContain(byte[] bytes) {
-    return _filter.membershipTest(new Key(bytes));
+    return filter.membershipTest(new Key(bytes));
   }
 
   public double falsePositiveRate() {
-    return _filter.getFalsePositiveRate();
+    return filter.getFalsePositiveRate();
   }
 
   public void acceptAll() {
-    _filter.acceptAll();
+    filter.acceptAll();
   }
 
   public void readFields(DataInput in) throws IOException {
-    _filter.readFields(in);
+    filter.readFields(in);
   }
 
   public void write(DataOutput out) throws IOException {
-    _filter.write(out);
+    filter.write(out);
   }
 
   public void writeToFileSystem(FileSystem fs, Path p) throws IOException {

@@ -5,10 +5,10 @@ package com.liveramp.cascading_ext.hash;
  * lookup. See http://murmurhash.googlepages.com/ for more details.
  */
 public class MurmurHash64 extends Hash64 {
-  private static MurmurHash64 _instance = new MurmurHash64();
+  private static MurmurHash64 instance = new MurmurHash64();
 
   public static Hash64 getInstance() {
-    return _instance;
+    return instance;
   }
 
   @Override

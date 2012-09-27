@@ -20,35 +20,34 @@ import java.util.List;
 public abstract class BloomFilterOperation extends BaseOperation {
   private static Logger LOG = Logger.getLogger(BloomFilterOperation.class);
 
-  private static Object _filter = null;
-  private static String _filter_job_id = null;
+  private static Object filter = null;
+  private static String filterJobId = null;
   private final BloomFilterLoader loader;
 
   // the job id guarantees this stuff works on both cluster and during tests
   // in tests, the static objects don't get cleared between jobs
-  private String _job_id;
-  private boolean _cleanUpFilter;
+  private String jobId;
+  private boolean cleanUpFilter;
 
-  public BloomFilterOperation(BloomFilterLoader loader,
-                              String job_id, boolean cleanUpFilter, Fields newFields) {
+  public BloomFilterOperation(BloomFilterLoader loader, String jobId, boolean cleanUpFilter, Fields newFields) {
     super(newFields);
 
-    _job_id = job_id;
-    _cleanUpFilter = cleanUpFilter;
+    this.jobId = jobId;
+    this.cleanUpFilter = cleanUpFilter;
 
     this.loader = loader;
   }
 
-  public BloomFilterOperation(BloomFilterLoader logic, String job_id, Fields newFields) {
-    this(logic, job_id, true, newFields);
+  public BloomFilterOperation(BloomFilterLoader logic, String jobId, Fields newFields) {
+    this(logic, jobId, true, newFields);
   }
 
   protected boolean filterMayContain(Object potential) {
-    return loader.mayContain(_filter, potential);
+    return loader.mayContain(filter, potential);
   }
 
   protected void ensureLoadedFilter(FlowProcess process) {
-    if (_filter == null || !_filter_job_id.equals(_job_id)) {
+    if (filter == null || !filterJobId.equals(jobId)) {
       try {
         LOG.info("Loading bloom filter");
 
@@ -64,8 +63,8 @@ public abstract class BloomFilterOperation extends BaseOperation {
         if (bloomFilterFiles.size() != 1) {
           throw new RuntimeException("Expected one bloom filter path in the Distributed cache: there were " + bloomFilterFiles.size());
         }
-        _filter = loader.loadFilter(FileSystem.getLocal(new Configuration()), bloomFilterFiles.get(0).toString());
-        _filter_job_id = _job_id;
+        filter = loader.loadFilter(FileSystem.getLocal(new Configuration()), bloomFilterFiles.get(0).toString());
+        filterJobId = jobId;
 
         LOG.info("Done loading bloom filter");
       } catch (IOException ioe) {
@@ -76,7 +75,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
 
   @Override
   public void cleanup(FlowProcess process, OperationCall call) {
-    if (_cleanUpFilter) {
+    if (cleanUpFilter) {
       try {
         List<Path> bloomFilterFiles = new ArrayList<Path>();
         Path[] files = DistributedCache.getLocalCacheFiles(((HadoopFlowProcess) process).getJobConf());
