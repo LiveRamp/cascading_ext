@@ -1,5 +1,6 @@
 package com.liveramp.cascading_ext;
 
+import com.liveramp.cascading_ext.bloom.BloomConstants;
 import junit.framework.TestCase;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -27,6 +28,8 @@ public class BaseTestCase extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    BloomConstants.DEFAULT_BLOOM_FILTER_BITS = 10;
+    fs.delete(new Path(TEST_ROOT), true);
     System.err.println("------ test start ------");
     System.out.println("------ test start ------");
   }
@@ -34,7 +37,6 @@ public class BaseTestCase extends TestCase {
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
-    fs.delete(new Path(TEST_ROOT), true);
   }
 
   protected String getTestRoot(){

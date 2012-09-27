@@ -5,10 +5,13 @@ import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
 import cascading.util.Pair;
 import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import org.apache.hadoop.io.BytesWritable;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +60,11 @@ public class BloomUtil {
   }
 
   public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath){
-    return Collections.singletonMap("mapred.cache.files", "hdfs://" + bloomFilterPath);
+    try {
+      return Collections.singletonMap("mapred.cache.files", FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static void configureJobConfForRelevance(int requiredFieldsSize, int matchKeySize, Map properties) {

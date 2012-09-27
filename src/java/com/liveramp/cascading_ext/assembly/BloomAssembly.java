@@ -28,7 +28,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
-import cascading.operation.Filter;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -177,6 +176,8 @@ public abstract class BloomAssembly extends SubAssembly {
       }else if(operationType == Mode.JOIN){
         filterPipe = getCoGroup(filterPipe, largeJoinFields, rhsOrig, smallJoinFields, renameFields, joiner, coGroupOrder, operationType);
       }
+
+      filterPipe = new Each(filterPipe, new Debug("prefix"));
 
       setTails(filterPipe);
 
