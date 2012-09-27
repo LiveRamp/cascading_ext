@@ -5,15 +5,15 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 
-public class BytesBloomFilterLoader extends BloomFilterLoader {
+public class BytesBloomFilterLoader implements BloomFilterLoader {
 
   @Override
-  protected Object loadFilter(FileSystem fs, String filterFile) throws IOException {
+  public Object loadFilter(FileSystem fs, String filterFile) throws IOException {
     return BytesBloomFilter.readFromFileSystem(fs, new Path(filterFile));
   }
 
   @Override
-  protected boolean mayContain(Object filter, Object potential) {
+  public boolean mayContain(Object filter, Object potential) {
     BytesBloomFilter bbf = (BytesBloomFilter) filter;
     return bbf.mayContain((byte[]) potential);
   }
