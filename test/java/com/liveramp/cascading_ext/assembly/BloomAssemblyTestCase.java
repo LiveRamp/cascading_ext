@@ -6,6 +6,7 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.io.BytesWritable;
 
@@ -22,7 +23,8 @@ public class BloomAssemblyTestCase extends BaseTestCase {
 
   public void setUp() throws Exception {
     super.setUp();
-
+    BloomConstants.BUFFER_SIZE = 5;
+    
     lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot()+"/lhs");
     lhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot()+"/lhs2");
     rhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "rhs-value")), getTestRoot()+"/rhs");
