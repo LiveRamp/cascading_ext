@@ -8,7 +8,7 @@ import java.util.Iterator;
  * An iterator (that wraps an Iterator<Tuple>) that iterates over a single position in a stream of tuples.
  * @param <T>
  */
-public class SingleElementTupleIterator<T extends Comparable> implements Iterator<T> {
+public class SingleElementTupleIterator<T> implements Iterator<T> {
 
   private final Iterator<Tuple> iter;
   private final int value;
@@ -30,7 +30,7 @@ public class SingleElementTupleIterator<T extends Comparable> implements Iterato
   @Override
   public T next() {
     Tuple t = iter.next();
-    return (T) t.get(value);
+    return (T) t.getObject(value);
   }
 
   @Override
