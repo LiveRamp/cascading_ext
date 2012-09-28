@@ -11,22 +11,22 @@ import java.util.Iterator;
 * @author eddie
 */
 public class MultiGroupJoiner implements Joiner {
-  protected MultiBuffer _buffer;
-  protected int _groupSize;
+  protected MultiBuffer buffer;
+  protected int groupSize;
 
   public MultiGroupJoiner(int groupSize, MultiBuffer buffer) {
-    _buffer = buffer;
-    _groupSize = groupSize;
+    this.buffer = buffer;
+    this.groupSize = groupSize;
   }
 
   @Override
   public Iterator<Tuple> getIterator(JoinerClosure joinerClosure) {
 
-    _buffer.setContext(_groupSize + _buffer.getResultFields().size(), (HadoopGroupByClosure) joinerClosure);
-    _buffer.operate();
+    buffer.setContext(groupSize + buffer.getResultFields().size(), (HadoopGroupByClosure) joinerClosure);
+    buffer.operate();
 
     // See comment in CopyingIterator
-    return new CopyingIterator(_buffer.getResults().iterator());
+    return new CopyingIterator(buffer.getResults().iterator());
   }
 
   public int numJoins() {

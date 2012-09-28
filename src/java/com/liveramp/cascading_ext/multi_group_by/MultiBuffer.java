@@ -12,27 +12,27 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 public abstract class MultiBuffer implements Serializable {
-  private transient HadoopGroupByClosure _closure = null;
-  private Fields _resultFields;
-  private SpillableTupleList _results;
-  private int _pipeFieldsSum;
+  private transient HadoopGroupByClosure closure = null;
+  private Fields resultFields;
+  private SpillableTupleList results;
+  private int pipeFieldsSum;
 
   public MultiBuffer(Fields resultFields) {
-    _resultFields = resultFields;
+    this.resultFields = resultFields;
   }
 
   public Fields getResultFields() {
-    return _resultFields;
+    return resultFields;
   }
 
   public void setContext(int pipeFieldsSum, HadoopGroupByClosure closure) {
-    _closure = closure;
-    _results = new HadoopSpillableTupleList(100000, null, (JobConf) closure.getFlowProcess().getConfigCopy());
-    _pipeFieldsSum = pipeFieldsSum;
+    this.closure = closure;
+    results = new HadoopSpillableTupleList(100000, null, (JobConf) closure.getFlowProcess().getConfigCopy());
+    this.pipeFieldsSum = pipeFieldsSum;
   }
 
   public SpillableTupleList getResults() {
-    return _results;
+    return results;
   }
 
   public abstract void operate();
@@ -40,14 +40,14 @@ public abstract class MultiBuffer implements Serializable {
   protected void emit(Tuple result) {
     Tuple ret = new Tuple(getGroup());
     ret.addAll(result);
-    while (ret.size() < _pipeFieldsSum) {
+    while (ret.size() < pipeFieldsSum) {
       ret.add(0);
     }
-    _results.add(ret);
+    results.add(ret);
   }
 
   protected Iterator<Tuple> getArgumentsIterator(int pos) {
-    return _closure.getIterator(pos);
+    return closure.getIterator(pos);
   }
 
   protected <T> Iterator<T> getValuesIterator(int pos) {
@@ -59,10 +59,10 @@ public abstract class MultiBuffer implements Serializable {
   }
 
   public Tuple getGroup() {
-    return _closure.getGrouping();
+    return closure.getGrouping();
   }
 
   public FlowProcess getFlowProcess() {
-    return _closure.getFlowProcess();
+    return closure.getFlowProcess();
   }
 }
