@@ -55,7 +55,7 @@ public abstract class MultiBuffer implements Serializable {
   }
 
   protected <T> Iterator<T> getValuesIterator(int pos, int field) {
-    return new TupleIteratorWrapper<T>(getArgumentsIterator(pos), field);
+    return new SingleElementTupleIterator<T>(getArgumentsIterator(pos), field);
   }
 
   public Tuple getGroup() {

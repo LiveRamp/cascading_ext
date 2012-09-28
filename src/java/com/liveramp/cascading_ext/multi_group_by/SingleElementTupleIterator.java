@@ -4,18 +4,22 @@ import cascading.tuple.Tuple;
 
 import java.util.Iterator;
 
-public class TupleIteratorWrapper<T> implements Iterator<T> {
+/**
+ * An iterator (that wraps an Iterator<Tuple>) that iterates over a single position in a stream of tuples.
+ * @param <T>
+ */
+public class SingleElementTupleIterator<T extends Comparable> implements Iterator<T> {
 
   private final Iterator<Tuple> iter;
   private final int value;
 
-  public TupleIteratorWrapper(Iterator<Tuple> interior) {
+  public SingleElementTupleIterator(Iterator<Tuple> interior) {
     this(interior, 0);
   }
 
-  public TupleIteratorWrapper(Iterator<Tuple> interior, int field) {
+  public SingleElementTupleIterator(Iterator<Tuple> interior, int pos) {
     this.iter = interior;
-    this.value = field;
+    this.value = pos;
   }
 
   @Override
