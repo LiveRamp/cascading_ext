@@ -177,8 +177,6 @@ public abstract class BloomAssembly extends SubAssembly {
         filterPipe = getCoGroup(filterPipe, largeJoinFields, rhsOrig, smallJoinFields, renameFields, joiner, coGroupOrder, operationType);
       }
 
-      filterPipe = new Each(filterPipe, new Debug("prefix"));
-
       setTails(filterPipe);
 
     } catch (IOException e) {
