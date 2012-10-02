@@ -49,7 +49,7 @@
     <mkdir dir="${build.classes}"/>
   </target>
 
-  <target name="compile" depends="init">
+  <target name="compile" depends="init,no-debug-pipes">
     <javac srcdir="${src.java}" destdir="${build.classes}" debug="true" classpathref="compile.classpath" />
   </target>
 
@@ -135,5 +135,15 @@
   <target name="clean-javadoc" description="Clean Javadoc">
     <delete includeemptydirs="true" dir="${doc}"/>
   </target>
+
+  <!-- Debug pipes have a nasty habit of filling up all the logs on a cluster with junk
+       if accidentally left in production.  This target makes sure the pipe was intentional-->
+  <target name="no-debug-pipes" description="--> fail the build if there are any debug pipes: to override use -Ddebugpipe=true" unless="debugpipe">
+    <exec dir="." executable="/bin/sh" failonerror="true">
+      <arg value="-c"/>
+      <arg value="test '0' = `find . -name *.java | xargs cat | egrep -c 'cascading.operation.Debug'`"/>
+    </exec>
+  </target>
+
 
 </project>

@@ -2,7 +2,13 @@ package com.liveramp.cascading_ext.assembly;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.planner.Scope;
-import cascading.operation.*;
+import cascading.operation.BaseOperation;
+import cascading.operation.Filter;
+import cascading.operation.FilterCall;
+import cascading.operation.Function;
+import cascading.operation.FunctionCall;
+import cascading.operation.Identity;
+import cascading.operation.OperationCall;
 import cascading.pipe.*;
 import cascading.pipe.assembly.Discard;
 import cascading.pipe.assembly.Unique;
