@@ -1,6 +1,7 @@
 package com.liveramp.cascading_ext.counters;
 
 import cascading.flow.Flow;
+import cascading.stats.CascadingStats;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
 import cascading.tap.Tap;
@@ -20,7 +21,7 @@ public class Counters {
     return val == null ? defaultVal : val;
   }
 
-  public static Long safeGet(FlowStats flowStats, String group, String name) {
+  public static Long safeGet(CascadingStats flowStats, String group, String name) {
     try {
       return get(flowStats, group, name);
     } catch (Exception e) {
@@ -29,13 +30,13 @@ public class Counters {
   }
 
   @SuppressWarnings("rawtypes")
-  public static Long safeGetWithDefault(FlowStats flowStats, Enum counter, Long defaultVal) {
+  public static Long safeGetWithDefault(CascadingStats flowStats, Enum counter, Long defaultVal) {
     Long val = safeGet(flowStats, counter);
     return val == null ? defaultVal : val;
   }
 
   @SuppressWarnings("rawtypes")
-  public static Long safeGet(FlowStats flowStats, Enum counter) {
+  public static Long safeGet(CascadingStats flowStats, Enum counter) {
     try {
       return get(flowStats, counter);
     } catch (Exception e) {
@@ -43,12 +44,12 @@ public class Counters {
     }
   }
 
-  public static Long get(FlowStats flowStats, String group, String name) {
+  public static Long get(CascadingStats flowStats, String group, String name) {
     return flowStats.getCounterValue(group, name);
   }
 
   @SuppressWarnings("rawtypes")
-  public static Long get(FlowStats flowStats, Enum counter) {
+  public static Long get(CascadingStats flowStats, Enum counter) {
     return flowStats.getCounterValue(counter);
   }
 
@@ -70,7 +71,7 @@ public class Counters {
 
       for (String group: safeGetCounterGroups(statsForStep)) {
         for (String name: statsForStep.getCountersFor(group)) {
-          counters.get(statsForStep).add(new Counter(group, name, Counters.safeGet(flowStats, group, name)));
+          counters.get(statsForStep).add(new Counter(group, name, Counters.safeGet(statsForStep, group, name)));
         }
       }
     }
