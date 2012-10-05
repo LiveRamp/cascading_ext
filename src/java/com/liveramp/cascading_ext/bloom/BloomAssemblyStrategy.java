@@ -9,6 +9,7 @@ import cascading.stats.FlowStepStats;
 import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
 import cascading.util.Pair;
@@ -20,6 +21,7 @@ import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.assembly.BloomJoin;
+import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -41,88 +43,12 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
-
-
-    //  build a bloom filter before executing the step, if necessary
-    configureBloomJoin(flowStep, predecessorSteps);
-  }
-
-  /**
-   * If this job involves any bloom joins, we can detect it here and configure it further.
-   *
-   * @param flowStep
-   * @param predecessorSteps
-   */
-  private static void configureBloomJoin(FlowStep<JobConf> flowStep, List<FlowStep<JobConf>> predecessorSteps) {
     JobConf conf = flowStep.getConfig();
-
-    //  the job that maps and create the bloom parts needs to know about the keys
-    String targetBloomID = conf.get("target.bloom.filter.id");
-    if (targetBloomID != null) {
-      configureBloomFilterBuilder(targetBloomID, flowStep, predecessorSteps);
-    }
 
     //  the job is the filter which needs to use the bloom filter
     String sourceBloomID = conf.get("source.bloom.filter.id");
     if (sourceBloomID != null) {
       buildBloomfilter(sourceBloomID, flowStep, predecessorSteps);
-    }
-  }
-
-  /**
-   * Configure a job that builds a bloom filter
-   *
-   * @param bloomID
-   * @param flowStep
-   * @param predecessorSteps
-   */
-  private static void configureBloomFilterBuilder(String bloomID, FlowStep<JobConf> flowStep, List<FlowStep<JobConf>> predecessorSteps) {
-    //  look through previous steps, find the pre-bloom-one
-    for (FlowStep<JobConf> previousStep : predecessorSteps) {
-      JobConf prevStepConf = previousStep.getConfig();
-      String preBloomID = prevStepConf.get("pre.bloom.keys.pipe");
-
-      if (bloomID.equals(preBloomID)) {
-        LOG.info("Found step before bloom filter creation map: " + preBloomID);
-
-        // This is the side bucket that the HyperLogLog writes to
-        Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), prevStepConf.getRaw("bloom.keys.counts.dir"));
-
-        // Extract the counters from the previous job to approximate the average key/tuple size
-        FlowStepStats stats = ((BaseFlowStep) previousStep).getFlowStepStats();
-
-        long prevJobTuples = getApproxDistinctKeysCount(approxCountsTap);
-        long numBloomBits = BloomConstants.DEFAULT_BLOOM_FILTER_BITS;
-
-        Pair<Double, Integer> optimal = BloomUtil.getOptimalFalsePositiveRateAndNumHashes(numBloomBits, prevJobTuples);
-        LOG.info("Counted " + prevJobTuples + " distinct keys");
-        LOG.info("Using " + numBloomBits + " bits in the bloom filter");
-        LOG.info("Found a false positive rate of: " + optimal.getLhs());
-        LOG.info("Will use " + optimal.getRhs() + " bloom hashes");
-
-        //  get flow step stat where flow step is equal
-        JobConf stepConf = flowStep.getConfig();
-        stepConf.set("num.bloom.bits", Long.toString(BloomConstants.DEFAULT_BLOOM_FILTER_BITS));
-        stepConf.set("num.bloom.hashes", Integer.toString(optimal.getRhs()));
-        stepConf.set("split.size", Long.toString(BloomUtil.getSplitSize(numBloomBits, BloomJoin.NUM_SPLITS)));
-
-        // Collect some of the stats gathered. This will help configure the bloom filter
-        long numSampled = stats.getCounterValue(BloomJoin.StatsCounters.TOTAL_SAMPLED_TUPLES);
-        long keySizeSum = stats.getCounterValue(BloomJoin.StatsCounters.KEY_SIZE_SUM);
-        long matchSizeSum = stats.getCounterValue(BloomJoin.StatsCounters.TUPLE_SIZE_SUM);
-
-        int avgKeySize = 0;
-        int avgMatchSize = 0;
-
-        //  don't divide by zero if the filter is empty
-        if (numSampled != 0) {
-          avgKeySize = (int) (keySizeSum / numSampled);
-          avgMatchSize = (int) (matchSizeSum / numSampled);
-        }
-
-        stepConf.set("avg.key.size", Integer.toString(avgKeySize));
-        stepConf.set("avg.match.size", Integer.toString(avgMatchSize));
-      }
     }
   }
 
@@ -175,14 +101,42 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
         LOG.info("Found step generating required bloom filter: " + targetBloomID);
         LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
-        long splitSize = Long.parseLong(stepConf.get("split.size"));
-        int numBloomHashes = Integer.parseInt(stepConf.get("num.bloom.hashes"));
+        // This is the side bucket that the HyperLogLog writes to
+        Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.getRaw("bloom.keys.counts.dir"));
 
-        Integer avgMatchSize = Integer.valueOf(stepConf.get("avg.match.size"));
-        Integer avgKeySize = Integer.valueOf(stepConf.get("avg.key.size"));
+        long prevJobTuples = getApproxDistinctKeysCount(approxCountsTap);
+
+        Pair<Double, Integer> optimal = BloomUtil.getOptimalFalsePositiveRateAndNumHashes(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, prevJobTuples);
+        LOG.info("Counted " + prevJobTuples + " distinct keys");
+        LOG.info("Using " + BloomConstants.DEFAULT_BLOOM_FILTER_BITS + " bits in the bloom filter");
+        LOG.info("Found a false positive rate of: " + optimal.getLhs());
+        LOG.info("Will use " + optimal.getRhs() + " bloom hashes");
+
+        // Extract the counters from the previous job to approximate the average key/tuple size
+        FlowStepStats stats = ((BaseFlowStep) step).getFlowStepStats();
+
+        // Collect some of the stats gathered. This will help configure the bloom filter
+        long numSampled = stats.getCounterValue(BloomJoin.StatsCounters.TOTAL_SAMPLED_TUPLES);
+        long keySizeSum = stats.getCounterValue(BloomJoin.StatsCounters.KEY_SIZE_SUM);
+        long matchSizeSum = stats.getCounterValue(BloomJoin.StatsCounters.TUPLE_SIZE_SUM);
+
+        int avgKeySize = 0;
+        int avgMatchSize = 0;
+
+        //  don't divide by zero if the filter is empty
+        if (numSampled != 0) {
+          avgKeySize = (int) (keySizeSum / numSampled);
+          avgMatchSize = (int) (matchSizeSum / numSampled);
+        }
+
+        stepConf.set("avg.key.size", Integer.toString(avgKeySize));
+        stepConf.set("avg.match.size", Integer.toString(avgMatchSize));
 
         LOG.info("Avg key size ~= " + avgKeySize);
         LOG.info("Avg match size ~= " + avgMatchSize);
+
+        long splitSize = Long.parseLong(stepConf.get("split.size"));
+        int numBloomHashes = optimal.getRhs();
 
         for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForRelevance(avgMatchSize, avgKeySize).entrySet()) {
           currentStepConf.set(entry.getKey(), entry.getValue());
@@ -190,7 +144,8 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
         try {
           // Load bloom filter parts and merge them.
-          Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir);
+          Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
+
           BytesBloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes);
 
           // Write merged bloom filter to HDFS
@@ -209,7 +164,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
               currentStepConf.set(prop.getKey(), prop.getValue());
             }
           }
-
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

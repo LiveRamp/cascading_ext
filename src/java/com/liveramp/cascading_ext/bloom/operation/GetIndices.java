@@ -8,6 +8,7 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
+import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.bloom.Key;
 import com.liveramp.cascading_ext.hash.Hash64;
 import com.liveramp.cascading_ext.hash.Hash64Function;
@@ -26,14 +27,14 @@ public class GetIndices extends BaseOperation implements Function {
   }
 
   public GetIndices(int hashType) {
-    super(1, new Fields("split", "index"));
+    super(1, new Fields("split", "index", "hash_num"));
     this.hashType = hashType;
   }
 
   public void prepare(FlowProcess flowProcess, OperationCall operationCall){
     JobConf conf = (JobConf) flowProcess.getConfigCopy();
     numBits = Long.parseLong(conf.get("num.bloom.bits"));
-    numHashes = Integer.parseInt(conf.get("num.bloom.hashes"));
+    numHashes = Integer.parseInt(conf.get("max.bloom.hashes"));
     splitSize = Long.parseLong(conf.get("split.size"));
   }
 
@@ -46,7 +47,7 @@ public class GetIndices extends BaseOperation implements Function {
     hash.clear();
     long[] h = hash.hash(new Key(bytes));
     for (int i = 0; i < h.length; i++ ) {
-      Tuple tuple = new Tuple(h[i] / splitSize, h[i] % splitSize);
+      Tuple tuple = new Tuple(h[i] / splitSize, h[i] % splitSize, i);
       call.getOutputCollector().add(tuple);
     }
   }

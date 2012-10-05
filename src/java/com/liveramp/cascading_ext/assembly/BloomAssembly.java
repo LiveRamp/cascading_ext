@@ -25,6 +25,8 @@ import cascading.tuple.TupleEntryCollector;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
+import com.liveramp.cascading_ext.bloom.BloomConstants;
+import com.liveramp.cascading_ext.bloom.BloomUtil;
 import com.liveramp.cascading_ext.bloom.BytesBloomFilterLoader;
 import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
@@ -104,15 +106,20 @@ public abstract class BloomAssembly extends SubAssembly {
       String bloomJobID = UUID.randomUUID().toString();
       Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
 
-      String bloomPartsDir = bloomTempDir+"/parts/";
+      String bloomPartsDir = bloomTempDir+"/parts";
       String bloomFinalFilter = bloomTempDir+"/filter.bloomfilter";
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
       FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
-      FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(bloomPartsDir));
+
 
       Tap approxCountParts = new Hfs(new SequenceFile(new Fields("bytes")), approxCountPartsDir);
-      Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir);
+      Tap[] bloomParts = new Tap[BloomConstants.MAX_BLOOM_FILTER_HASHES];
+      for(int i= 0; i < bloomParts.length; i++) {
+        String dir = bloomPartsDir+"/"+i+"/";
+        FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(dir));
+        bloomParts[i] = new Hfs(new SequenceFile(new Fields("split", "filter")), dir);
+      }
 
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if(operationType != Mode.JOIN){
@@ -123,27 +130,22 @@ public abstract class BloomAssembly extends SubAssembly {
       // Collect stats used to configure the bloom filter creation step
       smallPipe = new Each(smallPipe, new CollectKeyStats(DEFAULT_SAMPLE_RATE, DEFAULT_ERR_PERCENTAGE, smallJoinFields, approxCountParts));
 
-      // More parameters used in later steps
-      ConfigDef preBloomDef = smallPipe.getStepConfigDef();
-      preBloomDef.setProperty("pre.bloom.keys.pipe", bloomJobID);
-      preBloomDef.setProperty("bloom.tmp.dir", bloomTempDir.toString());
-      preBloomDef.setProperty("bloom.keys.counts.dir", approxCountPartsDir);
-
-      // Forces the following operations to happen in a separate MapReduce job. This is necessary because the
-      // later jobs depend on the HLL counts determined in this job.
-      smallPipe = new Checkpoint(smallPipe);
-
       // This creates the bloom filter on each of the splits. Later steps merge the parts
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(), new Fields("split", "index"));
-      smallPipe = new Each(smallPipe, new Fields("split", "index"), new Unique.FilterPartialDuplicates());
+      smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(), new Fields("split", "index", "hash_num"));
+      smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
       smallPipe = new GroupBy(smallPipe, new Fields("split"));
-      smallPipe = new Every(smallPipe, new Fields("index"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
+      smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
 
       ConfigDef bloomDef = smallPipe.getStepConfigDef();
       bloomDef.setProperty("target.bloom.filter.id", bloomJobID);
       bloomDef.setProperty("target.bloom.filter.parts", bloomPartsDir);
+      bloomDef.setProperty("bloom.keys.counts.dir", approxCountPartsDir);
+
       bloomDef.setProperty("mapred.reduce.tasks", Integer.toString(NUM_SPLITS));
+      bloomDef.setProperty("num.bloom.bits", Long.toString(BloomConstants.DEFAULT_BLOOM_FILTER_BITS));
+      bloomDef.setProperty("max.bloom.hashes", Integer.toString(BloomConstants.MAX_BLOOM_FILTER_HASHES));
+      bloomDef.setProperty("split.size", Long.toString(BloomUtil.getSplitSize(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, BloomJoin.NUM_SPLITS)));
       bloomDef.setProperty("io.sort.record.percent", Double.toString(0.50));
 
       // This is a bit of a hack to:
