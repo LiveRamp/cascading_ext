@@ -11,6 +11,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import com.liveramp.cascading_ext.bloom.BloomConstants;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -18,22 +19,25 @@ import java.io.IOException;
 
 public class CreateBloomFilterFromIndices extends BaseOperation implements Aggregator {
   private long numBits;
-  private final Tap sideBucket;
-  private TupleEntryCollector collector;
+  private final Tap[] sideBuckets;
+  private TupleEntryCollector[] collectors;
 
-  public CreateBloomFilterFromIndices(Tap sideBucket) {
+  public CreateBloomFilterFromIndices(Tap[] sideBuckets) {
     super(Fields.NONE);
-    this.sideBucket = sideBucket;
+    this.sideBuckets = sideBuckets;
   }
 
   public static class Context {
-    FixedSizeBitSet bitSet;
+    FixedSizeBitSet[] bitSet;
   }
 
   @Override
   public void prepare(FlowProcess flowProcess, OperationCall operationCall){
     try {
-      collector = sideBucket.openForWrite(flowProcess);
+      collectors = new TupleEntryCollector[sideBuckets.length];
+      for(int i = 0; i< sideBuckets.length; i++){
+        collectors[i] = sideBuckets[i].openForWrite(flowProcess);
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -41,20 +45,30 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
 
   @Override
   public void aggregate(FlowProcess flow, AggregatorCall call) {
+
     Context c = (Context) call.getContext();
-    c.bitSet.set(call.getArguments().getLong(0));
+    long bit = (Long) call.getArguments().getObject(0);
+    int hashNum = (Integer) call.getArguments().getObject(1);
+
+    for(int i = c.bitSet.length-1; i > hashNum-1; i--){
+      c.bitSet[i].set(bit);
+    }
   }
 
   @Override
   public void complete(FlowProcess flow, AggregatorCall call) {
     Context c = (Context) call.getContext();
     TupleEntry group = call.getGroup();
-    collector.add(new Tuple(group.getObject("split"), new BytesWritable(c.bitSet.getRaw())));
+    for(int i = 0; i < collectors.length; i++){
+      collectors[i].add(new Tuple(group.getObject("split"), new BytesWritable(c.bitSet[i].getRaw())));
+    }
   }
 
   @Override
   public void cleanup(FlowProcess flowProcess, OperationCall operationCall){
-    collector.close();
+    for (TupleEntryCollector collector : collectors) {
+      collector.close();
+    }
   }
 
   @Override
@@ -63,7 +77,10 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
     numBits = Long.parseLong(conf.get("split.size"));
 
     Context c = new Context();
-    c.bitSet = new FixedSizeBitSet(numBits, new byte[FixedSizeBitSet.getNumBytesToStore(numBits)]);
+    c.bitSet = new FixedSizeBitSet[sideBuckets.length];
+    for(int i = 0; i < c.bitSet.length; i++){
+      c.bitSet[i] = new FixedSizeBitSet(numBits, new byte[FixedSizeBitSet.getNumBytesToStore(numBits)]);
+    }
     call.setContext(c);
   }
 }
