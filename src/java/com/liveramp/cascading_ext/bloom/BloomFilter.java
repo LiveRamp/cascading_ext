@@ -1,6 +1,9 @@
 package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import com.liveramp.cascading_ext.hash.Hash;
+import com.liveramp.cascading_ext.hash.Hash64Function;
+import org.apache.hadoop.io.Writable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -20,11 +23,10 @@ import java.io.IOException;
  *
  * @version 1.0 - 2 Feb. 07
  *
- * @see org.onelab.filter.Filter The general behavior of a filter
- *
  * @see <a href="http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal">Space/Time Trade-Offs in Hash Coding with Allowable Errors</a>
  */
-public class BloomFilter extends Filter {
+public class BloomFilter implements Writable {
+  private static final int VERSION = -1; // negative to accommodate for old format
 
   public static double falsePositiveRate(int numHashes, long vectorSize, long numElements) {
     int k = numHashes;
@@ -39,10 +41,20 @@ public class BloomFilter extends Filter {
   private FixedSizeBitSet bits;
   private long numElems = 0;
 
+  /** The vector size of <i>this</i> filter. */
+  protected long vectorSize;
+
+  /** The hash function used to map a key to several positions in the vector. */
+  protected Hash64Function hash;
+
+  /** The number of hash function to consider. */
+  protected int nbHash;
+
+  /** Type of hashing function to use. */
+  protected int hashType;
+
   /** Default constructor - use with readFields */
-  public BloomFilter() {
-    super();
-  }
+  public BloomFilter() { }
 
   /**
    * Constructor
@@ -52,16 +64,48 @@ public class BloomFilter extends Filter {
    * @param hashType type of the hashing function (see {@link com.liveramp.cascading_ext.hash.Hash}).
    */
   public BloomFilter(long vectorSize, int nbHash, int hashType) {
-    super(vectorSize, nbHash, hashType);
+    this.vectorSize = vectorSize;
+    this.nbHash = nbHash;
+    this.hashType = hashType;
+    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
     bits = new FixedSizeBitSet(this.vectorSize);
   }
 
   public BloomFilter(long vectorSize, int nbHash, int hashType, byte[] arr) {
-    super(vectorSize, nbHash, hashType);
+    this.vectorSize = vectorSize;
+    this.nbHash = nbHash;
+    this.hashType = hashType;
+    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
     bits = new FixedSizeBitSet(this.vectorSize, arr);
   }
 
-  @Override
+  /**
+   * Adds a list of keys to <i>this</i> filter.
+   *
+   * @param keys The keys
+   */
+  public void add(Iterable<Key> keys) {
+    for (Key key : keys) {
+      add(key);
+    }
+  }
+
+  /**
+   * Adds an array of keys to <i>this</i> filter.
+   *
+   * @param keys The array of keys.
+   */
+  public void add(Key[] keys) {
+    for (Key key : keys) {
+      add(key);
+    }
+  }
+
+  /**
+   * Adds a key to <i>this</i> filter.
+   *
+   * @param key The key to add.
+   */
   public void add(Key key) {
     long[] h = hash.hash(key);
     hash.clear();
@@ -72,7 +116,13 @@ public class BloomFilter extends Filter {
     numElems++ ;
   }
 
-  @Override
+  /**
+   * Determines whether a specified key belongs to <i>this</i> filter.
+   *
+   * @param key The key to test.
+   * @return boolean True if the specified key belongs to <i>this</i> filter.
+   *         False otherwise.
+   */
   public boolean membershipTest(Key key) {
     long[] h = hash.hash(key);
     hash.clear();
@@ -105,14 +155,28 @@ public class BloomFilter extends Filter {
   // Writable interface
   @Override
   public void write(DataOutput out) throws IOException {
-    super.write(out);
+    out.writeInt(VERSION);
+    out.writeInt(this.nbHash);
+    out.writeByte(this.hashType);
+    out.writeLong(this.vectorSize);
     out.writeLong(numElems);
     out.write(bits.getRaw());
   }
 
   @Override
   public void readFields(DataInput in) throws IOException {
-    super.readFields(in);
+    int ver = in.readInt();
+    if (ver > 0) { // old unversioned format
+      this.nbHash = ver;
+      this.hashType = Hash.JENKINS_HASH;
+    } else if (ver == VERSION) {
+      this.nbHash = in.readInt();
+      this.hashType = in.readByte();
+    } else {
+      throw new IOException("Unsupported version: " + ver);
+    }
+    this.vectorSize = in.readLong();
+    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
     numElems = in.readLong();
     byte[] bytes = new byte[FixedSizeBitSet.getNumBytesToStore(vectorSize)];
     in.readFully(bytes);
