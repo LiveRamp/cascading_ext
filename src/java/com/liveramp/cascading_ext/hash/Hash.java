@@ -4,17 +4,56 @@ package com.liveramp.cascading_ext.hash;
  * This class represents a common API for hashing functions.
  */
 public abstract class Hash {
+  public enum HashFunction {
+    JENKINS_HASH, MURMUR_HASH
+  }
+
+  /**
+   * Converts the String representation of a hash function name to an enum.
+   * @param name hash function name
+   * @return hash function
+   */
+  public static HashFunction functionFromName(String name){
+    if("jenkins".equalsIgnoreCase(name)){
+      return HashFunction.JENKINS_HASH;
+    } else if("murmur".equalsIgnoreCase(name)){
+      return HashFunction.MURMUR_HASH;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Get a singleton instance of hash function of a given type.
+   *
+   * @param type hash type
+   * @return hash function instance, or null if type is invalid
+   */
+  public static Hash getInstance(HashFunction type) {
+    switch (type) {
+      case JENKINS_HASH:
+        return JenkinsHash.getInstance();
+      case MURMUR_HASH:
+        return MurmurHash.getInstance();
+      default:
+        return null;
+    }
+  }
+
   /**
    * Constant to denote invalid hash type.
    */
+  @Deprecated
   public static final int INVALID_HASH = -1;
   /**
    * Constant to denote {@link JenkinsHash}.
    */
+  @Deprecated
   public static final int JENKINS_HASH = 0;
   /**
    * Constant to denote {@link MurmurHash}.
    */
+  @Deprecated
   public static final int MURMUR_HASH = 1;
 
   /**
@@ -25,6 +64,7 @@ public abstract class Hash {
    * @param name hash function name
    * @return one of the predefined constants
    */
+  @Deprecated
   public static int parseHashType(String name) {
     if ("jenkins".equalsIgnoreCase(name)) {
       return JENKINS_HASH;
@@ -41,6 +81,7 @@ public abstract class Hash {
    * @param type predefined hash type
    * @return hash function instance, or null if type is invalid
    */
+  @Deprecated
   public static Hash getInstance(int type) {
     switch (type) {
       case JENKINS_HASH:
