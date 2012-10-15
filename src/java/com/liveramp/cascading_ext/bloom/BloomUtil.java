@@ -58,7 +58,7 @@ public class BloomUtil {
     return new BytesBloomFilter(numBloomBits, numBloomHashes, bitSet.getRaw());
   }
 
-  public static void configureDistCacheForBloomFilter(Map properties, String bloomFilterPath) {
+  public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {
     properties.putAll(getPropertiesForDistCache(bloomFilterPath));
   }
 
@@ -71,7 +71,7 @@ public class BloomUtil {
     }
   }
 
-  public static void configureJobConfForRelevance(int requiredFieldsSize, int matchKeySize, Map properties) {
+  public static void configureJobConfForRelevance(int requiredFieldsSize, int matchKeySize, Map<Object, Object> properties) {
     properties.putAll(getPropertiesForRelevance(requiredFieldsSize, matchKeySize));
   }
 
