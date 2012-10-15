@@ -41,6 +41,8 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
   private static Logger LOG = Logger.getLogger(BloomAssemblyStrategy.class);
 
+  private final static Object BF_LOAD_LOCK = new Object();
+
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
     JobConf conf = flowStep.getConfig();
@@ -142,15 +144,19 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           currentStepConf.set(entry.getKey(), entry.getValue());
         }
 
+
         try {
-          // Load bloom filter parts and merge them.
-          Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
 
-          BytesBloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes);
+          synchronized(BF_LOAD_LOCK){
+            // Load bloom filter parts and merge them.
+            Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
+            BytesBloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes);
 
-          // Write merged bloom filter to HDFS
-          LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
-          filter.writeToFileSystem(FileSystemHelper.getFS(), new Path(requiredBloomPath));
+            // Write merged bloom filter to HDFS
+            LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
+            filter.writeToFileSystem(FileSystemHelper.getFS(), new Path(requiredBloomPath));
+            filter = null;  //  kill reference so another thread doesn't OOME
+          }
 
           // Put merged result in distributed cache
           LOG.info("Adding dist cache properties to config:");

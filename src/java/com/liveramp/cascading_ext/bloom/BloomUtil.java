@@ -41,7 +41,7 @@ public class BloomUtil {
     return new Pair<Double, Integer>(falsePositiveRate, numBloomHashes);
   }
 
-  public synchronized static BytesBloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes) throws IOException {
+  public static BytesBloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
     TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
