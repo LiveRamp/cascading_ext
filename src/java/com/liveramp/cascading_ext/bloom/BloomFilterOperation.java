@@ -64,7 +64,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
         }
 
         filter = BloomFilter.loadFilter(FileSystem.getLocal(new Configuration()),
-
+            new Path(bloomFilterFiles.get(0).toString()),
             CascadingUtil.get().getTokenToHashes(conf));
         filterJobId = jobId;
 
