@@ -23,6 +23,7 @@ import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.assembly.BloomJoin;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import com.liveramp.cascading_ext.tap.TapHelper;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -151,7 +152,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           currentStepConf.set(entry.getKey(), entry.getValue());
         }
 
-
         try {
 
           // Load bloom filter parts and merge them.
@@ -160,9 +160,10 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           // Write merged bloom filter to HDFS
           LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
           synchronized(BF_LOAD_LOCK){
-            BloomUtil.writeFilterToFileSystem(FileSystemHelper.getFS(),
-                BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, hashFactory),
-                new Path(requiredBloomPath));
+            BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, prevJobTuples, hashFactory);
+            FSDataOutputStream out = FileSystemHelper.getFS().create(new Path(requiredBloomPath));
+            filter.writeOut(out, BloomUtil.getHashToTokens(stepConf));
+            out.close();
           }
 
           // Put merged result in distributed cache
@@ -177,7 +178,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
               currentStepConf.set(prop.getKey(), prop.getValue());
             }
           }
-        } catch (IOException e) {
+        } catch (Exception e) {
           throw new RuntimeException(e);
         }
       }

@@ -27,7 +27,6 @@ import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.bloom.BloomUtil;
-import com.liveramp.cascading_ext.bloom.BytesBloomFilterLoader;
 import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
@@ -156,7 +155,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
       // Load the bloom filter into memory and apply it to the LHS.
       filterPipe = new Each(filterPipe, largeJoinFields,
-              new BloomJoinFilter(new BytesBloomFilterLoader(), bloomJobID, false));
+              new BloomJoinFilter(bloomJobID, false));
 
       // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
       // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the

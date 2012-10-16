@@ -8,4 +8,9 @@ public class Murmur64HashFactory extends HashFunctionFactory {
   public HashFunction getFunction(long maxValue, int numHashes) {
     return new MurmurHash64(maxValue, numHashes);
   }
+
+  @Override
+  public Class<? extends HashFunction> getFunctionClass() {
+    return MurmurHash64.class;
+  }
 }

@@ -9,10 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 
 public class TestBloomFilter extends BaseTestCase {
-  public void testSetSanity() throws IOException {
+  public void testSetSanity() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
     BloomFilter set = new BloomFilter(1000000, 4, new Murmur64HashFactory());
     byte[] arr1 = new byte[] {1, 2, 3, 4, 5, 6, 7};
     byte[] arr2 = new byte[] {11, 12, 5, -2};
@@ -38,12 +39,11 @@ public class TestBloomFilter extends BaseTestCase {
     // now test that we can write and read from file just fine
     new File("/tmp/filter-test.bloomfilter").delete();
     DataOutputStream os = new DataOutputStream(new FileOutputStream("/tmp/filter-test.bloomfilter"));
-    set.write(os);
+    set.writeOut(os, BloomUtil.getHashToTokens(CascadingUtil.get().getJobConf()));
     os.close();
 
-    BloomFilter set2 = new BloomFilter();
-    DataInputStream is = new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter"));
-    set2.readFields(is);
+    BloomFilter set2 = BloomFilter.readFilter(new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter")),
+        BloomUtil.getTokenToHashes(CascadingUtil.get().getJobConf()));
 
     assertTrue(set2.membershipTest(new Key(arr1)));
     assertTrue(set2.membershipTest(new Key(arr2)));

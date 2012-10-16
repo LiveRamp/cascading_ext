@@ -8,7 +8,10 @@ import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.assembly.BloomAssembly;
+import com.liveramp.cascading_ext.hash2.HashFunction;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import org.apache.commons.collections.MapIterator;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -52,7 +55,7 @@ public class BloomUtil {
     return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
   }
 
-  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, HashFunctionFactory factory) throws IOException {
+  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems, HashFunctionFactory factory) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
     TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
@@ -66,7 +69,7 @@ public class BloomUtil {
       }
     }
 
-    return new BloomFilter(numBloomBits, numBloomHashes, factory, bitSet.getRaw());
+    return new BloomFilter(numBloomBits, numBloomHashes, factory.getFunction(numBloomBits, numBloomHashes), bitSet.getRaw(), numElems);
   }
 
   public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {
@@ -99,17 +102,24 @@ public class BloomUtil {
     return (numBloomBits + numSplits - 1) / numSplits;
   }
 
-  public static BloomFilter readFilterFromFileSystem(FileSystem fs, Path p) throws IOException {
-    BloomFilter ret = new BloomFilter();
-    FSDataInputStream is = fs.open(p);
-    ret.readFields(is);
-    is.close();
-    return ret;
+  public static Map<Integer, Class<? extends HashFunctionFactory>> getTokenToHashes(Configuration conf) throws ClassNotFoundException {
+    Map<Integer, Class<? extends HashFunctionFactory>> map = new HashMap<Integer, Class<? extends HashFunctionFactory>>();
+    String hashTokens = conf.get("hash.function.tokens");
+    for(String pair: hashTokens.split(",")){
+      String[] parts = pair.split("=");
+      map.put(Integer.parseInt(parts[0]), ((Class<? extends HashFunctionFactory>)Class.forName(parts[1])));
+    }
+    return map;
   }
 
-  public static void writeFilterToFileSystem(FileSystem fs, BloomFilter filter, Path p) throws IOException {
-    FSDataOutputStream os = fs.create(p);
-    filter.write(os);
-    os.close();
+  public static Map<Class<? extends HashFunction>, Integer> getHashToTokens(Configuration conf) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    Map<Class<? extends HashFunction>, Integer> map = new HashMap<Class<? extends HashFunction>,Integer>();
+    String hashTokens = conf.get("hash.function.tokens");
+    for(String pair: hashTokens.split(",")){
+      String[] parts = pair.split("=");
+      HashFunctionFactory factory = (HashFunctionFactory) Class.forName(parts[1]).newInstance();
+      map.put(factory.getFunctionClass(), Integer.parseInt(parts[0]));
+    }
+    return map;
   }
 }

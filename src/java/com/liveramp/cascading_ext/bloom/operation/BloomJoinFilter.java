@@ -8,7 +8,6 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.cascading_ext.bloom.BloomFilterLoader;
 import com.liveramp.cascading_ext.bloom.BloomFilterOperation;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -18,8 +17,8 @@ import java.io.IOException;
 public class BloomJoinFilter extends BloomFilterOperation implements Filter {
   private transient TupleSerializationUtil tupleSerializationUtil;
 
-  public BloomJoinFilter(BloomFilterLoader loader, String job_id, boolean cleanUpFilter) {
-    super(loader, job_id, cleanUpFilter, Fields.ALL);
+  public BloomJoinFilter(String job_id, boolean cleanUpFilter) {
+    super(job_id, cleanUpFilter, Fields.ALL);
   }
 
   @Override
