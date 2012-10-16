@@ -9,11 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import com.liveramp.cascading_ext.BaseTestCase;
-import com.liveramp.cascading_ext.hash.Hash64;
+import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 
 public class TestBloomFilter extends BaseTestCase {
   public void testSetSanity() throws IOException {
-    BloomFilter set = new BloomFilter(1000000, 4, Hash64.MURMUR_HASH64);
+    BloomFilter set = new BloomFilter(1000000, 4, new Murmur64HashFactory());
     byte[] arr1 = new byte[] {1, 2, 3, 4, 5, 6, 7};
     byte[] arr2 = new byte[] {11, 12, 5, -2};
     byte[] arr3 = new byte[] {3, 4, 5};
@@ -55,15 +55,10 @@ public class TestBloomFilter extends BaseTestCase {
     // technically this could be an invalid statement, but the probability is low and this is a sanity check
     assertFalse(set2.membershipTest(new Key(arr3)));
 
-    set2.acceptAll();
-    for (byte i = 0; i < (byte) 125; i++ ) {
-      assertTrue(set2.membershipTest(new Key(new byte[] {i})));
-    }
-    assertTrue(set2.membershipTest(new Key(arr3)));
   }
 
   public void testFalsePositiveRate() {
-    BloomFilter set = new BloomFilter(100, 3, Hash64.MURMUR_HASH64);
+    BloomFilter set = new BloomFilter(100, 3, new Murmur64HashFactory());
     for (byte i = 0; i < 20; i++ ) {
       set.add(new Key(new byte[] {i}));
     }
@@ -71,7 +66,7 @@ public class TestBloomFilter extends BaseTestCase {
     double rate = set.getFalsePositiveRate();
     assertEquals(92, Math.round(rate * 1000)); // from http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
 
-    set = new BloomFilter(100, 2, Hash64.MURMUR_HASH64);
+    set = new BloomFilter(100, 2, new Murmur64HashFactory());
     for (byte i = 0; i < 50; i++ ) {
       set.add(new Key(new byte[] {i}));
     }

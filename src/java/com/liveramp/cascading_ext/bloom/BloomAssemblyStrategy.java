@@ -21,6 +21,7 @@ import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.assembly.BloomJoin;
+import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -42,6 +43,12 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
   private static Logger LOG = Logger.getLogger(BloomAssemblyStrategy.class);
 
   private final static Object BF_LOAD_LOCK = new Object();
+
+  private final HashFunctionFactory hashFactory;
+
+  public BloomAssemblyStrategy(HashFunctionFactory hashFactory){
+    this.hashFactory = hashFactory;
+  }
 
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
@@ -90,7 +97,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
    * @param currentStep
    * @param predecessorSteps
    */
-  private static void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
+  private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
     JobConf currentStepConf = currentStep.getConfig();
     String requiredBloomPath = currentStepConf.get("required.bloom.filter.path");
 
@@ -147,15 +154,15 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
         try {
 
-          synchronized(BF_LOAD_LOCK){
-            // Load bloom filter parts and merge them.
-            Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
-            BytesBloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes);
+          // Load bloom filter parts and merge them.
+          Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
 
-            // Write merged bloom filter to HDFS
-            LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
-            filter.writeToFileSystem(FileSystemHelper.getFS(), new Path(requiredBloomPath));
-            filter = null;  //  kill reference so another thread doesn't OOME
+          // Write merged bloom filter to HDFS
+          LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
+          synchronized(BF_LOAD_LOCK){
+            BloomUtil.writeFilterToFileSystem(FileSystemHelper.getFS(),
+                BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, hashFactory),
+                new Path(requiredBloomPath));
           }
 
           // Put merged result in distributed cache

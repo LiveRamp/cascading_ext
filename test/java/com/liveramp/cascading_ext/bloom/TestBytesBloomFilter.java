@@ -1,6 +1,7 @@
 package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 
 import java.io.*;
 
@@ -9,7 +10,7 @@ import java.io.*;
  */
 public class TestBytesBloomFilter extends BaseTestCase {
   public void testSetSanity() throws IOException {
-    BytesBloomFilter set = new BytesBloomFilter(1000000, 4);
+    BytesBloomFilter set = new BytesBloomFilter(1000000, 4, new Murmur64HashFactory());
     byte[] arr1 = new byte[] {1, 2, 3, 4, 5, 6, 7};
     byte[] arr2 = new byte[] {11, 12, 5, -2};
     byte[] arr3 = new byte[] {3, 4, 5};

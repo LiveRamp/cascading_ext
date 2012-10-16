@@ -132,7 +132,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
       // This creates the bloom filter on each of the splits. Later steps merge the parts
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(), new Fields("split", "index", "hash_num"));
+      smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(BloomConstants.DEFAULT_HASH_FACTORY), new Fields("split", "index", "hash_num"));
       smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
       smallPipe = new GroupBy(smallPipe, new Fields("split"));
       smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
