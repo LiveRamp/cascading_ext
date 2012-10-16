@@ -1,10 +1,12 @@
 package com.liveramp.cascading_ext.bloom;
 
+import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.hash2.HashFunction;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Writable;
 
 import java.io.*;
@@ -121,7 +123,14 @@ public class BloomFilter {
     return BloomUtil.getFalsePositiveRate(numHashes, getVectorSize(), numElems);
   }
 
-  public static BloomFilter readFilter(DataInput in, Map<Integer, Class<? extends HashFunctionFactory>> hashes) throws IOException, IllegalAccessException, InstantiationException {
+  public static BloomFilter loadFilter(FileSystem fs, Path path, Map<Integer, Class<? extends HashFunctionFactory>> hashes) throws IOException, InstantiationException, IllegalAccessException {
+    FSDataInputStream inputStream = fs.open(path);
+    BloomFilter bf = loadFilter(inputStream, hashes);
+    inputStream.close();
+    return bf;
+  }
+
+  public static BloomFilter loadFilter(DataInput in, Map<Integer, Class<? extends HashFunctionFactory>> hashes) throws IOException, IllegalAccessException, InstantiationException {
     int numHashes = in.readInt();
     long vectorSize = in.readLong();
     long numElems = in.readLong();
@@ -131,11 +140,17 @@ public class BloomFilter {
     return new BloomFilter(vectorSize, numHashes, hashes.get(hashToken).newInstance().getFunction(vectorSize, numHashes), bytes, numElems);
   }
 
+  public void writeOut(FileSystem fs, Path path, Map<Class<? extends HashFunction>, Integer> hashes) throws IOException {
+    FSDataOutputStream out = fs.create(path);
+    writeOut(out, hashes);
+    out.close();
+  }
+
   public void writeOut(DataOutput out, Map<Class<? extends HashFunction>, Integer> hashes) throws IOException {
     out.writeInt(this.numHashes);
     out.writeLong(this.vectorSize);
     out.writeLong(this.numElems);
     out.writeInt(hashes.get(this.hashFunction.getClass()));
-    out.write(bits.getRaw());
+    out.write(this.bits.getRaw());
   }
 }

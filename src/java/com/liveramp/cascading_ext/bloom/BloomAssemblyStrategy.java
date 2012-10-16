@@ -160,10 +160,10 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           // Write merged bloom filter to HDFS
           LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
           synchronized(BF_LOAD_LOCK){
-            BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, prevJobTuples, hashFactory);
-            FSDataOutputStream out = FileSystemHelper.getFS().create(new Path(requiredBloomPath));
-            filter.writeOut(out, BloomUtil.getHashToTokens(stepConf));
-            out.close();
+            BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, prevJobTuples, hashFactory)
+                .writeOut(FileSystemHelper.getFS(),
+                    new Path(requiredBloomPath),
+                    CascadingUtil.get().getHashToTokens(stepConf));
           }
 
           // Put merged result in distributed cache

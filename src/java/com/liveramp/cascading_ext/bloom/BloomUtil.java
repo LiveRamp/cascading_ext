@@ -101,25 +101,4 @@ public class BloomUtil {
   public static long getSplitSize(long numBloomBits, int numSplits){
     return (numBloomBits + numSplits - 1) / numSplits;
   }
-
-  public static Map<Integer, Class<? extends HashFunctionFactory>> getTokenToHashes(Configuration conf) throws ClassNotFoundException {
-    Map<Integer, Class<? extends HashFunctionFactory>> map = new HashMap<Integer, Class<? extends HashFunctionFactory>>();
-    String hashTokens = conf.get("hash.function.tokens");
-    for(String pair: hashTokens.split(",")){
-      String[] parts = pair.split("=");
-      map.put(Integer.parseInt(parts[0]), ((Class<? extends HashFunctionFactory>)Class.forName(parts[1])));
-    }
-    return map;
-  }
-
-  public static Map<Class<? extends HashFunction>, Integer> getHashToTokens(Configuration conf) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-    Map<Class<? extends HashFunction>, Integer> map = new HashMap<Class<? extends HashFunction>,Integer>();
-    String hashTokens = conf.get("cascading_ext.hash.function.tokens");
-    for(String pair: hashTokens.split(",")){
-      String[] parts = pair.split("=");
-      HashFunctionFactory factory = (HashFunctionFactory) Class.forName(parts[1]).newInstance();
-      map.put(factory.getFunctionClass(), Integer.parseInt(parts[0]));
-    }
-    return map;
-  }
 }

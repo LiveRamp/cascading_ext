@@ -42,7 +42,7 @@ public class TestBloomFilter extends BaseTestCase {
     set.writeOut(os, BloomUtil.getHashToTokens(CascadingUtil.get().getJobConf()));
     os.close();
 
-    BloomFilter set2 = BloomFilter.readFilter(new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter")),
+    BloomFilter set2 = BloomFilter.loadFilter(new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter")),
         BloomUtil.getTokenToHashes(CascadingUtil.get().getJobConf()));
 
     assertTrue(set2.membershipTest(new Key(arr1)));
