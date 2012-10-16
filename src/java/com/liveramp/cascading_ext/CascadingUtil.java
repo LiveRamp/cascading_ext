@@ -111,7 +111,7 @@ public class CascadingUtil {
     for(Map.Entry<Integer, Class<? extends HashFunctionFactory>> entry : hashFactoryTokens.entrySet()){
       strings.add(entry.getKey() + "=" + entry.getValue().getName());
     }
-    return Collections.singletonMap("hash.function.tokens", StringUtils.join(strings, ","));
+    return Collections.singletonMap("cascading_ext.hash.function.tokens", StringUtils.join(strings, ","));
   }
 
 

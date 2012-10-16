@@ -114,7 +114,7 @@ public class BloomUtil {
 
   public static Map<Class<? extends HashFunction>, Integer> getHashToTokens(Configuration conf) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
     Map<Class<? extends HashFunction>, Integer> map = new HashMap<Class<? extends HashFunction>,Integer>();
-    String hashTokens = conf.get("hash.function.tokens");
+    String hashTokens = conf.get("cascading_ext.hash.function.tokens");
     for(String pair: hashTokens.split(",")){
       String[] parts = pair.split("=");
       HashFunctionFactory factory = (HashFunctionFactory) Class.forName(parts[1]).newInstance();
