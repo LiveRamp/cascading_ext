@@ -10,11 +10,16 @@ import java.io.IOException;
 
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 
 public class TestBloomFilter extends BaseTestCase {
+
+  private final HashTokenMap tokenMap = new HashTokenMap(CascadingUtil.get().getJobConf());
+
   public void testSetSanity() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-    BloomFilter set = new BloomFilter(1000000, 4, new Murmur64HashFactory());
+
+    BloomFilter set = new BloomFilter(1000000, 4, new Murmur64HashFactory(), tokenMap);
     byte[] arr1 = new byte[] {1, 2, 3, 4, 5, 6, 7};
     byte[] arr2 = new byte[] {11, 12, 5, -2};
     byte[] arr3 = new byte[] {3, 4, 5};
@@ -38,12 +43,15 @@ public class TestBloomFilter extends BaseTestCase {
 
     // now test that we can write and read from file just fine
     new File("/tmp/filter-test.bloomfilter").delete();
+
     DataOutputStream os = new DataOutputStream(new FileOutputStream("/tmp/filter-test.bloomfilter"));
-    set.writeOut(os, BloomUtil.getHashToTokens(CascadingUtil.get().getJobConf()));
+    set.write(os);
     os.close();
 
-    BloomFilter set2 = BloomFilter.loadFilter(new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter")),
-        BloomUtil.getTokenToHashes(CascadingUtil.get().getJobConf()));
+    BloomFilter set2 = new BloomFilter(tokenMap);
+    DataInputStream in = new DataInputStream(new FileInputStream("/tmp/filter-test.bloomfilter"));
+    set2.readFields(in);
+    in.close();
 
     assertTrue(set2.membershipTest(new Key(arr1)));
     assertTrue(set2.membershipTest(new Key(arr2)));
@@ -58,7 +66,7 @@ public class TestBloomFilter extends BaseTestCase {
   }
 
   public void testFalsePositiveRate() {
-    BloomFilter set = new BloomFilter(100, 3, new Murmur64HashFactory());
+    BloomFilter set = new BloomFilter(100, 3, new Murmur64HashFactory(), tokenMap);
     for (byte i = 0; i < 20; i++ ) {
       set.add(new Key(new byte[] {i}));
     }
@@ -66,7 +74,7 @@ public class TestBloomFilter extends BaseTestCase {
     double rate = set.getFalsePositiveRate();
     assertEquals(92, Math.round(rate * 1000)); // from http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
 
-    set = new BloomFilter(100, 2, new Murmur64HashFactory());
+    set = new BloomFilter(100, 2, new Murmur64HashFactory(), tokenMap);
     for (byte i = 0; i < 50; i++ ) {
       set.add(new Key(new byte[] {i}));
     }

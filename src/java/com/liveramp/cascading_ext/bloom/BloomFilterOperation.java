@@ -7,6 +7,7 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
+import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -63,9 +64,10 @@ public abstract class BloomFilterOperation extends BaseOperation {
           throw new RuntimeException("Expected one bloom filter path in the Distributed cache: there were " + bloomFilterFiles.size());
         }
 
-        filter = BloomFilter.loadFilter(FileSystem.getLocal(new Configuration()),
+        filter = BloomFilter.read(FileSystem.getLocal(new Configuration()),
             new Path(bloomFilterFiles.get(0).toString()),
-            CascadingUtil.get().getTokenToHashes(conf));
+            new HashTokenMap(conf));
+
         filterJobId = jobId;
 
         LOG.info("Done loading bloom filter");

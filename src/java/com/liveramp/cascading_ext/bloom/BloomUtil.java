@@ -10,6 +10,7 @@ import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.hash2.HashFunction;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import org.apache.commons.collections.MapIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -55,7 +56,8 @@ public class BloomUtil {
     return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
   }
 
-  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems, HashFunctionFactory factory) throws IOException {
+  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems,
+                                            HashFunctionFactory factory, HashTokenMap map) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
     TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
@@ -69,7 +71,7 @@ public class BloomUtil {
       }
     }
 
-    return new BloomFilter(numBloomBits, numBloomHashes, factory.getFunction(numBloomBits, numBloomHashes), bitSet.getRaw(), numElems);
+    return new BloomFilter(numBloomBits, numBloomHashes, factory.getFunction(numBloomBits, numBloomHashes), bitSet.getRaw(), numElems, map);
   }
 
   public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {

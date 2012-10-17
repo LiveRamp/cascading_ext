@@ -22,6 +22,7 @@ import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.assembly.BloomJoin;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -160,10 +161,9 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           // Write merged bloom filter to HDFS
           LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
           synchronized(BF_LOAD_LOCK){
-            BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, prevJobTuples, hashFactory)
+            BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes, prevJobTuples, hashFactory, new HashTokenMap(stepConf))
                 .writeOut(FileSystemHelper.getFS(),
-                    new Path(requiredBloomPath),
-                    CascadingUtil.get().getHashToTokens(stepConf));
+                    new Path(requiredBloomPath));
           }
 
           // Put merged result in distributed cache
