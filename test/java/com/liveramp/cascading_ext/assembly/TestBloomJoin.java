@@ -37,7 +37,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
         getTestRoot()+"/output3");
   }
 
-  public void testSingle() {
+  public void testSingle() throws IOException {
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
@@ -52,9 +52,14 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     input.put("lhs", this.lhsStore);
     input.put("rhs", this.rhsStore);
 
-    CascadingUtil.get().getFlowConnector().connect(input, new NullTap(), joined).complete();
+    CascadingUtil.get().getFlowConnector().connect(input, output, joined).complete();
 
-    //  TODO assert the output
+    List<Tuple> tuples = TapHelper.getAllTuples(output);
+    assertTrue(tuples.contains(new Tuple(bytes("1"), bytes("11"), "w-lhs", bytes("1"), bytes("11"), "a-rhs")));
+    assertTrue(tuples.contains(new Tuple(bytes("1"), bytes("11"), "w-lhs", bytes("1"), bytes("11"), "b-rhs")));
+    assertTrue(tuples.contains(new Tuple(bytes("2"), bytes("12"), "x-lhs", bytes("2"), bytes("12"), "c-rhs")));
+
+    assertEquals(3, tuples.size());
   }
 
   public void testIt() throws IOException {
