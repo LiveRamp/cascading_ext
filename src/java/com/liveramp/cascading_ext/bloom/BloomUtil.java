@@ -14,9 +14,6 @@ import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.hash2.HashFunction;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
-import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -55,7 +52,6 @@ public class BloomUtil {
 
   public static double getFalsePositiveRate(int numHashes, long vectorSize, long numElements) {
     // http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
-    // Math.pow(1 - Math.pow(1-1/(double)m, k*n), k);
     return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
   }
 

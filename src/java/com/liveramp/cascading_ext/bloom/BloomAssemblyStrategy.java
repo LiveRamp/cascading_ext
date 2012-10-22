@@ -5,7 +5,6 @@ import cascading.flow.FlowStep;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.planner.BaseFlowStep;
 import cascading.stats.FlowStepStats;
-import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;

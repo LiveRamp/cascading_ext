@@ -5,9 +5,7 @@ import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
-import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
-import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -42,7 +40,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
   }
 
   protected boolean filterMayContain(byte[] potential) {
-    return filter.membershipTest(new Key(potential));
+    return filter.membershipTest(potential);
   }
 
   protected void ensureLoadedFilter(FlowProcess process) {

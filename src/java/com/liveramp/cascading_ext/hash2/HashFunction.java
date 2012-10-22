@@ -1,7 +1,5 @@
 package com.liveramp.cascading_ext.hash2;
 
-import com.liveramp.cascading_ext.bloom.Key;
-
 import java.io.Serializable;
 
 public abstract class HashFunction implements Serializable {
@@ -14,8 +12,7 @@ public abstract class HashFunction implements Serializable {
     this.numHashes = numHashes;
   }
 
-  public long[] hash(Key k) {
-    byte[] b = k.getBytes();
+  public long[] hash(byte[] b) {
     if (b.length == 0) {
       throw new IllegalArgumentException("key length must be > 0");
     }

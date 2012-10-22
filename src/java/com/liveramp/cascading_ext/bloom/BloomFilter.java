@@ -56,19 +56,8 @@ public class BloomFilter implements Writable {
    *
    * @param keys The keys
    */
-  public void add(Iterable<Key> keys) {
-    for (Key key : keys) {
-      add(key);
-    }
-  }
-
-  /**
-   * Adds an array of keys to <i>this</i> filter.
-   *
-   * @param keys The array of keys.
-   */
-  public void add(Key[] keys) {
-    for (Key key : keys) {
+  public void add(Iterable<byte[]> keys) {
+    for (byte[] key : keys) {
       add(key);
     }
   }
@@ -78,7 +67,7 @@ public class BloomFilter implements Writable {
    *
    * @param key The key to add.
    */
-  public void add(Key key) {
+  public void add(byte[] key) {
     long[] h = hashFunction.hash(key);
 
     for (int i = 0; i < numHashes; i++ ) {
@@ -94,7 +83,7 @@ public class BloomFilter implements Writable {
    * @return boolean True if the specified key belongs to <i>this</i> filter.
    *         False otherwise.
    */
-  public boolean membershipTest(Key key) {
+  public boolean membershipTest(byte[] key) {
     long[] h = hashFunction.hash(key);
     for (int i = 0; i < numHashes; i++ ) {
       if (!bits.get(h[i])) {
@@ -137,7 +126,7 @@ public class BloomFilter implements Writable {
     out.writeInt(this.numHashes);
     out.writeLong(this.vectorSize);
     out.writeLong(this.numElems);
-    out.writeChars(this.hashFunction.getHashID()+"\n");
+    out.writeBytes(this.hashFunction.getHashID()+"\n");
     out.write(this.bits.getRaw());
   }
 

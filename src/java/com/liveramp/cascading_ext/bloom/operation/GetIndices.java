@@ -35,7 +35,7 @@ public class GetIndices extends BaseOperation implements Function {
   @Override
   public void operate(FlowProcess flow, FunctionCall call) {
     byte[] bytes = Bytes.getBytes((BytesWritable) call.getArguments().get(0));
-    long[] h = function.hash(new Key(bytes));
+    long[] h = function.hash(bytes);
     for (int i = 0; i < h.length; i++ ) {
       Tuple tuple = new Tuple(h[i] / splitSize, h[i] % splitSize, i);
       call.getOutputCollector().add(tuple);
