@@ -53,6 +53,8 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     input.put("rhs", this.rhsStore);
 
     CascadingUtil.get().getFlowConnector().connect(input, new NullTap(), joined).complete();
+
+    //  TODO assert the output
   }
 
   public void testIt() throws IOException {

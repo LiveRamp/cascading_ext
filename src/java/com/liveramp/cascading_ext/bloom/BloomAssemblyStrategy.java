@@ -63,7 +63,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
         int avgKeySize = 0;
         int avgMatchSize = 0;
 
-        //  don't divide by zero if the filter is empty
         if (numSampled != 0) {
           avgKeySize = (int) (keySizeSum / numSampled);
           avgMatchSize = (int) (matchSizeSum / numSampled);

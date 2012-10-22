@@ -82,7 +82,6 @@ public abstract class BloomAssembly extends SubAssembly {
 
     try {
 
-      // Some of these parameters are used by the RapleafFlowStepStrategy to inform later steps in the bloom operation.
       String bloomJobID = UUID.randomUUID().toString();
       Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
 
@@ -91,7 +90,6 @@ public abstract class BloomAssembly extends SubAssembly {
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
       FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
-
 
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if(operationType != Mode.JOIN){
