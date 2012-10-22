@@ -4,5 +4,4 @@ import java.io.Serializable;
 
 public abstract class HashFunctionFactory implements Serializable {
   public abstract HashFunction getFunction(long maxValue, int numHashes);
-  public abstract Class<? extends HashFunction> getFunctionClass();
 }
