@@ -26,6 +26,7 @@ import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomConstants;
+import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.BloomUtil;
 import com.liveramp.cascading_ext.bloom.BytesBloomFilterLoader;
 import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
@@ -50,27 +51,6 @@ import java.util.UUID;
  */
 public abstract class BloomAssembly extends SubAssembly {
   private static Logger LOG = Logger.getLogger(BloomAssembly.class);
-
-  public static final int NUM_SPLITS = 100;
-
-  /**
-   * This parameter controls how accurate (and how much memory) HyperLogLog takes to approximate the
-   * distinct number of keys
-   */
-  public static final double DEFAULT_ERR_PERCENTAGE = 0.01;
-
-  /**
-   * To compute optimal parameters for bloom filter creation, we need to know the average key size
-   * and the average tuple size on the key side. This parameter controls the rate at which we sample
-   * the keys to approximate an average.
-   */
-  public static double DEFAULT_SAMPLE_RATE = 0.01;
-
-  public enum StatsCounters {
-    TOTAL_SAMPLED_TUPLES,
-    KEY_SIZE_SUM,
-    TUPLE_SIZE_SUM
-  }
 
   protected enum Mode {
     FILTER_EXACT, FILTER_INEXACT, JOIN
@@ -113,40 +93,19 @@ public abstract class BloomAssembly extends SubAssembly {
       FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
 
 
-      Tap approxCountParts = new Hfs(new SequenceFile(new Fields("bytes")), approxCountPartsDir);
-      Tap[] bloomParts = new Tap[BloomConstants.MAX_BLOOM_FILTER_HASHES];
-      for(int i= 0; i < bloomParts.length; i++) {
-        String dir = bloomPartsDir+"/"+i+"/";
-        FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(dir));
-        bloomParts[i] = new Hfs(new SequenceFile(new Fields("split", "filter")), dir);
-      }
-
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if(operationType != Mode.JOIN){
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
       }
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
 
-      // Collect stats used to configure the bloom filter creation step
-      smallPipe = new Each(smallPipe, new CollectKeyStats(DEFAULT_SAMPLE_RATE, DEFAULT_ERR_PERCENTAGE, smallJoinFields, approxCountParts));
-
       // This creates the bloom filter on each of the splits. Later steps merge the parts
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new Each(smallPipe, new Fields("serialized"), new GetIndices(), new Fields("split", "index", "hash_num"));
-      smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
-      smallPipe = new GroupBy(smallPipe, new Fields("split"));
-      smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
-
-      ConfigDef bloomDef = smallPipe.getStepConfigDef();
-      bloomDef.setProperty("target.bloom.filter.id", bloomJobID);
-      bloomDef.setProperty("target.bloom.filter.parts", bloomPartsDir);
-      bloomDef.setProperty("bloom.keys.counts.dir", approxCountPartsDir);
-
-      bloomDef.setProperty("mapred.reduce.tasks", Integer.toString(NUM_SPLITS));
-      bloomDef.setProperty("num.bloom.bits", Long.toString(BloomConstants.DEFAULT_BLOOM_FILTER_BITS));
-      bloomDef.setProperty("max.bloom.hashes", Integer.toString(BloomConstants.MAX_BLOOM_FILTER_HASHES));
-      bloomDef.setProperty("split.size", Long.toString(BloomUtil.getSplitSize(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, BloomJoin.NUM_SPLITS)));
-      bloomDef.setProperty("io.sort.record.percent", Double.toString(0.50));
+      smallPipe = new CreateBloomFilter(smallPipe,
+          approxCountPartsDir,
+          bloomPartsDir,
+          "serialized-tuple-key",
+          Collections.singletonMap(BloomProps.TARGET_BLOOM_FILTER_ID, bloomJobID));
 
       // This is a bit of a hack to:
       //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
@@ -162,8 +121,8 @@ public abstract class BloomAssembly extends SubAssembly {
       // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
       // distributed cache.
       ConfigDef config = filterPipe.getStepConfigDef();
-      config.setProperty("source.bloom.filter.id", bloomJobID);
-      config.setProperty("required.bloom.filter.path", bloomFinalFilter);
+      config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
+      config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
       config.setProperty("mapred.job.reuse.jvm.num.tasks", "-1");
 
       if(operationType == Mode.FILTER_EXACT){
@@ -200,7 +159,7 @@ public abstract class BloomAssembly extends SubAssembly {
                           Mode mode){
     Pipe lhs, rhs;
     Fields lhsFields, rhsFields;
-    Joiner joiner;
+    Joiner joiner = new InnerJoin();
 
     if(coGroupOrder == CoGroupOrder.LARGE_LHS){
       lhs = filtered;
@@ -212,8 +171,6 @@ public abstract class BloomAssembly extends SubAssembly {
       }else{
         if(joinerInput != null){
           joiner = joinerInput;
-        }else{
-          joiner = new InnerJoin();
         }
       }
     }else{
@@ -226,8 +183,6 @@ public abstract class BloomAssembly extends SubAssembly {
       }else{
         if(joinerInput != null){
           joiner = joinerInput;
-        }else{
-          joiner = new InnerJoin();
         }
       }
     }
@@ -264,7 +219,7 @@ public abstract class BloomAssembly extends SubAssembly {
     private transient TupleSerializationUtil tupleSerializationUtil;
 
     public GetSerializedTuple(){
-      super(new Fields("serialized"));
+      super(new Fields("serialized-tuple-key"));
     }
 
     @Override
@@ -281,104 +236,6 @@ public abstract class BloomAssembly extends SubAssembly {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }
-  }
-
-  /**
-   * Used to collect the following stats about the keys in a bloom join:
-   *  - approximate distinct number (uses HLL)
-   *  - approximate average key size
-   *  - approximate average tuple size
-   */
-  private static class CollectKeyStats extends BaseOperation implements Filter {
-    private static Logger LOG = Logger.getLogger(CollectKeyStats.class);
-    private static transient Random RAND;
-
-    private transient HyperLogLog approxCounter;
-    private transient TupleSerializationUtil tupleSerializationUtil;
-    private final double errorPercent;
-    private final Tap sideBucket;
-    private final Fields key;
-    private final double sampleRate;
-
-    public CollectKeyStats(double sampleRate, double errorPercent, Fields key, Tap sideBucket) {
-      this.sampleRate = sampleRate;
-      this.errorPercent = errorPercent;
-      this.key = key;
-      this.sideBucket = sideBucket;
-    }
-
-    @Override
-    public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
-      TupleEntry tuple = filterCall.getArguments();
-
-      BytesWritable key = getKeyFromTuple(tuple);
-      approxCounter.offer(key);
-
-      if (getRand().nextDouble() < sampleRate) {
-        countSampledStats(flowProcess, tuple, key);
-      }
-
-      return false;
-    }
-
-    private void countSampledStats(FlowProcess proc, TupleEntry tuple, BytesWritable key) {
-      int tupleSize = serializeTuple(tupleSerializationUtil, tuple, Fields.ALL).length;
-
-      proc.increment(StatsCounters.TOTAL_SAMPLED_TUPLES, 1);
-      proc.increment(StatsCounters.KEY_SIZE_SUM, key.getLength());
-      proc.increment(StatsCounters.TUPLE_SIZE_SUM, tupleSize);
-    }
-
-    @Override
-    public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
-      super.prepare(flowProcess, operationCall);
-      approxCounter = new HyperLogLog(errorPercent);
-      tupleSerializationUtil = new TupleSerializationUtil((JobConf) flowProcess.getConfigCopy());
-    }
-
-    @Override
-    public void cleanup(FlowProcess flowProcess, OperationCall operationCall) {
-      super.cleanup(flowProcess, operationCall);
-
-      try {
-        LOG.info("HLL counter found "+approxCounter.cardinality()+" distinct keys");
-        TupleEntryCollector out = sideBucket.openForWrite(flowProcess);
-        out.add(new Tuple(new BytesWritable(approxCounter.getBytes())));
-        out.close();
-      } catch (IOException e) {
-        throw new RuntimeException("couldn't write approximate counts to side bucket", e);
-      }
-    }
-
-    public BytesWritable getKeyFromTuple(TupleEntry tuple) {
-      return new BytesWritable(serializeTuple(tupleSerializationUtil, tuple, this.key));
-    }
-
-    protected static Random getRand() {
-      if (RAND == null) {
-        RAND = new Random();
-      }
-
-      return RAND;
-    }
-  }
-
-  protected static byte[] serializeTuple(TupleSerializationUtil tupleSerializationUtil, TupleEntry tupleEntry, Fields selectedFields){
-    try {
-      if (selectedFields == Fields.ALL) {
-        return tupleSerializationUtil.serialize(tupleEntry.getTuple());
-      }
-
-      Tuple value = new Tuple();
-
-      for (Comparable field : selectedFields) {
-        value.add(tupleEntry.getObject(field));
-      }
-
-      return tupleSerializationUtil.serialize(value);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 }

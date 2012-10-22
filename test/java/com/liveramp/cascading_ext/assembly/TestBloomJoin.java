@@ -38,7 +38,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
   }
 
   public void testSingle() {
-    BloomAssembly.DEFAULT_SAMPLE_RATE = 1.0;
+    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");
@@ -57,7 +57,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
 
   public void testIt() throws IOException {
 
-    BloomAssembly.DEFAULT_SAMPLE_RATE = 1.0;
+    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe lhs2 = new Pipe("lhs2");
