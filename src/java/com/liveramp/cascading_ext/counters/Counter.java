@@ -42,13 +42,13 @@ public class Counter {
             && ((Counter) other).value.equals(value);
   }
 
-  private final String prettyValue() {
+  private String prettyValue() {
     if (value == null) return "null";
     if (name.contains("BYTES")) return FileUtils.byteCountToDisplaySize(value);
     return value.toString();
   }
 
-  private static final String padSpaces(String str, int num) {
+  private static String padSpaces(String str, int num) {
     int numSpaces = Math.max(0, num - str.length());
     return str + StringUtils.repeat(" ", numSpaces);
   }

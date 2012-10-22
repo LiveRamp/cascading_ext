@@ -18,7 +18,6 @@ import org.apache.hadoop.mapred.JobConf;
 import java.io.IOException;
 
 public class CreateBloomFilterFromIndices extends BaseOperation implements Aggregator {
-  private long numBits;
   private final Tap[] sideBuckets;
   private TupleEntryCollector[] collectors;
 
@@ -74,7 +73,7 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   @Override
   public void start(FlowProcess flow, AggregatorCall call) {
     JobConf conf = (JobConf) flow.getConfigCopy();
-    numBits = Long.parseLong(conf.get("split.size"));
+    long numBits = Long.parseLong(conf.get("split.size"));
 
     Context c = new Context();
     c.bitSet = new FixedSizeBitSet[sideBuckets.length];

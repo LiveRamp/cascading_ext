@@ -45,7 +45,6 @@ public abstract class BloomFilterOperation extends BaseOperation {
 
   protected void ensureLoadedFilter(FlowProcess process) {
     if (filter == null || !filterJobId.equals(jobId)) {
-      JobConf conf = (JobConf) process.getConfigCopy();
       try {
         LOG.info("Loading bloom filter");
 
@@ -68,7 +67,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
         String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
         FileSystemHelper.getFS().delete(new Path(bloomFilter), true);
       } catch (IOException e) {
-        LOG.info("Could not delete bloom filter " + ((HadoopFlowProcess) process).getJobConf().get("dustin.relevance.file"));
+        LOG.info("Error deleting bloom filter!");
       }
     }
   }
