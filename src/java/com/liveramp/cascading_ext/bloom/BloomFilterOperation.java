@@ -20,43 +20,43 @@ import java.util.List;
 public abstract class BloomFilterOperation extends BaseOperation {
   private static Logger LOG = Logger.getLogger(BloomFilterOperation.class);
 
-  private static Object filter = null;
+  private static BloomFilter filter = null;
   private static String filterJobId = null;
-  private final BloomFilterLoader loader;
 
   // the job id guarantees this stuff works on both cluster and during tests
   // in tests, the static objects don't get cleared between jobs
   private String jobId;
   private boolean cleanUpFilter;
 
-  public BloomFilterOperation(BloomFilterLoader loader, String jobId, boolean cleanUpFilter, Fields newFields) {
+  public BloomFilterOperation(String jobId, boolean cleanUpFilter, Fields newFields) {
     super(newFields);
 
     this.jobId = jobId;
     this.cleanUpFilter = cleanUpFilter;
-
-    this.loader = loader;
   }
 
-  public BloomFilterOperation(BloomFilterLoader logic, String jobId, Fields newFields) {
-    this(logic, jobId, true, newFields);
+  public BloomFilterOperation(String jobId, Fields newFields) {
+    this(jobId, true, newFields);
   }
 
-  protected boolean filterMayContain(Object potential) {
-    return loader.mayContain(filter, potential);
+  protected boolean filterMayContain(byte[] potential) {
+    return filter.membershipTest(potential);
   }
 
   protected void ensureLoadedFilter(FlowProcess process) {
     if (filter == null || !filterJobId.equals(jobId)) {
+      JobConf conf = (JobConf) process.getConfigCopy();
       try {
         LOG.info("Loading bloom filter");
+
         String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
-        filter = loader.loadFilter(FileSystem.getLocal(new Configuration()), bloomFilter);
+        filter = BloomFilter.read(FileSystem.getLocal(new Configuration()),
+            new Path(bloomFilter));
         filterJobId = jobId;
 
         LOG.info("Done loading bloom filter");
-      } catch (IOException ioe) {
-        throw new RuntimeException("Error loading bloom filter", ioe);
+      } catch (Exception e) {
+        throw new RuntimeException("Error loading bloom filter", e);
       }
     }
   }

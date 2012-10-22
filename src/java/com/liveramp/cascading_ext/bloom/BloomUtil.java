@@ -14,7 +14,6 @@ import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -32,11 +31,11 @@ public class BloomUtil {
   private final static Object BF_LOAD_LOCK = new Object();
 
   public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems){
-    double falsePositiveRate = BloomFilter.falsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
+    double falsePositiveRate = getFalsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
     double newFalsePositiveRate;
     int numBloomHashes = 1;
     for (int i = BloomConstants.MAX_BLOOM_FILTER_HASHES - 1; i > 0; i-- ) {
-      newFalsePositiveRate = BloomFilter.falsePositiveRate(i, numBloomBits, numElems);
+      newFalsePositiveRate = getFalsePositiveRate(i, numBloomBits, numElems);
       // Break out if you see an increase in false positive rate while decreasing the number of hashes.
       // Since this function has only one critical point, we know that if we see an increase
       // then the one we saw first was the minimum.
@@ -51,7 +50,12 @@ public class BloomUtil {
     return new Pair<Double, Integer>(falsePositiveRate, numBloomHashes);
   }
 
-  public static BytesBloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes) throws IOException {
+  public static double getFalsePositiveRate(int numHashes, long vectorSize, long numElements) {
+    // http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
+    return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
+  }
+
+  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
     TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
@@ -65,7 +69,7 @@ public class BloomUtil {
       }
     }
 
-    return new BytesBloomFilter(numBloomBits, numBloomHashes, bitSet.getRaw());
+    return new BloomFilter(numBloomBits, numBloomHashes, bitSet.getRaw(), numElems);
   }
 
   public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {
@@ -120,12 +124,12 @@ public class BloomUtil {
       synchronized(BF_LOAD_LOCK){
         // Load bloom filter parts and merge them.
         Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
-        BytesBloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes);
+        BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes,
+            prevJobTuples);
 
         // Write merged bloom filter to HDFS
         LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
-        filter.writeToFileSystem(FileSystemHelper.getFS(), new Path(requiredBloomPath));
-        filter = null;  //  kill reference so another thread doesn't OOME
+        filter.writeOut(FileSystemHelper.getFS(), new Path(requiredBloomPath));
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

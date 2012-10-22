@@ -67,7 +67,7 @@ public class CreateBloomFilter extends SubAssembly {
     // Collect stats used to configure the bloom filter creation step
     Pipe smallPipe = new Each(keys, new CollectKeyStats(keyBytesField, DEFAULT_SAMPLE_RATE, DEFAULT_ERR_PERCENTAGE, approxCountParts));
 
-    smallPipe = new Each(smallPipe, new Fields(keyBytesField), new GetIndices(), new Fields("split", "index", "hash_num"));
+    smallPipe = new Each(smallPipe, new Fields(keyBytesField), new GetIndices(BloomConstants.DEFAULT_HASH_FACTORY), new Fields("split", "index", "hash_num"));
     smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
     smallPipe = new GroupBy(smallPipe, new Fields("split"));
     smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(bloomParts), Fields.ALL);
