@@ -39,7 +39,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
    * @param currentStep
    * @param predecessorSteps
    */
-  private static void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
+  private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
     JobConf currentStepConf = currentStep.getConfig();
     String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
 

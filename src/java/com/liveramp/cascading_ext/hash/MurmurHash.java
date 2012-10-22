@@ -8,6 +8,7 @@ package com.liveramp.cascading_ext.hash;
  * The C version of MurmurHash 2.0 found at that site was ported to Java by Andrzej Bialecki (ab at getopt org).
  * </p>
  */
+@Deprecated
 public class MurmurHash extends Hash {
   private static MurmurHash instance = new MurmurHash();
 

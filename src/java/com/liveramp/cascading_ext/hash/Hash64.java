@@ -3,6 +3,7 @@ package com.liveramp.cascading_ext.hash;
 /**
  * This class represents a common API for 64-bit hashing functions.
  */
+@Deprecated
 public abstract class Hash64 {
   public static final int MURMUR_HASH64 = 0;
 

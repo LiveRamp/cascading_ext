@@ -1,19 +1,15 @@
-package com.liveramp.cascading_ext.hash;
+package com.liveramp.cascading_ext.hash2.murmur;
 
-/**
- * This is a very fast, non-cryptographic hash suitable for general hash-based
- * lookup. See http://murmurhash.googlepages.com/ for more details.
- */
-@Deprecated
-public class MurmurHash64 extends Hash64 {
-  private static MurmurHash64 instance = new MurmurHash64();
+import com.liveramp.cascading_ext.hash2.HashFunction;
 
-  public static Hash64 getInstance() {
-    return instance;
+public class MurmurHash64 extends HashFunction {
+
+  protected MurmurHash64(long maxValue, int numHashes) {
+    super(maxValue, numHashes);
   }
 
   @Override
-  public long hash(final byte[] data, final int length, final int seed) {
+  public long hash(byte[] data, int length, int seed){
     final long m = 0xc6a4a7935bd1e995L;
     final int r = 47;
 
@@ -69,5 +65,10 @@ public class MurmurHash64 extends Hash64 {
     h ^= h >>> r;
 
     return h;
+  }
+
+  @Override
+  public String getHashID() {
+    return "murmur64";
   }
 }

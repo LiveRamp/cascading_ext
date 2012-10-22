@@ -1,13 +1,11 @@
 package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.hash.Hash;
-import com.liveramp.cascading_ext.hash.Hash64Function;
+import com.liveramp.cascading_ext.hash2.HashFunction;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Implements a <i>Bloom filter</i>, as defined by Bloom in 1970.
@@ -26,57 +24,31 @@ import java.io.IOException;
  * @see <a href="http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal">Space/Time Trade-Offs in Hash Coding with Allowable Errors</a>
  */
 public class BloomFilter implements Writable {
-  private static final int VERSION = -1; // negative to accommodate for old format
 
-  public static double falsePositiveRate(int numHashes, long vectorSize, long numElements) {
-    int k = numHashes;
-    long m = vectorSize;
-    long n = numElements;
-    // http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
-    // Math.pow(1 - Math.pow(1-1/(double)m, k*n), k);
-    return Math.pow(1.0 - Math.exp((double) -k * n / m), k);
-  }
-
-  /** The bit vector. */
   private FixedSizeBitSet bits;
-  private long numElems = 0;
 
-  /** The vector size of <i>this</i> filter. */
-  protected long vectorSize;
+  private HashFunction hashFunction;
 
-  /** The hash function used to map a key to several positions in the vector. */
-  protected Hash64Function hash;
+  protected int numHashes;
+  private long vectorSize;
+  private long numElems;
 
-  /** The number of hash function to consider. */
-  protected int nbHash;
+  public BloomFilter() {}
 
-  /** Type of hashing function to use. */
-  protected int hashType;
-
-  /** Default constructor - use with readFields */
-  public BloomFilter() { }
-
-  /**
-   * Constructor
-   *
-   * @param vectorSize The vector size of <i>this</i> filter.
-   * @param nbHash The number of hash function to consider.
-   * @param hashType type of the hashing function (see {@link com.liveramp.cascading_ext.hash.Hash}).
-   */
-  public BloomFilter(long vectorSize, int nbHash, int hashType) {
-    this.vectorSize = vectorSize;
-    this.nbHash = nbHash;
-    this.hashType = hashType;
-    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
-    bits = new FixedSizeBitSet(this.vectorSize);
+  public BloomFilter(long vectorSize, int numHashes) {
+    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize), 0);
   }
 
-  public BloomFilter(long vectorSize, int nbHash, int hashType, byte[] arr) {
+  public BloomFilter(long vectorSize, int numHashes, byte[] arr, long numElems) {
+    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize, arr), numElems);
+  }
+
+  public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems){
     this.vectorSize = vectorSize;
-    this.nbHash = nbHash;
-    this.hashType = hashType;
-    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
-    bits = new FixedSizeBitSet(this.vectorSize, arr);
+    this.numHashes = numHashes;
+    this.bits = bits;
+    this.hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    this.numElems = numElems;
   }
 
   /**
@@ -84,19 +56,8 @@ public class BloomFilter implements Writable {
    *
    * @param keys The keys
    */
-  public void add(Iterable<Key> keys) {
-    for (Key key : keys) {
-      add(key);
-    }
-  }
-
-  /**
-   * Adds an array of keys to <i>this</i> filter.
-   *
-   * @param keys The array of keys.
-   */
-  public void add(Key[] keys) {
-    for (Key key : keys) {
+  public void add(Iterable<byte[]> keys) {
+    for (byte[] key : keys) {
       add(key);
     }
   }
@@ -106,11 +67,10 @@ public class BloomFilter implements Writable {
    *
    * @param key The key to add.
    */
-  public void add(Key key) {
-    long[] h = hash.hash(key);
-    hash.clear();
+  public void add(byte[] key) {
+    long[] h = hashFunction.hash(key);
 
-    for (int i = 0; i < nbHash; i++ ) {
+    for (int i = 0; i < numHashes; i++ ) {
       bits.set(h[i]);
     }
     numElems++ ;
@@ -123,10 +83,9 @@ public class BloomFilter implements Writable {
    * @return boolean True if the specified key belongs to <i>this</i> filter.
    *         False otherwise.
    */
-  public boolean membershipTest(Key key) {
-    long[] h = hash.hash(key);
-    hash.clear();
-    for (int i = 0; i < nbHash; i++ ) {
+  public boolean membershipTest(byte[] key) {
+    long[] h = hashFunction.hash(key);
+    for (int i = 0; i < numHashes; i++ ) {
       if (!bits.get(h[i])) {
         return false;
       }
@@ -145,41 +104,46 @@ public class BloomFilter implements Writable {
    * @return the expected false positive rate
    */
   public double getFalsePositiveRate() {
-    return BloomFilter.falsePositiveRate(nbHash, getVectorSize(), numElems);
+    return BloomUtil.getFalsePositiveRate(numHashes, getVectorSize(), numElems);
   }
 
-  public void acceptAll() {
-    bits.fill();
+  public static BloomFilter read(FileSystem fs, Path path) throws IOException {
+    FSDataInputStream inputStream = fs.open(path);
+    BloomFilter bf = new BloomFilter();
+    bf.readFields(inputStream);
+    inputStream.close();
+    return bf;
   }
 
-  // Writable interface
+  public void writeOut(FileSystem fs, Path path) throws IOException {
+    FSDataOutputStream out = fs.create(path);
+    write(out);
+    out.close();
+  }
+
   @Override
   public void write(DataOutput out) throws IOException {
-    out.writeInt(VERSION);
-    out.writeInt(this.nbHash);
-    out.writeByte(this.hashType);
+    out.writeInt(this.numHashes);
     out.writeLong(this.vectorSize);
-    out.writeLong(numElems);
-    out.write(bits.getRaw());
+    out.writeLong(this.numElems);
+    out.writeBytes(this.hashFunction.getHashID()+"\n");
+    out.write(this.bits.getRaw());
   }
 
   @Override
   public void readFields(DataInput in) throws IOException {
-    int ver = in.readInt();
-    if (ver > 0) { // old unversioned format
-      this.nbHash = ver;
-      this.hashType = Hash.JENKINS_HASH;
-    } else if (ver == VERSION) {
-      this.nbHash = in.readInt();
-      this.hashType = in.readByte();
-    } else {
-      throw new IOException("Unsupported version: " + ver);
-    }
-    this.vectorSize = in.readLong();
-    this.hash = new Hash64Function(this.vectorSize, this.nbHash, this.hashType);
+    numHashes = in.readInt();
+    vectorSize = in.readLong();
     numElems = in.readLong();
+    String serilizedHashID = in.readLine();
+    hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    if(!serilizedHashID.equals(hashFunction.getHashID())){
+      throw new RuntimeException("bloom filter was written with hash type "+serilizedHashID+
+          " but current hash function type is "+hashFunction.getHashID()+"!");
+    }
+
     byte[] bytes = new byte[FixedSizeBitSet.getNumBytesToStore(vectorSize)];
     in.readFully(bytes);
-    bits = new FixedSizeBitSet(this.vectorSize, bytes);
+    bits = new FixedSizeBitSet(vectorSize, bytes);
   }
 }
