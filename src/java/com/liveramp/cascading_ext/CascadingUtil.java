@@ -10,8 +10,6 @@ import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
-import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 import com.liveramp.cascading_ext.serialization.MapSerialization;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -31,14 +29,12 @@ public class CascadingUtil {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
     addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
     addSerialization(MapSerialization.class);
-    addHashFunctionToken(1, new Murmur64HashFactory());
   }
 
   private final Map<Object, Object> defaultProperties = new HashMap<Object, Object>();
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
-  private final Map<Integer, Class<? extends HashFunctionFactory>> hashFactoryTokens = new HashMap<Integer, Class<? extends HashFunctionFactory>>();
 
   private transient JobConf conf = null;
 
@@ -70,11 +66,6 @@ public class CascadingUtil {
     serializationTokens.put(token, klass);
   }
 
-  public void addHashFunctionToken(int token, HashFunctionFactory factory){
-    hashFactoryTokens.put(token, factory.getClass());
-  }
-
-
   private Map<String, String> getSerializationsProperty(){
     // Get the existing serializations
     List<String> strings = new ArrayList<String>();
@@ -103,19 +94,9 @@ public class CascadingUtil {
     }
   }
 
-  private Map<String, String> getHashFunctionsProperty(){
-    List<String> strings = new ArrayList<String>();
-    for(Map.Entry<Integer, Class<? extends HashFunctionFactory>> entry : hashFactoryTokens.entrySet()){
-      strings.add(entry.getKey() + "=" + entry.getValue().getName());
-    }
-    return Collections.singletonMap("cascading_ext.hash.function.tokens", StringUtils.join(strings, ","));
-  }
-
-
   public Map<Object, Object> getDefaultProperties(){
     Map<Object, Object> properties = new HashMap<Object, Object>();
     properties.putAll(getSerializationsProperty());
-    properties.putAll(getHashFunctionsProperty());
     properties.putAll(getSerializationTokensProperty());
     properties.putAll(defaultProperties);
     return properties;
@@ -125,7 +106,6 @@ public class CascadingUtil {
     if(conf == null){
       conf = new JobConf();
       setAll(conf, getSerializationsProperty());
-      setAll(conf, getHashFunctionsProperty());
       setAll(conf, getSerializationTokensProperty());
     }
     return new JobConf(conf);
