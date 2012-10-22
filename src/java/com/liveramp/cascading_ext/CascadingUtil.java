@@ -4,18 +4,15 @@ import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
-import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategyFactory;
-import com.liveramp.cascading_ext.bloom.BloomConstants;
+import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
-import com.liveramp.cascading_ext.hash2.HashFunction;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
 import com.liveramp.cascading_ext.serialization.MapSerialization;
-import org.apache.commons.collections.BidiMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -32,7 +29,7 @@ public class CascadingUtil {
 
   protected CascadingUtil() {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
-    addDefaultFlowStepStrategy(new BloomAssemblyStrategyFactory(BloomConstants.DEFAULT_HASH_FACTORY));
+    addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
     addSerialization(MapSerialization.class);
     addHashFunctionToken(1, new Murmur64HashFactory());
   }

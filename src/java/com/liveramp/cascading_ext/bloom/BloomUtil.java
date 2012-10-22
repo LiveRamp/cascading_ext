@@ -1,34 +1,37 @@
 package com.liveramp.cascading_ext.bloom;
 
+import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.Tap;
+import cascading.tap.hadoop.Hfs;
+import cascading.tuple.Fields;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
 import cascading.util.Pair;
+import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
+import com.clearspring.analytics.stream.cardinality.HyperLogLog;
+import com.clearspring.analytics.stream.cardinality.ICardinality;
+import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.assembly.BloomAssembly;
 import com.liveramp.cascading_ext.hash2.HashFunction;
 import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import com.liveramp.cascading_ext.hash2.HashTokenMap;
-import org.apache.commons.collections.MapIterator;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
+import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BloomUtil {
   private static Logger LOG = Logger.getLogger(BloomUtil.class);
+
+  private final static Object BF_LOAD_LOCK = new Object();
 
   public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems){
     double falsePositiveRate = getFalsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
@@ -56,8 +59,7 @@ public class BloomUtil {
     return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
   }
 
-  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems,
-                                            HashFunctionFactory factory, HashTokenMap map) throws IOException {
+  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
     TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
     while (itr.hasNext()) {
@@ -71,7 +73,7 @@ public class BloomUtil {
       }
     }
 
-    return new BloomFilter(numBloomBits, numBloomHashes, factory.getFunction(numBloomBits, numBloomHashes), bitSet.getRaw(), numElems, map);
+    return new BloomFilter(numBloomBits, numBloomHashes, bitSet.getRaw(), numElems);
   }
 
   public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {
@@ -103,4 +105,68 @@ public class BloomUtil {
   public static long getSplitSize(long numBloomBits, int numSplits){
     return (numBloomBits + numSplits - 1) / numSplits;
   }
+
+  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath){
+    String bloomPartsDir = stepConf.get("target.bloom.filter.parts");
+    LOG.info("Bloom filter parts located in: " + bloomPartsDir);
+
+    // This is the side bucket that the HyperLogLog writes to
+    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.getRaw("bloom.keys.counts.dir"));
+
+    long prevJobTuples = getApproxDistinctKeysCount(approxCountsTap);
+
+    Pair<Double, Integer> optimal = BloomUtil.getOptimalFalsePositiveRateAndNumHashes(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, prevJobTuples);
+    LOG.info("Counted " + prevJobTuples + " distinct keys");
+    LOG.info("Using " + BloomConstants.DEFAULT_BLOOM_FILTER_BITS + " bits in the bloom filter");
+    LOG.info("Found a false positive rate of: " + optimal.getLhs());
+    LOG.info("Will use " + optimal.getRhs() + " bloom hashes");
+
+    long splitSize = Long.parseLong(stepConf.get("split.size"));
+    int numBloomHashes = optimal.getRhs();
+
+    try {
+      synchronized(BF_LOAD_LOCK){
+        // Load bloom filter parts and merge them.
+        Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
+        BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes,
+            prevJobTuples);
+
+        // Write merged bloom filter to HDFS
+        LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
+        filter.writeOut(FileSystemHelper.getFS(), new Path(requiredBloomPath));
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Read from the side bucket that HyperLogLog wrote to, merge the HLL estimators, and return the
+   * approximate count of distinct keys
+   *
+   * @param parts
+   * @return
+   */
+  private static long getApproxDistinctKeysCount(Tap parts) {
+    try {
+      TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
+      List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
+
+      while (in.hasNext()) {
+        TupleEntry tuple = in.next();
+        byte[] serializedHll = Bytes.getBytes((BytesWritable) tuple.getObject("bytes"));
+
+        countParts.add(HyperLogLog.Builder.build(serializedHll));
+      }
+
+      ICardinality merged = new HyperLogLog(CreateBloomFilter.DEFAULT_ERR_PERCENTAGE).merge(countParts.toArray(new ICardinality[countParts.size()]));
+
+      return merged.cardinality();
+    } catch (IOException e) {
+      throw new RuntimeException("couldn't open approximate distinct keys tap", e);
+    } catch (CardinalityMergeException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

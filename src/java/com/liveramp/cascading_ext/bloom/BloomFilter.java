@@ -2,8 +2,6 @@ package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.hash2.HashFunction;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
-import com.liveramp.cascading_ext.hash2.HashTokenMap;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Writable;
 
@@ -27,37 +25,30 @@ import java.io.*;
  */
 public class BloomFilter implements Writable {
 
-  private final HashTokenMap map;
-
   private FixedSizeBitSet bits;
+
   private HashFunction hashFunction;
+
   protected int numHashes;
   private long vectorSize;
   private long numElems;
 
-  public BloomFilter(HashTokenMap map) {
-    this.map = map;
+  public BloomFilter() {}
+
+  public BloomFilter(long vectorSize, int numHashes) {
+    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize), 0);
   }
 
-  public BloomFilter(long vectorSize, int numHashes, HashFunctionFactory hashFactory, HashTokenMap map) {
-    this(vectorSize, numHashes, hashFactory.getFunction(vectorSize, numHashes), new FixedSizeBitSet(vectorSize), 0, map);
+  public BloomFilter(long vectorSize, int numHashes, byte[] arr, long numElems) {
+    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize, arr), numElems);
   }
 
-  public BloomFilter(long vectorSize, int numHashes, HashFunction hashFunction, HashTokenMap map) {
-    this(vectorSize, numHashes, hashFunction, new FixedSizeBitSet(vectorSize), 0, map);
-  }
-
-  public BloomFilter(long vectorSize, int numHashes, HashFunction hashFunction, byte[] arr, long numElems, HashTokenMap map) {
-    this(vectorSize, numHashes, hashFunction, new FixedSizeBitSet(vectorSize, arr), numElems, map);
-  }
-
-  public BloomFilter(long vectorSize, int numHashes, HashFunction hashFunction, FixedSizeBitSet bits, long numElems, HashTokenMap map){
+  public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems){
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;
     this.bits = bits;
-    this.hashFunction = hashFunction;
+    this.hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
     this.numElems = numElems;
-    this.map = map;
   }
 
   /**
@@ -127,9 +118,9 @@ public class BloomFilter implements Writable {
     return BloomUtil.getFalsePositiveRate(numHashes, getVectorSize(), numElems);
   }
 
-  public static BloomFilter read(FileSystem fs, Path path, HashTokenMap map) throws IOException, InstantiationException, IllegalAccessException {
+  public static BloomFilter read(FileSystem fs, Path path) throws IOException {
     FSDataInputStream inputStream = fs.open(path);
-    BloomFilter bf = new BloomFilter(map);
+    BloomFilter bf = new BloomFilter();
     bf.readFields(inputStream);
     inputStream.close();
     return bf;
@@ -146,7 +137,7 @@ public class BloomFilter implements Writable {
     out.writeInt(this.numHashes);
     out.writeLong(this.vectorSize);
     out.writeLong(this.numElems);
-    out.writeInt(map.getToken(this.hashFunction));
+    out.writeChars(this.hashFunction.getHashID()+"\n");
     out.write(this.bits.getRaw());
   }
 
@@ -155,7 +146,13 @@ public class BloomFilter implements Writable {
     numHashes = in.readInt();
     vectorSize = in.readLong();
     numElems = in.readLong();
-    hashFunction = map.getFunction(in.readInt(), vectorSize, numHashes);
+    String serilizedHashID = in.readLine();
+    hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    if(!serilizedHashID.equals(hashFunction.getHashID())){
+      throw new RuntimeException("bloom filter was written with hash type "+serilizedHashID+
+          " but current hash function type is "+hashFunction.getHashID()+"!");
+    }
+
     byte[] bytes = new byte[FixedSizeBitSet.getNumBytesToStore(vectorSize)];
     in.readFully(bytes);
     bits = new FixedSizeBitSet(vectorSize, bytes);

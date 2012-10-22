@@ -51,23 +51,9 @@ public abstract class BloomFilterOperation extends BaseOperation {
       try {
         LOG.info("Loading bloom filter");
 
-        Path[] files = DistributedCache.getLocalCacheFiles(conf);
-        List<Path> bloomFilterFiles = new ArrayList<Path>();
-        LOG.info("cached files: ");
-        for (Path p : files) {
-          if (p.toString().endsWith(".bloomfilter")) {
-            bloomFilterFiles.add(p);
-          }
-          LOG.info("file: " + p.toString());
-        }
-        if (bloomFilterFiles.size() != 1) {
-          throw new RuntimeException("Expected one bloom filter path in the Distributed cache: there were " + bloomFilterFiles.size());
-        }
-
+        String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
         filter = BloomFilter.read(FileSystem.getLocal(new Configuration()),
-            new Path(bloomFilterFiles.get(0).toString()),
-            new HashTokenMap(conf));
-
+            new Path(bloomFilter));
         filterJobId = jobId;
 
         LOG.info("Done loading bloom filter");
@@ -81,20 +67,30 @@ public abstract class BloomFilterOperation extends BaseOperation {
   public void cleanup(FlowProcess process, OperationCall call) {
     if (cleanUpFilter) {
       try {
-        List<Path> bloomFilterFiles = new ArrayList<Path>();
-        Path[] files = DistributedCache.getLocalCacheFiles(((HadoopFlowProcess) process).getJobConf());
-        for (Path p : files) {
-          if (p.toString().endsWith(".bloomfilter")) {
-            bloomFilterFiles.add(p);
-          }
-        }
-        if (bloomFilterFiles.size() != 1) {
-          throw new RuntimeException("Expected one bloom filter path in the Distributed cache: there were " + bloomFilterFiles.size());
-        }
-        FileSystemHelper.getFS().delete(new Path(bloomFilterFiles.get(0).toString()), true);
+        String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
+        FileSystemHelper.getFS().delete(new Path(bloomFilter), true);
       } catch (IOException e) {
         LOG.info("Could not delete bloom filter " + ((HadoopFlowProcess) process).getJobConf().get("dustin.relevance.file"));
       }
+    }
+  }
+
+  private String getBloomFilterFile(JobConf config){
+    try {
+      Path[] files = DistributedCache.getLocalCacheFiles(config);
+      List<Path> bloomFilterFiles = new ArrayList<Path>();
+      LOG.info("cached files: ");
+      for (Path p : files) {
+        if (p.toString().endsWith(".bloomfilter")) {
+          bloomFilterFiles.add(p);
+        }
+      }
+      if (bloomFilterFiles.size() != 1) {
+        throw new RuntimeException("Expected one bloom filter path in the Distributed cache: there were " + bloomFilterFiles.size());
+      }
+      return bloomFilterFiles.get(0).toString();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

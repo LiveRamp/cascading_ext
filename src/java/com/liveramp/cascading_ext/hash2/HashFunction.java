@@ -32,4 +32,6 @@ public abstract class HashFunction implements Serializable {
   }
 
   public abstract long hash(byte[] data, int length, int seed);
+
+  public abstract String getHashID();
 }

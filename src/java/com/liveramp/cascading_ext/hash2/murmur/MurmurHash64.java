@@ -66,4 +66,9 @@ public class MurmurHash64 extends HashFunction {
 
     return h;
   }
+
+  @Override
+  public String getHashID() {
+    return "murmur64";
+  }
 }
