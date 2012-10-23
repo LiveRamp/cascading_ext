@@ -52,7 +52,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     input.put("lhs", this.lhsStore);
     input.put("rhs", this.rhsStore);
 
-    CascadingUtil.get().getFlowConnector().connect(input, output, joined).complete();
+    CascadingUtil.get().getFlowConnector().connect("Test BloomJoin", input, output, joined).complete();
 
     List<Tuple> tuples = TapHelper.getAllTuples(output);
     assertTrue(tuples.contains(new Tuple(bytes("1"), bytes("11"), "w-lhs", bytes("1"), bytes("11"), "a-rhs")));
