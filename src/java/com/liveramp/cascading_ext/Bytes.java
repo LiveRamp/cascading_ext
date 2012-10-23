@@ -69,6 +69,12 @@ public class Bytes {
     return ret;
   }
 
+  public static byte[] copyBytes(BytesWritable bw) {
+    byte[] ret = new byte[bw.getLength()];
+    System.arraycopy(bw.getBytes(), 0, ret, 0, bw.getLength());
+    return ret;
+  }
+
   /**
    * Safely gets a BytesWritable field from a TupleEntry. It automatically deals
    * with padded BytesWritable.
