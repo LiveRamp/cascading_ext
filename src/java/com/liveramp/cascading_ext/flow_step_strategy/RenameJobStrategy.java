@@ -22,7 +22,7 @@ import java.util.Iterator;
 
 public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
 
-  private static final int MAX_SOURCE_SINK_LENGTH = 200;
+  private static final int MAX_SOURCE_OR_SINK_LENGTH = 200;
   private static final String TMP_TAP_NAME = "{tmp}";
   private static final Pattern TEMP_PIPE_NAME = Pattern.compile("(/.*?)+/(.*?_\\d+_[A-Z0-9]{32})$");
 
@@ -41,10 +41,9 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
   }
 
   private static String formatSourcesAndSinks(FlowStep<JobConf> flowStep) {
-    String full = String.format("[%s]=>[%s]",
+    return String.format("[%s]=>[%s]",
             getTapSetString(flowStep.getSources()),
             getTapSetString(flowStep.getSinks()));
-    return StringUtils.abbreviate(full, full.length() - 1, MAX_SOURCE_SINK_LENGTH);
   }
 
   private static String getTapSetString(Set<Tap> taps) {
@@ -78,7 +77,8 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
         }
       }
     }
-    return formatSetOfNames(stringIds);
+    String tapSet = formatSetOfNames(stringIds);
+    return StringUtils.abbreviate(tapSet, tapSet.length(), MAX_SOURCE_OR_SINK_LENGTH);
   }
 
   private static String formatSetOfNames(Set<String> names) {
