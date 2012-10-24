@@ -1,6 +1,37 @@
 package com.liveramp.cascading_ext.flow;
 
-import cascading.flow.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.JobID;
+import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.mapred.TaskAttemptID;
+import org.apache.hadoop.mapred.TaskCompletionEvent;
+import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
+import org.apache.log4j.Logger;
+
+import cascading.flow.Flow;
+import cascading.flow.FlowException;
+import cascading.flow.FlowListener;
+import cascading.flow.FlowProcess;
+import cascading.flow.FlowSkipStrategy;
+import cascading.flow.FlowStep;
+import cascading.flow.FlowStepStrategy;
 import cascading.management.UnitOfWorkSpawnStrategy;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
@@ -8,17 +39,8 @@ import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-import com.liveramp.cascading_ext.counters.Counters;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobID;
-import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import com.liveramp.cascading_ext.counters.Counters;
 
 public class LoggingFlow implements Flow<JobConf> {
   private static Logger LOG = Logger.getLogger(Flow.class);
@@ -38,6 +60,7 @@ public class LoggingFlow implements Flow<JobConf> {
       logCounters();
     } catch (FlowException e) {
       logJobIDs();
+      logJobErrors();
       throw e;
     }
   }
@@ -82,8 +105,8 @@ public class LoggingFlow implements Flow<JobConf> {
     try {
       List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
       List<String> jobIDs = new ArrayList<String>();
-      for (FlowStepStats stat : stepStats) {
 
+      for (FlowStepStats stat : stepStats) {
         try {
           JobID jobid = ((HadoopStepStats) stat).getRunningJob().getID();
           String jtID = jobid.getJtIdentifier();
@@ -95,13 +118,119 @@ public class LoggingFlow implements Flow<JobConf> {
       }
 
       if (exceptions) {
-        LOG.info("unable to retrieve jobid from all completed steps!");
-        LOG.info("successfully retrieved job ids: " + StringUtils.join(jobIDs, ", "));
+        LOG.info("unable to retrieve job errors from all completed steps!");
+        LOG.info("successfully retrieved job errors: " + StringUtils.join(jobIDs, ", "));
       } else {
         LOG.info("step job ids: " + StringUtils.join(jobIDs, ", "));
       }
     } catch (Exception e) {
       LOG.info("unable to retrieve any jobids from steps");
+    }
+  }
+
+  private void logJobErrors() {
+    boolean exceptions = false;
+    try {
+      List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
+      List<String> jobFailures = new ArrayList<String>();
+      JobClient client = new JobClient(internalFlow.getConfig());
+      for (FlowStepStats stat : stepStats) {
+
+        try {
+          RunningJob job = ((HadoopStepStats) stat).getRunningJob();
+          TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
+          ArrayList<TaskCompletionEvent> failures = new ArrayList<TaskCompletionEvent>();
+          for (TaskCompletionEvent event : events) {
+            if (event.getTaskStatus() == Status.FAILED) {
+              failures.add(event);
+            }
+          }
+          // We limit the number of potential logs being pulled to spare the jobtracker
+          Set<Integer> indices = getRandomIndices(failures, 3);
+          for (Integer i : indices) {
+            jobFailures.add(getFailureLog(failures.get(i)));
+          }
+        } catch (Exception e) {
+          exceptions = true;
+        }
+
+      }
+      if (exceptions) {
+        LOG.info("unable to retrieve failures from all completed steps!");
+        LOG.info("successfully retrieved job failures: " + StringUtils.join(jobFailures, ", "));
+      } else {
+        LOG.info("step attempt failures: " + StringUtils.join(jobFailures, ", "));
+      }
+    } catch (Exception e) {
+      LOG.info("unable to retrieve any failures from steps");
+      LOG.info(e);
+    }
+
+  }
+
+  private Set<Integer> getRandomIndices(Collection coll, int i) {
+    Set<Integer> indices = new HashSet<Integer>();
+    Random r = new Random();
+    while (indices.size() < i) {
+      indices.add(r.nextInt(coll.size()));
+    }
+    return indices;
+  }
+
+  private static String getFailureLog(TaskCompletionEvent event) {
+    LOG.info("Getting errors for attempt " + event.getTaskAttemptId());
+    String exception = "";
+    try {
+      String fullLog = retrieveTaskLogs(event.getTaskAttemptId(), event.getTaskTrackerHttp());
+      Pattern pattern = Pattern.compile("Caused by.*?more", Pattern.DOTALL);
+      Matcher matcher = pattern.matcher(fullLog);
+      matcher.find();
+      exception = matcher.group();
+    } catch (Exception e) {
+      LOG.info("Regex Error!", e);
+    }
+    return "\nFailure log:\n" + exception;
+    // return fullLog;
+  }
+
+  private static String retrieveTaskLogs(TaskAttemptID taskId, String baseUrl)
+    throws IOException {
+    // The tasktracker for a 'failed/killed' job might not be around...
+    if (baseUrl != null) {
+      // Construct the url for the tasklogs
+      String taskLogUrl = getTaskLogURL(taskId, baseUrl);
+
+      // Copy tasks's stdout of the JobClient
+      String taskLogs = getTaskLogStream(taskId, new URL(taskLogUrl + "&filter=syslog"));
+      return taskLogs;
+
+    }
+    return "";
+  }
+
+  static String getTaskLogURL(TaskAttemptID taskId, String baseUrl) {
+    return (baseUrl + "/tasklog?plaintext=true&attemptid=" + taskId);
+  }
+
+  private static String getTaskLogStream(TaskAttemptID taskId, URL taskLogUrl) {
+    try {
+      URLConnection connection = taskLogUrl.openConnection();
+      BufferedReader input =
+          new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      try {
+        StringBuilder logData = new StringBuilder();
+        String line = null;
+        while ((line = input.readLine()) != null) {
+          logData.append(line + "\n");
+        }
+        return logData.toString();
+      } finally {
+        input.close();
+      }
+
+    } catch (IOException ioe) {
+      LOG.warn("Error reading task output" + ioe.getMessage());
+      return "";
     }
   }
 
