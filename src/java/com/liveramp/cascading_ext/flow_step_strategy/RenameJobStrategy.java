@@ -24,7 +24,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
 
   private static final int MAX_SOURCE_SINK_LENGTH = 200;
   private static final String TMP_TAP_NAME = "{tmp}";
-  private static final Pattern TEMP_PIPE_NAME = Pattern.compile("(/.*?)+/(.*?)_\\d+_[A-Z0-9]{32}$");
+  private static final Pattern TEMP_PIPE_NAME = Pattern.compile("(/.*?)+/(.*?_\\d+_[A-Z0-9]{32})$");
 
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
