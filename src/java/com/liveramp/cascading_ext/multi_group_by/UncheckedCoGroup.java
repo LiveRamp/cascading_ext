@@ -7,8 +7,8 @@ import cascading.pipe.joiner.Joiner;
 import cascading.tuple.Fields;
 
 /**
-* @author eddie
-*/
+ * @author eddie
+ */
 public class UncheckedCoGroup extends CoGroup {
 
   public UncheckedCoGroup(Pipe[] pipes,

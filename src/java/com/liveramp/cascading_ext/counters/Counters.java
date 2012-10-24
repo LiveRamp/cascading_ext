@@ -64,13 +64,13 @@ public class Counters {
   public static Map<FlowStepStats, List<Counter>> getCountersByStep(FlowStats flowStats) {
     Map<FlowStepStats, List<Counter>> counters = new HashMap<FlowStepStats, List<Counter>>();
 
-    for (FlowStepStats statsForStep: flowStats.getFlowStepStats()) {
+    for (FlowStepStats statsForStep : flowStats.getFlowStepStats()) {
       if (!counters.containsKey(statsForStep)) {
         counters.put(statsForStep, new ArrayList<Counter>());
       }
 
-      for (String group: safeGetCounterGroups(statsForStep)) {
-        for (String name: statsForStep.getCountersFor(group)) {
+      for (String group : safeGetCounterGroups(statsForStep)) {
+        for (String name : statsForStep.getCountersFor(group)) {
           counters.get(statsForStep).add(new Counter(group, name, Counters.safeGet(statsForStep, group, name)));
         }
       }
@@ -79,10 +79,10 @@ public class Counters {
     return counters;
   }
 
-  public static Collection<String> safeGetCounterGroups(FlowStepStats stats){
-    try{
+  public static Collection<String> safeGetCounterGroups(FlowStepStats stats) {
+    try {
       return stats.getCounterGroups();
-    }catch(Exception e){
+    } catch (Exception e) {
       return Collections.emptyList();
     }
   }
@@ -114,10 +114,10 @@ public class Counters {
     StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
 
     builder.append("Counters for ").append(flow.getName() == null ? "unnamed flow" : "flow " + flow.getName()).append("\n")
-            .append("  with input ").append(prettyTaps(flow.getSources())).append("\n")
-            .append("  and output ").append(prettyTaps(flow.getSinks())).append("\n");
+        .append("  with input ").append(prettyTaps(flow.getSources())).append("\n")
+        .append("  and output ").append(prettyTaps(flow.getSinks())).append("\n");
 
-    for (Map.Entry<FlowStepStats, List<Counter>> entry: counters.entrySet()) {
+    for (Map.Entry<FlowStepStats, List<Counter>> entry : counters.entrySet()) {
       builder.append("  Step: ").append(entry.getKey().getName()).append("\n");
 
       if (entry.getValue().isEmpty()) {
@@ -127,7 +127,7 @@ public class Counters {
 
       boolean anyTuplesRead = false;
       boolean anyTuplesWritten = false;
-      for (Counter counter: entry.getValue()) {
+      for (Counter counter : entry.getValue()) {
         if (counter.getValue() != null && counter.getValue() > 0) {
           builder.append("    ").append(counter).append("\n");
 
@@ -136,7 +136,7 @@ public class Counters {
         }
       }
 
-      if (anyTuplesRead && !anyTuplesWritten){
+      if (anyTuplesRead && !anyTuplesWritten) {
         builder.append("  *** BLACK HOLE WARNING *** The above step had input but no output\n");
       }
     }

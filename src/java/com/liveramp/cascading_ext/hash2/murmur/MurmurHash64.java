@@ -9,7 +9,7 @@ public class MurmurHash64 extends HashFunction {
   }
 
   @Override
-  public long hash(byte[] data, int length, int seed){
+  public long hash(byte[] data, int length, int seed) {
     final long m = 0xc6a4a7935bd1e995L;
     final int r = 47;
 

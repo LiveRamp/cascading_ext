@@ -13,9 +13,9 @@ import java.util.UUID;
  */
 public class TestTupleSerializationUtil extends BaseTestCase {
   public void testSerializationWithBytesWritables() throws Exception {
-    BytesWritable bw1 = new BytesWritable(new byte[] {1,2,3,4});
-    BytesWritable bw2 = new BytesWritable(new byte[] {1,2,8,9});
-    BytesWritable bw3 = new BytesWritable(new byte[] {1,1,1,2});
+    BytesWritable bw1 = new BytesWritable(new byte[]{1, 2, 3, 4});
+    BytesWritable bw2 = new BytesWritable(new byte[]{1, 2, 8, 9});
+    BytesWritable bw3 = new BytesWritable(new byte[]{1, 1, 1, 2});
     Tuple tuple = new Tuple(bw1, bw2, bw3);
 
     TupleSerializationUtil serializationUtil = new TupleSerializationUtil(CascadingUtil.get().getJobConf());

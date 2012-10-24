@@ -2,35 +2,18 @@ package com.liveramp.cascading_ext.assembly;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.planner.Scope;
-import cascading.operation.BaseOperation;
-import cascading.operation.Filter;
-import cascading.operation.FilterCall;
-import cascading.operation.Function;
-import cascading.operation.FunctionCall;
-import cascading.operation.Identity;
-import cascading.operation.OperationCall;
+import cascading.operation.*;
 import cascading.pipe.*;
 import cascading.pipe.assembly.Discard;
-import cascading.pipe.assembly.Unique;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
 import cascading.property.ConfigDef;
-import cascading.scheme.hadoop.SequenceFile;
-import cascading.tap.Tap;
-import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntry;
-import cascading.tuple.TupleEntryCollector;
-import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.bloom.BloomProps;
-import com.liveramp.cascading_ext.bloom.BloomUtil;
 import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
-import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
-import com.liveramp.cascading_ext.bloom.operation.GetIndices;
 import com.liveramp.cascading_ext.joiner.LimitJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -39,14 +22,12 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * This SubAssembly is used by BloomJoin and BloomFilter. It builds a bloom filter from the RHS, filters
  * the LHS using the bloom filter and, depending on parameters, does a CoGroup for exactness.
- *
  */
 public abstract class BloomAssembly extends SubAssembly {
   private static Logger LOG = Logger.getLogger(BloomAssembly.class);
@@ -63,35 +44,35 @@ public abstract class BloomAssembly extends SubAssembly {
    * The LHS ("largePipe") should be the side with relatively more tuples, as we will build the bloom filter against the
    * RHS ("smallPipe").
    *
-   * @param largePipe the left hand side of the bloom operation. this should be the side that the bloom filter will be
-   *            run against. In other words, this should be the side with relatively more tuples.
+   * @param largePipe       the left hand side of the bloom operation. this should be the side that the bloom filter will be
+   *                        run against. In other words, this should be the side with relatively more tuples.
    * @param largeJoinFields the fields on the left hand side that will be compared with the right hand side
-   * @param smallPipe the right hand side of the bloom operation. this should be the side that we build the bloom filter
-   *            against. In other words, this should be the side with relatively fewer tuples.
+   * @param smallPipe       the right hand side of the bloom operation. this should be the side that we build the bloom filter
+   *                        against. In other words, this should be the side with relatively fewer tuples.
    * @param smallJoinFields the fields on the right hand side that will be compared with the left hand side
-   * @param renameFields if doing a join and the LHS and RHS have some of the same field names, you'll need to supply
-   *                     rename fields (just like with CoGroup).
-   * @param operationType controls how the bloom operation behaves
-   * @param coGroupOrder determines which pipe ends up on the LHS of the final cogroup
+   * @param renameFields    if doing a join and the LHS and RHS have some of the same field names, you'll need to supply
+   *                        rename fields (just like with CoGroup).
+   * @param operationType   controls how the bloom operation behaves
+   * @param coGroupOrder    determines which pipe ends up on the LHS of the final cogroup
    */
   protected BloomAssembly(Pipe largePipe, Fields largeJoinFields,
                           Pipe smallPipe, Fields smallJoinFields,
                           Fields renameFields, Mode operationType,
-                          Joiner joiner, CoGroupOrder coGroupOrder){
+                          Joiner joiner, CoGroupOrder coGroupOrder) {
 
     try {
 
       String bloomJobID = UUID.randomUUID().toString();
       Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
 
-      String bloomPartsDir = bloomTempDir+"/parts";
-      String bloomFinalFilter = bloomTempDir+"/filter.bloomfilter";
+      String bloomPartsDir = bloomTempDir + "/parts";
+      String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
       FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
 
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
-      if(operationType != Mode.JOIN){
+      if (operationType != Mode.JOIN) {
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
       }
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
@@ -112,7 +93,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
       // Load the bloom filter into memory and apply it to the LHS.
       filterPipe = new Each(filterPipe, largeJoinFields,
-              new BloomJoinFilter(bloomJobID, false));
+          new BloomJoinFilter(bloomJobID, false));
 
       // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
       // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
@@ -122,11 +103,11 @@ public abstract class BloomAssembly extends SubAssembly {
       config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
       config.setProperty("mapred.job.reuse.jvm.num.tasks", "-1");
 
-      if(operationType == Mode.FILTER_EXACT){
+      if (operationType == Mode.FILTER_EXACT) {
         // We don't actually care about the fields on the RHS (the user just expects the LHS fields), so we can
         // rename them to junk to avoid conflicts with field names on the LHS
         Fields newKeyFields = new Fields();
-        for(int i = 0; i < smallJoinFields.size(); i++){
+        for (int i = 0; i < smallJoinFields.size(); i++) {
           newKeyFields = newKeyFields.append(new Fields("__bloom_join_tmp_" + i));
         }
         rhsOrig = new Each(rhsOrig, smallJoinFields, new Identity(newKeyFields), newKeyFields);
@@ -137,7 +118,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
         // Get rid of the junk RHS fields
         filterPipe = new Discard(filterPipe, newKeyFields);
-      }else if(operationType == Mode.JOIN){
+      } else if (operationType == Mode.JOIN) {
         filterPipe = getCoGroup(filterPipe, largeJoinFields, rhsOrig, smallJoinFields, renameFields, joiner, coGroupOrder, operationType);
       }
 
@@ -153,40 +134,40 @@ public abstract class BloomAssembly extends SubAssembly {
                           Fields renameFields,
                           Joiner joinerInput,
                           CoGroupOrder coGroupOrder,
-                          Mode mode){
+                          Mode mode) {
     Pipe lhs, rhs;
     Fields lhsFields, rhsFields;
     Joiner joiner = new InnerJoin();
 
-    if(coGroupOrder == CoGroupOrder.LARGE_LHS){
+    if (coGroupOrder == CoGroupOrder.LARGE_LHS) {
       lhs = filtered;
       lhsFields = largeJoinFields;
       rhs = keysOrig;
       rhsFields = keyFields;
-      if(mode == Mode.FILTER_EXACT){
+      if (mode == Mode.FILTER_EXACT) {
         joiner = new LimitJoin(new long[]{Long.MAX_VALUE, 1l});
-      }else{
-        if(joinerInput != null){
+      } else {
+        if (joinerInput != null) {
           joiner = joinerInput;
         }
       }
-    }else{
+    } else {
       lhs = keysOrig;
       lhsFields = keyFields;
       rhs = filtered;
       rhsFields = largeJoinFields;
-      if(mode == Mode.FILTER_EXACT){
+      if (mode == Mode.FILTER_EXACT) {
         joiner = new LimitJoin(new long[]{1l, Long.MAX_VALUE});
-      }else{
-        if(joinerInput != null){
+      } else {
+        if (joinerInput != null) {
           joiner = joinerInput;
         }
       }
     }
 
-    if(renameFields != null){
+    if (renameFields != null) {
       return new CoGroup(lhs, lhsFields, rhs, rhsFields, renameFields, joiner);
-    }else{
+    } else {
       return new CoGroup(lhs, lhsFields, rhs, rhsFields, joiner);
     }
   }
@@ -194,16 +175,16 @@ public abstract class BloomAssembly extends SubAssembly {
   private static class NaiveMerge extends Merge {
     String toAccept;
 
-    public NaiveMerge(String toAccept, Pipe... pipes){
-      super( null, pipes );
+    public NaiveMerge(String toAccept, Pipe... pipes) {
+      super(null, pipes);
       this.toAccept = toAccept;
     }
 
     @Override
-    public Scope outgoingScopeFor(Set<Scope> incomingScopes ){
+    public Scope outgoingScopeFor(Set<Scope> incomingScopes) {
       Scope toUse = null;
-      for(Scope s: incomingScopes){
-        if(s.getName().equals(toAccept)){
+      for (Scope s : incomingScopes) {
+        if (s.getName().equals(toAccept)) {
           toUse = s;
         }
       }
@@ -215,7 +196,7 @@ public abstract class BloomAssembly extends SubAssembly {
 
     private transient TupleSerializationUtil tupleSerializationUtil;
 
-    public GetSerializedTuple(){
+    public GetSerializedTuple() {
       super(new Fields("serialized-tuple-key"));
     }
 

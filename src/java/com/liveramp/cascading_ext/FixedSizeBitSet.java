@@ -5,15 +5,15 @@ import java.util.Arrays;
 public class FixedSizeBitSet {
   private static final long MAX_VECTOR_SIZE = Integer.MAX_VALUE * 8L;
 
-  private static final byte[] bitvalues = new byte[] {
-          (byte) 0x01,
-          (byte) 0x02,
-          (byte) 0x04,
-          (byte) 0x08,
-          (byte) 0x10,
-          (byte) 0x20,
-          (byte) 0x40,
-          (byte) 0x80
+  private static final byte[] bitvalues = new byte[]{
+      (byte) 0x01,
+      (byte) 0x02,
+      (byte) 0x04,
+      (byte) 0x08,
+      (byte) 0x10,
+      (byte) 0x20,
+      (byte) 0x40,
+      (byte) 0x80
   };
 
   public static int getNumBytesToStore(long numBits) {
@@ -43,14 +43,14 @@ public class FixedSizeBitSet {
   public FixedSizeBitSet(long numBits, byte[] arr) {
     if (numBits > MAX_VECTOR_SIZE) {
       throw new IllegalArgumentException("FixedSizeBitSet only supports up to "
-              + MAX_VECTOR_SIZE
-              + " bits.");
+          + MAX_VECTOR_SIZE
+          + " bits.");
     }
 
     if (arr.length < getNumBytesToStore(numBits)) {
       throw new IllegalArgumentException("Provided backing array of length "
-              + arr.length
-              + " is too small to support a bitvector of " + numBits + " bits.");
+          + arr.length
+          + " is too small to support a bitvector of " + numBits + " bits.");
     }
 
     this.numBits = numBits;
@@ -88,7 +88,7 @@ public class FixedSizeBitSet {
   }
 
   public void flip() {
-    for (int i = 0; i < bytes.length; i++ ) {
+    for (int i = 0; i < bytes.length; i++) {
       bytes[i] = (byte) ~bytes[i];
     }
   }
@@ -97,7 +97,7 @@ public class FixedSizeBitSet {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
     byte[] otherBytes = other.bytes;
-    for (int i = 0; i < bytes.length; i++ ) {
+    for (int i = 0; i < bytes.length; i++) {
       bytes[i] = (byte) (bytes[i] | otherBytes[i]);
     }
   }
@@ -106,7 +106,7 @@ public class FixedSizeBitSet {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
     byte[] otherBytes = other.bytes;
-    for (int i = 0; i < bytes.length; i++ ) {
+    for (int i = 0; i < bytes.length; i++) {
       bytes[i] = (byte) (bytes[i] & otherBytes[i]);
     }
   }
@@ -115,7 +115,7 @@ public class FixedSizeBitSet {
     if (other.numBits() != numBits())
       throw new IllegalArgumentException("Must be same size sets");
     byte[] otherBytes = other.bytes;
-    for (int i = 0; i < bytes.length; i++ ) {
+    for (int i = 0; i < bytes.length; i++) {
       bytes[i] = (byte) (bytes[i] ^ otherBytes[i]);
     }
   }

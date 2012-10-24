@@ -29,17 +29,17 @@ public class Counter {
   @Override
   public String toString() {
     return padSpaces(name, 19) + ": "
-            + padSpaces(prettyValue(), 11)
-            + " (" + group + ")";
+        + padSpaces(prettyValue(), 11)
+        + " (" + group + ")";
   }
 
   @Override
   public boolean equals(Object other) {
     return other != null
-            && other instanceof Counter
-            && ((Counter) other).group.equals(group)
-            && ((Counter) other).name.equals(name)
-            && ((Counter) other).value.equals(value);
+        && other instanceof Counter
+        && ((Counter) other).group.equals(group)
+        && ((Counter) other).name.equals(name)
+        && ((Counter) other).value.equals(value);
   }
 
   private String prettyValue() {

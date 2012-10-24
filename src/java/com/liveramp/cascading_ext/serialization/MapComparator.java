@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class MapComparator<T1 extends Comparable<T1>, T2 extends Comparable<T2>> extends RawComparator
-        implements StreamComparator<BufferedInputStream>, Comparator<Map<T1, T2>>, Serializable {
+    implements StreamComparator<BufferedInputStream>, Comparator<Map<T1, T2>>, Serializable {
 
   private static final long serialVersionUID = 1L;
 

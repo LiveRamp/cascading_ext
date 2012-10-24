@@ -28,13 +28,13 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     super.setUp();
 
     output = new Hfs(new SequenceFile(new Fields("lhs-key", "lhs-key2", "lhs-value", "rhs-key", "rhs-key2", "rhs-value")),
-        getTestRoot()+"/output1");
+        getTestRoot() + "/output1");
 
     output2 = new Hfs(new SequenceFile(new Fields("lhs-key-renamed", "lhs-value-renamed", "lhs-key", "rhs-value")),
-        getTestRoot()+"/output2");
+        getTestRoot() + "/output2");
 
     output3 = new Hfs(new SequenceFile(new Fields("key", "key2", "v1", "key3", "key4", "v2")),
-        getTestRoot()+"/output3");
+        getTestRoot() + "/output3");
   }
 
   public void testSingle() throws IOException {

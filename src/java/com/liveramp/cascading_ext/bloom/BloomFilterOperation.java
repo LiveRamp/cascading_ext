@@ -1,7 +1,6 @@
 package com.liveramp.cascading_ext.bloom;
 
 import cascading.flow.FlowProcess;
-import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
@@ -72,7 +71,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
     }
   }
 
-  private String getBloomFilterFile(JobConf config){
+  private String getBloomFilterFile(JobConf config) {
     try {
       Path[] files = DistributedCache.getLocalCacheFiles(config);
       List<Path> bloomFilterFiles = new ArrayList<Path>();

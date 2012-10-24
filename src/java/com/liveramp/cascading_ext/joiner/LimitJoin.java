@@ -11,7 +11,7 @@ public class LimitJoin extends InnerJoin {
 
   private final long[] streamsToLimit;
 
-  public LimitJoin(long[] streamsToLimit){
+  public LimitJoin(long[] streamsToLimit) {
     this.streamsToLimit = streamsToLimit;
   }
 
@@ -41,17 +41,17 @@ public class LimitJoin extends InnerJoin {
       private long numReturned = 0;
       private final int iteratorNum;
 
-      public LimitedIterator(int iteratorNum){
+      public LimitedIterator(int iteratorNum) {
         this.iteratorNum = iteratorNum;
       }
 
-      private void checkIter(){
-        if(internal == null){
+      private void checkIter() {
+        if (internal == null) {
           internal = closureLocal.getIterator(iteratorNum);
         }
       }
 
-      private boolean isDone(){
+      private boolean isDone() {
         return numReturned == limitedStreams[iteratorNum];
       }
 
@@ -64,7 +64,7 @@ public class LimitJoin extends InnerJoin {
       @Override
       public Tuple next() {
         checkIter();
-        if(isDone()){
+        if (isDone()) {
           throw new NoSuchElementException();
         }
         numReturned++;

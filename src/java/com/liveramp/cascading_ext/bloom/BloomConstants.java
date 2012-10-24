@@ -7,7 +7,8 @@ import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
  * @author eddie
  */
 public class BloomConstants {
-  private BloomConstants() {}
+  private BloomConstants() {
+  }
 
   public static int MAX_BLOOM_FILTER_HASHES = 4;
   public static int BUFFER_SIZE = 300;
