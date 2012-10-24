@@ -7,10 +7,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +44,7 @@ import com.liveramp.cascading_ext.counters.Counters;
 
 public class LoggingFlow implements Flow<JobConf> {
   private static Logger LOG = Logger.getLogger(Flow.class);
+  private static final int FAILURES_TO_QUERY = 3;
 
   private final Flow<JobConf> internalFlow;
 
@@ -132,7 +133,7 @@ public class LoggingFlow implements Flow<JobConf> {
     boolean exceptions = false;
     try {
       List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
-      List<String> jobFailures = new ArrayList<String>();
+      Set<String> jobFailures = new HashSet<String>();
       JobClient client = new JobClient(internalFlow.getConfig());
       for (FlowStepStats stat : stepStats) {
 
@@ -146,9 +147,11 @@ public class LoggingFlow implements Flow<JobConf> {
             }
           }
           // We limit the number of potential logs being pulled to spare the jobtracker
-          Set<Integer> indices = getRandomIndices(failures, 3);
-          for (Integer i : indices) {
-            jobFailures.add(getFailureLog(failures.get(i)));
+          if (failures.size() > 0) {
+            Collections.shuffle(failures);
+            for (int i = 0; i < FAILURES_TO_QUERY; i++ ) {
+              jobFailures.add(getFailureLog(failures.get(i)));
+            }
           }
         } catch (Exception e) {
           exceptions = true;
@@ -168,15 +171,6 @@ public class LoggingFlow implements Flow<JobConf> {
 
   }
 
-  private Set<Integer> getRandomIndices(Collection coll, int i) {
-    Set<Integer> indices = new HashSet<Integer>();
-    Random r = new Random();
-    while (indices.size() < i) {
-      indices.add(r.nextInt(coll.size()));
-    }
-    return indices;
-  }
-
   private static String getFailureLog(TaskCompletionEvent event) {
     LOG.info("Getting errors for attempt " + event.getTaskAttemptId());
     String exception = "";
@@ -186,11 +180,10 @@ public class LoggingFlow implements Flow<JobConf> {
       Matcher matcher = pattern.matcher(fullLog);
       matcher.find();
       exception = matcher.group();
-    } catch (Exception e) {
+    } catch (IOException e) {
       LOG.info("Regex Error!", e);
     }
-    return "\nFailure log:\n" + exception;
-    // return fullLog;
+    return "\nCluster Log Exception:\n" + exception;
   }
 
   private static String retrieveTaskLogs(TaskAttemptID taskId, String baseUrl)
