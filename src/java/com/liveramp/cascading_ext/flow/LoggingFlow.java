@@ -43,6 +43,7 @@ import cascading.tuple.TupleEntryIterator;
 import com.liveramp.cascading_ext.counters.Counters;
 
 public class LoggingFlow implements Flow<JobConf> {
+  private static final Pattern LOG_ERROR_PATTERN = Pattern.compile("Caused by.*?more", Pattern.DOTALL);
   private static Logger LOG = Logger.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
 
@@ -176,8 +177,7 @@ public class LoggingFlow implements Flow<JobConf> {
     String exception = "";
     try {
       String fullLog = retrieveTaskLogs(event.getTaskAttemptId(), event.getTaskTrackerHttp());
-      Pattern pattern = Pattern.compile("Caused by.*?more", Pattern.DOTALL);
-      Matcher matcher = pattern.matcher(fullLog);
+      Matcher matcher = LOG_ERROR_PATTERN.matcher(fullLog);
       matcher.find();
       exception = matcher.group();
     } catch (IOException e) {
