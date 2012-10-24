@@ -30,11 +30,11 @@ public class BloomUtil {
 
   private final static Object BF_LOAD_LOCK = new Object();
 
-  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems){
+  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems) {
     double falsePositiveRate = getFalsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
     double newFalsePositiveRate;
     int numBloomHashes = 1;
-    for (int i = BloomConstants.MAX_BLOOM_FILTER_HASHES - 1; i > 0; i-- ) {
+    for (int i = BloomConstants.MAX_BLOOM_FILTER_HASHES - 1; i > 0; i--) {
       newFalsePositiveRate = getFalsePositiveRate(i, numBloomBits, numElems);
       // Break out if you see an increase in false positive rate while decreasing the number of hashes.
       // Since this function has only one critical point, we know that if we see an increase
@@ -62,7 +62,7 @@ public class BloomUtil {
       TupleEntry cur = itr.next();
       long split = cur.getLong(0);
       FixedSizeBitSet curSet = new FixedSizeBitSet(splitSize, ((BytesWritable) cur.getObject(1)).getBytes());
-      for (long i = 0; i < curSet.numBits(); i++ ) {
+      for (long i = 0; i < curSet.numBits(); i++) {
         if (curSet.get(i)) {
           bitSet.set(split * splitSize + i);
         }
@@ -76,9 +76,9 @@ public class BloomUtil {
     properties.putAll(getPropertiesForDistCache(bloomFilterPath));
   }
 
-  public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath){
+  public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath) {
     try {
-      LOG.info("Writing bloom filter to filesystem: "+FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
+      LOG.info("Writing bloom filter to filesystem: " + FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
       return Collections.singletonMap("mapred.cache.files", FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
@@ -89,7 +89,7 @@ public class BloomUtil {
     properties.putAll(getPropertiesForRelevance(requiredFieldsSize, matchKeySize));
   }
 
-  public static Map<String, String> getPropertiesForRelevance(int requiredFieldsSize, int matchKeySize){
+  public static Map<String, String> getPropertiesForRelevance(int requiredFieldsSize, int matchKeySize) {
     Map<String, String> properties = new HashMap<String, String>();
     double bestIOSortRecordPercent = 16.0 / (16.0 + 8 + requiredFieldsSize + matchKeySize);
     bestIOSortRecordPercent = Math.max(Math.round(bestIOSortRecordPercent * 100) / 100.0, 0.01);
@@ -98,11 +98,11 @@ public class BloomUtil {
     return properties;
   }
 
-  public static long getSplitSize(long numBloomBits, int numSplits){
+  public static long getSplitSize(long numBloomBits, int numSplits) {
     return (numBloomBits + numSplits - 1) / numSplits;
   }
 
-  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath){
+  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath) {
     String bloomPartsDir = stepConf.get("target.bloom.filter.parts");
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
@@ -121,9 +121,9 @@ public class BloomUtil {
     int numBloomHashes = optimal.getRhs();
 
     try {
-      synchronized(BF_LOAD_LOCK){
+      synchronized (BF_LOAD_LOCK) {
         // Load bloom filter parts and merge them.
-        Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir+"/"+(numBloomHashes-1));
+        Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir + "/" + (numBloomHashes - 1));
         BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes,
             prevJobTuples);
 

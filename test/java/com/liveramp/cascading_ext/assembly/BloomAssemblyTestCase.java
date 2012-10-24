@@ -17,18 +17,18 @@ public abstract class BloomAssemblyTestCase extends BaseTestCase {
   protected Tap lhs2Store;
   protected Tap rhs2Store;
 
-  public BloomAssemblyTestCase(){
+  public BloomAssemblyTestCase() {
     super();
   }
 
   public void setUp() throws Exception {
     super.setUp();
     BloomConstants.BUFFER_SIZE = 5;
-    
-    lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot()+"/lhs");
-    lhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot()+"/lhs2");
-    rhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "rhs-value")), getTestRoot()+"/rhs");
-    rhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "rhs-value")), getTestRoot()+"/rhs2");
+
+    lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs");
+    lhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs2");
+    rhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "rhs-value")), getTestRoot() + "/rhs");
+    rhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "rhs-value")), getTestRoot() + "/rhs2");
 
     TapHelper.writeToTap(rhsStore,
         new Tuple(bytes("1"), bytes("11"), "a-rhs"),
@@ -89,7 +89,7 @@ public abstract class BloomAssemblyTestCase extends BaseTestCase {
     );
   }
 
-  protected BytesWritable bytes(String key){
+  protected BytesWritable bytes(String key) {
     return new BytesWritable(key.getBytes());
   }
 }

@@ -10,7 +10,7 @@ import java.util.List;
  * @author eddie
  */
 public class TestSingleElementTupleIterator extends BaseTestCase {
-  public void testIt(){
+  public void testIt() {
     List<Tuple> tuples = new ArrayList<Tuple>();
     tuples.add(new Tuple("tuple", "number", "one"));
     tuples.add(new Tuple("tuple", "number", "two"));

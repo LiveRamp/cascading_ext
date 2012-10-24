@@ -30,9 +30,9 @@ public class TestMultiGroupBy extends BaseTestCase {
   }
 
   public void testSimple() throws Exception {
-    final String SOURCE1 = getTestRoot()+"/mgb_source1";
-    final String SOURCE2 = getTestRoot()+"/mgb_source2";
-    final String OUTPUT = getTestRoot()+"/mgb_output";
+    final String SOURCE1 = getTestRoot() + "/mgb_source1";
+    final String SOURCE2 = getTestRoot() + "/mgb_source2";
+    final String OUTPUT = getTestRoot() + "/mgb_output";
 
     Tap source1 = new Hfs(new SequenceFile(new Fields("key", "num")), SOURCE1);
 
@@ -56,13 +56,13 @@ public class TestMultiGroupBy extends BaseTestCase {
 
     Pipe s2 = new Pipe("s2");
 
-    Pipe results = new MultiGroupBy(new Pipe[] {s1, s2}, new Fields[] {new Fields("key"),
-            new Fields("key2")}, new Fields("key"), new AddEmUp());
+    Pipe results = new MultiGroupBy(new Pipe[]{s1, s2}, new Fields[]{new Fields("key"),
+        new Fields("key2")}, new Fields("key"), new AddEmUp());
 
-    Tap sink = new Hfs(new SequenceFile(new Fields("key", "result"," result1", "result2", "result3", "result4", "result5")), OUTPUT);
+    Tap sink = new Hfs(new SequenceFile(new Fields("key", "result", " result1", "result2", "result3", "result4", "result5")), OUTPUT);
 
     Map<String, Tap> sources = Cascades.tapsMap(new Pipe[]{s1, s2},
-            new Tap[]{source1, source2});
+        new Tap[]{source1, source2});
 
     CascadingUtil.get().getFlowConnector().connect(sources, sink, results).complete();
 
@@ -79,7 +79,7 @@ public class TestMultiGroupBy extends BaseTestCase {
 
   protected static class AddEmUp extends MultiBuffer {
     public AddEmUp() {
-      super(new Fields("result"," result1", "result2", "result3", "result4", "result5"));
+      super(new Fields("result", " result1", "result2", "result3", "result4", "result5"));
     }
 
     @Override

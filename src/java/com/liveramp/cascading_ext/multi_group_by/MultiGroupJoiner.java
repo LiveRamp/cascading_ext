@@ -8,8 +8,8 @@ import cascading.tuple.Tuple;
 import java.util.Iterator;
 
 /**
-* @author eddie
-*/
+ * @author eddie
+ */
 public class MultiGroupJoiner implements Joiner {
   protected MultiBuffer buffer;
   protected int groupSize;

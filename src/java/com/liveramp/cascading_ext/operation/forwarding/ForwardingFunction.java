@@ -9,14 +9,14 @@ import cascading.operation.FunctionCall;
 // A Function Decorator can be easily implemented by subclassing the
 // Forwarding class and overriding only the desired methods.
 public class ForwardingFunction extends ForwardingOperation implements Function {
-  
+
   private final Function function;
-  
+
   public ForwardingFunction(Function function) {
     super(function);
     this.function = function;
   }
-  
+
   @Override
   public void operate(FlowProcess process, FunctionCall call) {
     function.operate(process, call);

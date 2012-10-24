@@ -9,14 +9,14 @@ import cascading.operation.FilterCall;
 // A Filter Decorator can be easily implemented by subclassing the
 // Forwarding class and overriding only the desired methods.
 public class ForwardingFilter extends ForwardingOperation implements Filter {
-  
+
   private final Filter filter;
-  
+
   public ForwardingFilter(Filter filter) {
     super(filter);
     this.filter = filter;
   }
-  
+
   @Override
   public boolean isRemove(FlowProcess process, FilterCall call) {
     return filter.isRemove(process, call);

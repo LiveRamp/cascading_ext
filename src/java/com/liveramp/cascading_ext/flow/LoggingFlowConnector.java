@@ -14,7 +14,7 @@ import java.util.Map;
 public class LoggingFlowConnector extends HadoopFlowConnector {
   private final FlowStepStrategy<JobConf> flowStepStrategy;
 
-  public LoggingFlowConnector(Map<Object, Object> properties, FlowStepStrategy<JobConf> flowStepStrategy){
+  public LoggingFlowConnector(Map<Object, Object> properties, FlowStepStrategy<JobConf> flowStepStrategy) {
     super(properties);
     this.flowStepStrategy = flowStepStrategy;
   }
@@ -25,11 +25,11 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
     planner.initialize(this, new HashMap<Object, Object>(getProperties()));
 
     return planner
-      .buildFlow(new FlowDef()
-              .setName(name)
-              .addTails(tails)
-              .addSources(sources)
-              .addSinks(sinks)
-              .addTraps(traps));
+        .buildFlow(new FlowDef()
+            .setName(name)
+            .addTails(tails)
+            .addSources(sources)
+            .addSinks(sinks)
+            .addTraps(traps));
   }
 }

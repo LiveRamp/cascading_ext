@@ -7,7 +7,7 @@ public abstract class HashFunction implements Serializable {
   private final long maxValue;
   private final int numHashes;
 
-  public HashFunction(long maxValue, int numHashes){
+  public HashFunction(long maxValue, int numHashes) {
     this.maxValue = maxValue;
     this.numHashes = numHashes;
   }
@@ -19,7 +19,7 @@ public abstract class HashFunction implements Serializable {
 
     long[] result = new long[numHashes];
     int initval = -1;
-    for (int i = 0; i < numHashes; i++ ) {
+    for (int i = 0; i < numHashes; i++) {
       long hash;
       hash = hash(b, b.length, initval);
       initval = (int) hash;

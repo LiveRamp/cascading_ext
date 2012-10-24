@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 /**
  * An iterator (that wraps an Iterator<Tuple>) that iterates over a single position in a stream of tuples.
+ *
  * @param <T>
  */
 public class SingleElementTupleIterator<T> implements Iterator<T> {

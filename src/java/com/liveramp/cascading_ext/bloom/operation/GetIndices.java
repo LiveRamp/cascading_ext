@@ -23,7 +23,7 @@ public class GetIndices extends BaseOperation implements Function {
     this.factory = factory;
   }
 
-  public void prepare(FlowProcess flowProcess, OperationCall operationCall){
+  public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
     JobConf conf = (JobConf) flowProcess.getConfigCopy();
     long numBits = Long.parseLong(conf.get("num.bloom.bits"));
     int numHashes = Integer.parseInt(conf.get("max.bloom.hashes"));
@@ -35,7 +35,7 @@ public class GetIndices extends BaseOperation implements Function {
   public void operate(FlowProcess flow, FunctionCall call) {
     byte[] bytes = Bytes.getBytes((BytesWritable) call.getArguments().get(0));
     long[] h = function.hash(bytes);
-    for (int i = 0; i < h.length; i++ ) {
+    for (int i = 0; i < h.length; i++) {
       Tuple tuple = new Tuple(h[i] / splitSize, h[i] % splitSize, i);
       call.getOutputCollector().add(tuple);
     }

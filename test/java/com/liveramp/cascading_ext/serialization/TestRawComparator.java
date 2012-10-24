@@ -16,7 +16,7 @@ public class TestRawComparator extends BaseTestCase {
     assertOrder(array5, array6, 1);
   }
 
-  private void assertOrder(byte[] array1, byte[] array2, int expected){
+  private void assertOrder(byte[] array1, byte[] array2, int expected) {
     assertEquals(expected, RawComparator.compareByteArrays(array1, array2));
   }
 }

@@ -6,14 +6,13 @@ import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.tap.TapHelper;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.tap.TapHelper;
 
 public class TestBloomFilter extends BloomAssemblyTestCase {
 
@@ -23,7 +22,7 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
     super.setUp();
 
     output = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")),
-        getTestRoot()+"/output");
+        getTestRoot() + "/output");
   }
 
   public void testExact() throws IOException {

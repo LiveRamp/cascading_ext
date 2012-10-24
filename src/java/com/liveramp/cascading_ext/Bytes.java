@@ -26,9 +26,9 @@ public class Bytes {
 
   public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
     return byteBuffer.hasArray()
-            && byteBuffer.arrayOffset() == 0
-            && byteBuffer.position() == 0
-            && byteBuffer.remaining() == byteBuffer.capacity();
+        && byteBuffer.arrayOffset() == 0
+        && byteBuffer.position() == 0
+        && byteBuffer.remaining() == byteBuffer.capacity();
   }
 
   /**

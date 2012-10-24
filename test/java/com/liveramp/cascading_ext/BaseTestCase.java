@@ -18,7 +18,7 @@ public abstract class BaseTestCase extends TestCase {
     Logger.getRootLogger().setLevel(Level.ALL);
   }
 
-  public BaseTestCase(){
+  public BaseTestCase() {
     // set the default job polling interval to 10ms. this makes the tests run *much* faster.
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);
     CascadingUtil.get().setDefaultProperty("io.sort.mb", 1);
@@ -39,7 +39,7 @@ public abstract class BaseTestCase extends TestCase {
     super.tearDown();
   }
 
-  protected String getTestRoot(){
+  protected String getTestRoot() {
     return TEST_ROOT;
   }
 }

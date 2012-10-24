@@ -45,7 +45,7 @@ public class TestCounters extends BaseTestCase {
     assertTrue("no warning on nonempty output", !Counters.prettyCountersString(flow).contains("BLACK HOLE WARNING"));
   }
 
-  @SuppressWarnings({ "rawtypes", "serial" })
+  @SuppressWarnings({"rawtypes", "serial"})
   private static class RemoveAll extends BaseOperation implements Filter {
     public boolean isRemove(FlowProcess arg0, FilterCall arg1) {
       return true;

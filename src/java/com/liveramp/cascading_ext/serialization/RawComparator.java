@@ -27,12 +27,12 @@ public abstract class RawComparator implements StreamComparator<BufferedInputStr
 
     //use hadoop's lexicographical byte array ordering
     int result = compareByteArrays(
-            lhsBuffer,
-            lhsOff + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH,
-            lhsSize,
-            rhsBuffer,
-            rhsOff + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH,
-            rhsSize);
+        lhsBuffer,
+        lhsOff + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH,
+        lhsSize,
+        rhsBuffer,
+        rhsOff + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH,
+        rhsSize);
 
     lhs.skip(lhsSize + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH);
     rhs.skip(rhsSize + NUM_BYTES_RESERVED_FOR_ARRAY_LENGTH);
@@ -50,10 +50,10 @@ public abstract class RawComparator implements StreamComparator<BufferedInputStr
 
   protected static int readSize(byte[] buffer, int off) {
     int size =
-            ((buffer[off] & 0xff) << 24) |
-                    ((buffer[off + 1] & 0xff) << 16) |
-                    ((buffer[off + 2] & 0xff) << 8) |
-                    ((buffer[off + 3] & 0xff));
+        ((buffer[off] & 0xff) << 24) |
+            ((buffer[off + 1] & 0xff) << 16) |
+            ((buffer[off + 2] & 0xff) << 8) |
+            ((buffer[off + 3] & 0xff));
 
     return size;
   }

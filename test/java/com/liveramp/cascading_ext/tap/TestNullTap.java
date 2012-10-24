@@ -26,12 +26,12 @@ public class TestNullTap extends BaseTestCase {
 
   public void testFlow() throws IOException {
     Tap input = new MemorySourceTap(
-            Lists.newArrayList(
-                    new Tuple("line1", 1),
-                    new Tuple("line2", 2),
-                    new Tuple("line3", 3),
-                    new Tuple("line4", 4)),
-            new Fields("description", "count"));
+        Lists.newArrayList(
+            new Tuple("line1", 1),
+            new Tuple("line2", 2),
+            new Tuple("line3", 3),
+            new Tuple("line4", 4)),
+        new Fields("description", "count"));
 
     Tap output = new NullTap();
 

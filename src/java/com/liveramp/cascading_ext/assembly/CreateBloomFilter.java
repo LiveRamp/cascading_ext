@@ -58,8 +58,8 @@ public class CreateBloomFilter extends SubAssembly {
 
     Tap approxCountParts = new Hfs(new SequenceFile(new Fields("bytes")), approxCountPartsDir);
     Tap[] bloomParts = new Tap[BloomConstants.MAX_BLOOM_FILTER_HASHES];
-    for(int i= 0; i < bloomParts.length; i++) {
-      String dir = bloomPartsDir+"/"+i+"/";
+    for (int i = 0; i < bloomParts.length; i++) {
+      String dir = bloomPartsDir + "/" + i + "/";
       FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(dir));
       bloomParts[i] = new Hfs(new SequenceFile(new Fields("split", "filter")), dir);
     }
@@ -82,7 +82,7 @@ public class CreateBloomFilter extends SubAssembly {
     bloomDef.setProperty("split.size", Long.toString(BloomUtil.getSplitSize(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, NUM_SPLITS)));
     bloomDef.setProperty("io.sort.record.percent", Double.toString(0.50));
 
-    for(Map.Entry<String, String> prop: stepProps.entrySet()){
+    for (Map.Entry<String, String> prop : stepProps.entrySet()) {
       bloomDef.setProperty(prop.getKey(), prop.getValue());
     }
 
@@ -91,9 +91,9 @@ public class CreateBloomFilter extends SubAssembly {
 
   /**
    * Used to collect the following stats about the keys in a bloom join:
-   *  - approximate distinct number (uses HLL)
-   *  - approximate average key size
-   *  - approximate average tuple size
+   * - approximate distinct number (uses HLL)
+   * - approximate average key size
+   * - approximate average tuple size
    */
   private static class CollectKeyStats extends BaseOperation implements Filter {
     private static Logger LOG = Logger.getLogger(CollectKeyStats.class);
@@ -147,7 +147,7 @@ public class CreateBloomFilter extends SubAssembly {
       super.cleanup(flowProcess, operationCall);
 
       try {
-        LOG.info("HLL counter found "+approxCounter.cardinality()+" distinct keys");
+        LOG.info("HLL counter found " + approxCounter.cardinality() + " distinct keys");
         TupleEntryCollector out = sideBucket.openForWrite(flowProcess);
         out.add(new Tuple(new BytesWritable(approxCounter.getBytes())));
         out.close();
@@ -165,7 +165,7 @@ public class CreateBloomFilter extends SubAssembly {
     }
   }
 
-  protected static byte[] serializeTuple(TupleSerializationUtil tupleSerializationUtil, TupleEntry tupleEntry, Fields selectedFields){
+  protected static byte[] serializeTuple(TupleSerializationUtil tupleSerializationUtil, TupleEntry tupleEntry, Fields selectedFields) {
     try {
       if (selectedFields == Fields.ALL) {
         return tupleSerializationUtil.serialize(tupleEntry.getTuple());

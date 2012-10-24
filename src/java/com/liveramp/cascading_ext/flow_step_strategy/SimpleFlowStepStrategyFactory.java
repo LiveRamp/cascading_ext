@@ -9,7 +9,7 @@ import org.apache.hadoop.mapred.JobConf;
 public class SimpleFlowStepStrategyFactory implements FlowStepStrategyFactory<JobConf> {
   private final Class<? extends FlowStepStrategy<JobConf>> klass;
 
-  public SimpleFlowStepStrategyFactory(Class<? extends FlowStepStrategy<JobConf>> klass){
+  public SimpleFlowStepStrategyFactory(Class<? extends FlowStepStrategy<JobConf>> klass) {
     this.klass = klass;
   }
 

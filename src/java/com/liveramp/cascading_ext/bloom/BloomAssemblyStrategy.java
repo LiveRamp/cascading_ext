@@ -47,7 +47,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
       JobConf stepConf = step.getConfig();
       String targetBloomID = stepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
 
-      if (bloomID.equals(targetBloomID)){
+      if (bloomID.equals(targetBloomID)) {
         LOG.info("Found step generating required bloom filter: " + targetBloomID);
 
         // Extract the counters from the previous job to approximate the average key/tuple size

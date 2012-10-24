@@ -9,18 +9,17 @@ import java.io.*;
 
 /**
  * Implements a <i>Bloom filter</i>, as defined by Bloom in 1970.
- * <p>
+ * <p/>
  * The Bloom filter is a data structure that was introduced in 1970 and that has been adopted by the networking research community in the past decade thanks to
  * the bandwidth efficiencies that it offers for the transmission of set membership information between networked hosts. A sender encodes the information into a
  * bit vector, the Bloom filter, that is more compact than a conventional representation. Computation and space costs for construction are linear in the number
  * of elements. The receiver uses the filter to test whether various elements are members of the set. Though the filter will occasionally return a false
  * positive, it will never return a false negative. When creating the filter, the sender can choose its desired point in a trade-off between the false positive
  * rate and the size.
- *
+ * <p/>
  * contract <a href="http://www.one-lab.org">European Commission One-Lab Project 034819</a>.
  *
  * @version 1.0 - 2 Feb. 07
- *
  * @see <a href="http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal">Space/Time Trade-Offs in Hash Coding with Allowable Errors</a>
  */
 public class BloomFilter implements Writable {
@@ -33,7 +32,8 @@ public class BloomFilter implements Writable {
   private long vectorSize;
   private long numElems;
 
-  public BloomFilter() {}
+  public BloomFilter() {
+  }
 
   public BloomFilter(long vectorSize, int numHashes) {
     this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize), 0);
@@ -43,7 +43,7 @@ public class BloomFilter implements Writable {
     this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize, arr), numElems);
   }
 
-  public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems){
+  public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems) {
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;
     this.bits = bits;
@@ -70,10 +70,10 @@ public class BloomFilter implements Writable {
   public void add(byte[] key) {
     long[] h = hashFunction.hash(key);
 
-    for (int i = 0; i < numHashes; i++ ) {
+    for (int i = 0; i < numHashes; i++) {
       bits.set(h[i]);
     }
-    numElems++ ;
+    numElems++;
   }
 
   /**
@@ -85,7 +85,7 @@ public class BloomFilter implements Writable {
    */
   public boolean membershipTest(byte[] key) {
     long[] h = hashFunction.hash(key);
-    for (int i = 0; i < numHashes; i++ ) {
+    for (int i = 0; i < numHashes; i++) {
       if (!bits.get(h[i])) {
         return false;
       }
@@ -126,7 +126,7 @@ public class BloomFilter implements Writable {
     out.writeInt(this.numHashes);
     out.writeLong(this.vectorSize);
     out.writeLong(this.numElems);
-    out.writeBytes(this.hashFunction.getHashID()+"\n");
+    out.writeBytes(this.hashFunction.getHashID() + "\n");
     out.write(this.bits.getRaw());
   }
 
@@ -137,9 +137,9 @@ public class BloomFilter implements Writable {
     numElems = in.readLong();
     String serilizedHashID = in.readLine();
     hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
-    if(!serilizedHashID.equals(hashFunction.getHashID())){
-      throw new RuntimeException("bloom filter was written with hash type "+serilizedHashID+
-          " but current hash function type is "+hashFunction.getHashID()+"!");
+    if (!serilizedHashID.equals(hashFunction.getHashID())) {
+      throw new RuntimeException("bloom filter was written with hash type " + serilizedHashID +
+          " but current hash function type is " + hashFunction.getHashID() + "!");
     }
 
     byte[] bytes = new byte[FixedSizeBitSet.getNumBytesToStore(vectorSize)];
