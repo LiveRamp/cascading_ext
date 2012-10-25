@@ -23,7 +23,9 @@ public abstract class BloomFilterOperation extends BaseOperation {
   private static String filterJobId = null;
 
   // the job id guarantees this stuff works on both cluster and during tests
-  // in tests, the static objects don't get cleared between jobs
+  // in production, we want to keep the static filter loaded for as long as possible
+  //  (since jvm reuse might be enabled)
+  // however, in tests, the static objects don't get cleared between jobs
   private String jobId;
   private boolean cleanUpFilter;
 
@@ -42,12 +44,13 @@ public abstract class BloomFilterOperation extends BaseOperation {
     return filter.membershipTest(potential);
   }
 
-  protected void ensureLoadedFilter(FlowProcess process) {
+  @Override
+  public void prepare( FlowProcess flowProcess, OperationCall operationCall ){
     if (filter == null || !filterJobId.equals(jobId)) {
       try {
         LOG.info("Loading bloom filter");
 
-        String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
+        String bloomFilter = getBloomFilterFile((JobConf) flowProcess.getConfigCopy());
         filter = BloomFilter.read(FileSystem.getLocal(new Configuration()),
             new Path(bloomFilter));
         filterJobId = jobId;

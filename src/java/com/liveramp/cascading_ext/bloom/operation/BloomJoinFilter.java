@@ -23,21 +23,18 @@ public class BloomJoinFilter extends BloomFilterOperation implements Filter {
 
   @Override
   public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
+    super.prepare(flowProcess, operationCall);
     tupleSerializationUtil = new TupleSerializationUtil((JobConf) flowProcess.getConfigCopy());
   }
 
   @Override
   public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
-    ensureLoadedFilter(flowProcess);
-
     Tuple key = filterCall.getArguments().getTuple();
     try {
       byte[] serialized = tupleSerializationUtil.serialize(key);
-      // filter it out (true) if the filter cannot contain it
       return !filterMayContain(Bytes.getBytes(new BytesWritable(serialized)));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
   }
 }

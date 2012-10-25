@@ -41,19 +41,9 @@ public abstract class BloomAssembly extends SubAssembly {
   }
 
   /**
-   * The LHS ("largePipe") should be the side with relatively more tuples, as we will build the bloom filter against the
-   * RHS ("smallPipe").
+   * See BloomJoin(...) for other argument usages.
    *
-   * @param largePipe       the left hand side of the bloom operation. this should be the side that the bloom filter will be
-   *                        run against. In other words, this should be the side with relatively more tuples.
-   * @param largeJoinFields the fields on the left hand side that will be compared with the right hand side
-   * @param smallPipe       the right hand side of the bloom operation. this should be the side that we build the bloom filter
-   *                        against. In other words, this should be the side with relatively fewer tuples.
-   * @param smallJoinFields the fields on the right hand side that will be compared with the left hand side
-   * @param renameFields    if doing a join and the LHS and RHS have some of the same field names, you'll need to supply
-   *                        rename fields (just like with CoGroup).
-   * @param operationType   controls how the bloom operation behaves
-   * @param coGroupOrder    determines which pipe ends up on the LHS of the final cogroup
+   * @param operationType  whether the operation is a join, filter, or inexact filter (passed in by subclasses)
    */
   protected BloomAssembly(Pipe largePipe, Fields largeJoinFields,
                           Pipe smallPipe, Fields smallJoinFields,
@@ -77,12 +67,8 @@ public abstract class BloomAssembly extends SubAssembly {
       }
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
 
-      // This creates the bloom filter on each of the splits. Later steps merge the parts
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new CreateBloomFilter(smallPipe,
-          approxCountPartsDir,
-          bloomPartsDir,
-          "serialized-tuple-key",
+      smallPipe = new CreateBloomFilter(smallPipe, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key",
           Collections.singletonMap(BloomProps.TARGET_BLOOM_FILTER_ID, bloomJobID));
 
       // This is a bit of a hack to:
@@ -92,8 +78,7 @@ public abstract class BloomAssembly extends SubAssembly {
       Pipe filterPipe = new NaiveMerge(largePipe.getName(), largePipe, smallPipe);
 
       // Load the bloom filter into memory and apply it to the LHS.
-      filterPipe = new Each(filterPipe, largeJoinFields,
-          new BloomJoinFilter(bloomJobID, false));
+      filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
 
       // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
       // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
@@ -111,12 +96,8 @@ public abstract class BloomAssembly extends SubAssembly {
           newKeyFields = newKeyFields.append(new Fields("__bloom_join_tmp_" + i));
         }
         rhsOrig = new Each(rhsOrig, smallJoinFields, new Identity(newKeyFields), newKeyFields);
-
-        // Limit join takes the LHS exactly once if and only if there is a match on the RHS. This is similar to
-        // an InnerJoin, except it won't duplicate tuples on the LHS if there are duplicates on the RHS.
         filterPipe = getCoGroup(filterPipe, largeJoinFields, rhsOrig, newKeyFields, renameFields, joiner, coGroupOrder, operationType);
 
-        // Get rid of the junk RHS fields
         filterPipe = new Discard(filterPipe, newKeyFields);
       } else if (operationType == Mode.JOIN) {
         filterPipe = getCoGroup(filterPipe, largeJoinFields, rhsOrig, smallJoinFields, renameFields, joiner, coGroupOrder, operationType);
@@ -145,6 +126,8 @@ public abstract class BloomAssembly extends SubAssembly {
       rhs = keysOrig;
       rhsFields = keyFields;
       if (mode == Mode.FILTER_EXACT) {
+        // Limit join takes the LHS exactly once if and only if there is a match on the RHS.
+        // Won't duplicate tuples on the LHS if there are duplicates on the RHS.
         joiner = new LimitJoin(new long[]{Long.MAX_VALUE, 1l});
       } else {
         if (joinerInput != null) {
