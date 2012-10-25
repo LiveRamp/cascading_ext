@@ -17,6 +17,9 @@ import cascading.tuple.Fields;
  * Most of the functionality of BloomFilter (except for the ability to do inexact joins) is available via
  * com.liveramp.cascading_ext.assembly.BloomJoin as well.  However, by discarding all RHS fields after the join, the
  * Fields algebra is easier to manage (no need to deal with conflicting field names.)
+ * 
+ * IMPORTANT: the same warning about serialization in BloomJoin also applies here.  See
+ * com.liveramp.cascading_ext.assembly.BloomJoin for details.
  */
 public class BloomFilter extends BloomAssembly {
 
