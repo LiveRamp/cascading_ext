@@ -6,9 +6,6 @@ import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.planner.HadoopPlanner;
 import org.apache.hadoop.mapred.JobConf;
 
-/**
- * @author eddie
- */
 public class LoggingHadoopPlanner extends HadoopPlanner {
   private final FlowStepStrategy<JobConf> flowStepStrategy;
 
@@ -19,6 +16,8 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
 
   @Override
   public Flow buildFlow(FlowDef flowDef) {
-    return new LoggingFlow(super.buildFlow(flowDef), flowStepStrategy);
+    Flow internalFlow = super.buildFlow(flowDef);
+    internalFlow.setFlowStepStrategy(flowStepStrategy);
+    return new LoggingFlow(internalFlow);
   }
 }

@@ -42,6 +42,10 @@ import cascading.tuple.TupleEntryIterator;
 
 import com.liveramp.cascading_ext.counters.Counters;
 
+/**
+ * Delegates actual flow operations to a flow that gets passed in, but performs some additonal logging when the job
+ * completes or fails.
+ */
 public class LoggingFlow implements Flow<JobConf> {
   private static final Pattern LOG_ERROR_PATTERN = Pattern.compile("Caused by.*?more", Pattern.DOTALL);
   private static Logger LOG = Logger.getLogger(Flow.class);
@@ -49,9 +53,8 @@ public class LoggingFlow implements Flow<JobConf> {
 
   private final Flow<JobConf> internalFlow;
 
-  public LoggingFlow(Flow<JobConf> internalFlow, FlowStepStrategy flowStepStrategy) {
+  public LoggingFlow(Flow<JobConf> internalFlow) {
     this.internalFlow = internalFlow;
-    this.internalFlow.setFlowStepStrategy(flowStepStrategy);
   }
 
   @Override
@@ -135,9 +138,7 @@ public class LoggingFlow implements Flow<JobConf> {
     try {
       List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
       Set<String> jobFailures = new HashSet<String>();
-      JobClient client = new JobClient(internalFlow.getConfig());
       for (FlowStepStats stat : stepStats) {
-
         try {
           RunningJob job = ((HadoopStepStats) stat).getRunningJob();
           TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
@@ -157,7 +158,6 @@ public class LoggingFlow implements Flow<JobConf> {
         } catch (Exception e) {
           exceptions = true;
         }
-
       }
       if (exceptions) {
         LOG.info("unable to retrieve failures from all completed steps!");
@@ -169,7 +169,6 @@ public class LoggingFlow implements Flow<JobConf> {
       LOG.info("unable to retrieve any failures from steps");
       LOG.info(e);
     }
-
   }
 
   private static String getFailureLog(TaskCompletionEvent event) {
