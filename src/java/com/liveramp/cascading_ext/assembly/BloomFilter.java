@@ -17,25 +17,25 @@ import cascading.tuple.Fields;
  * Most of the functionality of BloomFilter (except for the ability to do inexact joins) is available via
  * com.liveramp.cascading_ext.assembly.BloomJoin as well.  However, by discarding all RHS fields after the join, the
  * Fields algebra is easier to manage (no need to deal with conflicting field names.)
- * 
- * IMPORTANT: the same warning about serialization in BloomJoin also applies here.  See
+ *
+ * <b>IMPORTANT:</b> the same warning about serialization in BloomJoin also applies here.  See
  * com.liveramp.cascading_ext.assembly.BloomJoin for details.
  */
 public class BloomFilter extends BloomAssembly {
 
   /**
-   * @param largePipe       the left hand side of the bloom operation. this will be the side that the bloom filter will be
-   *                        run against. Usually, this should be the side with relatively more tuples.
+   * @param largePipe       the left hand side of the bloom operation. this will be the side that is filtered by
+   *                        the bloom filter.  Usually, this should be the side with more tuples.
    * @param largeJoinFields the fields on the left hand side that will be compared with the right hand side
-   * @param smallPipe       the right hand side of the bloom operation. this will be the side that we build the bloom filter
-   *                        against. Usually, this should be the side with relatively fewer tuples.
+   * @param smallPipe       the right hand side of the bloom operation. this will be the side that is used to build the
+   *                        bloom filter. Usually, this should be the side with fewer tuples.
    * @param smallJoinFields the fields on the right hand side that will be compared with the left hand side
    * @param exact           if true, perform a CoGroup after applying the bloom filter to the LHS. This will eliminate false
    *                        positives.
    * @param coGroupOrder    in some cases, one pipe has a smaller cardinality but a larger number of tuples overall (some values
-   *                        have high duplication.)  In this case, these values should be in the bloom filter, but also should be
-   *                        the LHS in the final CoGroup since they spill more frequently.  In this case, CoGroupOrder.LARGE_RHS
-   *                        should be used
+   *                        have high duplication.)  In this case, these values should be in the bloom filter, so should be in
+   *                        "smallPipe", but also should be the LHS in the final CoGroup since they spill more frequently.
+   *                        In this case, CoGroupOrder.LARGE_RHS should be used
    */
   public BloomFilter(Pipe largePipe, Fields largeJoinFields, Pipe smallPipe, Fields smallJoinFields, boolean exact, CoGroupOrder coGroupOrder) {
     super(largePipe, largeJoinFields, smallPipe, smallJoinFields, null, exact ? Mode.FILTER_EXACT : Mode.FILTER_INEXACT, null, coGroupOrder);
