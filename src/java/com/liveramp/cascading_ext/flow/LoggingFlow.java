@@ -186,6 +186,7 @@ public class LoggingFlow implements Flow<JobConf> {
     return "\nCluster Log Exception:\n" + exception;
   }
 
+  // This method pulled wholesale from a private mthod in hadoop's JobClient
   private static String retrieveTaskLogs(TaskAttemptID taskId, String baseUrl)
     throws IOException {
     // The tasktracker for a 'failed/killed' job might not be around...
@@ -205,6 +206,7 @@ public class LoggingFlow implements Flow<JobConf> {
     return (baseUrl + "/tasklog?plaintext=true&attemptid=" + taskId);
   }
 
+  // This method pulled wholesale from a private mthod in hadoop's JobClient
   private static String getTaskLogStream(TaskAttemptID taskId, URL taskLogUrl) {
     try {
       URLConnection connection = taskLogUrl.openConnection();
