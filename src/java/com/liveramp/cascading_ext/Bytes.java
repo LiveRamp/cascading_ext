@@ -3,9 +3,14 @@ package com.liveramp.cascading_ext;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.thrift.TBaseHelper;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer.  Some ByteBuffer
+ * related methods delegate to TBaseHelper.
+ */
 public class Bytes {
 
   /**
@@ -14,21 +19,13 @@ public class Bytes {
    * ByteBuffer.
    *
    * @param byteBuffer
-   * @return
    */
   public static byte[] byteBufferToByteArray(ByteBuffer byteBuffer) {
-    if (wrapsFullArray(byteBuffer)) {
-      return byteBuffer.array();
-    } else {
-      return byteBufferDeepCopy(byteBuffer);
-    }
+    return TBaseHelper.byteBufferToByteArray(byteBuffer);
   }
 
-  public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
-    return byteBuffer.hasArray()
-        && byteBuffer.arrayOffset() == 0
-        && byteBuffer.position() == 0
-        && byteBuffer.remaining() == byteBuffer.capacity();
+  public static boolean wrapsFullArray(ByteBuffer byteBuffer){
+    return TBaseHelper.wrapsFullArray(byteBuffer);
   }
 
   /**
@@ -39,9 +36,9 @@ public class Bytes {
    * @return
    */
   public static byte[] byteBufferDeepCopy(ByteBuffer byteBuffer) {
-    byte[] result = new byte[byteBuffer.remaining()];
-    System.arraycopy(byteBuffer.array(), byteBuffer.arrayOffset() + byteBuffer.position(), result, 0, byteBuffer.remaining());
-    return result;
+    byte[] target = new byte[byteBuffer.remaining()];
+    TBaseHelper.byteBufferToByteArray(byteBuffer, target, 0);
+    return target;
   }
 
   // Stuff i've moved from Rap
