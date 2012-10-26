@@ -3,15 +3,18 @@ package com.liveramp.cascading_ext;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.thirdparty.guava.common.primitives.UnsignedBytes;
 import org.apache.thrift.TBaseHelper;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
 /**
  * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer.  Some ByteBuffer
- * related methods delegate to TBaseHelper.
+ * related methods delegate to TBaseHelper, some byte[] methods to Guava's UnsignedBytes
  */
 public class Bytes {
+  private static final Comparator<byte[]> BYTES_COMPARATOR = UnsignedBytes.lexicographicalComparator();
 
   /**
    * If the given ByteBuffer wraps completely its underlying byte array, return the underlying
@@ -41,20 +44,8 @@ public class Bytes {
     return target;
   }
 
-  // Stuff i've moved from Rap
-
   public static int compareBytes(byte[] b1, byte[] b2) {
-    if (b1.length < b2.length)
-      return -1;
-    if (b1.length > b2.length)
-      return 1;
-    for (int i = 0; i < b1.length; i++) {
-      if (b1[i] < b2[i])
-        return -1;
-      if (b1[i] > b2[i])
-        return 1;
-    }
-    return 0;
+    return BYTES_COMPARATOR.compare(b1, b2);
   }
 
   public static byte[] getBytes(BytesWritable bw) {
