@@ -1,6 +1,9 @@
 package com.liveramp.cascading_ext.serialization;
 
 import com.liveramp.cascading_ext.BaseTestCase;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class TestRawComparator extends BaseTestCase {
   byte[] array1 = {1, 2, 3, 4};
@@ -10,6 +13,7 @@ public class TestRawComparator extends BaseTestCase {
   byte[] array5 = {2, 3, 4};
   byte[] array6 = {1, 3, 4};
 
+  @Test
   public void testOrdering() {
     assertOrder(array1, array2, -1);
     assertOrder(array3, array4, 0);

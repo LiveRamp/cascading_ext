@@ -8,23 +8,27 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.tap.TapHelper;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+
 public class TestBloomFilter extends BloomAssemblyTestCase {
 
   protected Tap output;
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-
     output = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")),
         getTestRoot() + "/output");
   }
 
+  @Test
   public void testExact() throws IOException {
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
@@ -49,6 +53,7 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
     assertEquals(2, tuples.size());
   }
 
+  @Test
   public void testInexact() throws IOException {
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
@@ -72,6 +77,7 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
     assertTrue(tuples.size() > 2);
   }
 
+  @Test
   public void testSwapped() throws IOException {
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 

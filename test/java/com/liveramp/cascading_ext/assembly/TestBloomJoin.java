@@ -9,13 +9,16 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.tap.NullTap;
 import com.liveramp.cascading_ext.tap.TapHelper;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.*;
 
 public class TestBloomJoin extends BloomAssemblyTestCase {
 
@@ -24,8 +27,8 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
   protected Tap output2;
   protected Tap output3;
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     output = new Hfs(new SequenceFile(new Fields("lhs-key", "lhs-key2", "lhs-value", "rhs-key", "rhs-key2", "rhs-value")),
         getTestRoot() + "/output1");
@@ -37,6 +40,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
         getTestRoot() + "/output3");
   }
 
+  @Test
   public void testSingle() throws IOException {
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
@@ -62,6 +66,7 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     assertEquals(3, tuples.size());
   }
 
+  @Test
   public void testIt() throws IOException {
 
     CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;

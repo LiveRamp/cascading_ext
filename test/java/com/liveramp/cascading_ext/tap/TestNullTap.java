@@ -12,18 +12,22 @@ import com.liveramp.cascading_ext.CascadingUtil;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.thirdparty.guava.common.collect.Lists;
+import org.junit.Test;
 
 import java.io.IOException;
 
-/**
- * @author eddie
- */
+import static org.junit.Assert.*;
+
+
 public class TestNullTap extends BaseTestCase {
+
+  @Test
   public void testWrite() throws IOException {
     TupleEntryCollector tc = new NullTap().openForWrite(CascadingUtil.get().getFlowProcess());
     tc.add(new Tuple("testing if it fails"));
   }
 
+  @Test
   public void testFlow() throws IOException {
     Tap input = new MemorySourceTap(
         Lists.newArrayList(

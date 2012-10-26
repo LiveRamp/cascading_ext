@@ -5,15 +5,17 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.*;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author eddie
- */
+import static org.junit.Assert.*;
+
 public class TestMapSerialization extends BaseTestCase {
+
+  @Test
   public void testMapSerialization() throws IOException {
     // Build a map
     Map<String, String> map = new HashMap<String, String>();

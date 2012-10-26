@@ -15,13 +15,18 @@ import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import org.apache.hadoop.fs.Path;
+import org.junit.Test;
 
 import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 /**
  * @author eddie
  */
 public class TestCounters extends BaseTestCase {
+
+  @Test
   public void testBlackHoleWarning() throws IOException {
 
     FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(getTestRoot() + "/input"));

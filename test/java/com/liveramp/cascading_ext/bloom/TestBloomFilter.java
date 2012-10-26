@@ -1,11 +1,15 @@
 package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.BaseTestCase;
+import org.junit.Test;
 
 import java.io.*;
 
+import static org.junit.Assert.*;
+
 public class TestBloomFilter extends BaseTestCase {
 
+  @Test
   public void testSetSanity() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
     BloomFilter set = new BloomFilter(1000000, 4);
@@ -54,6 +58,7 @@ public class TestBloomFilter extends BaseTestCase {
 
   }
 
+  @Test
   public void testFalsePositiveRate() {
     BloomFilter set = new BloomFilter(100, 3);
     for (byte i = 0; i < 20; i++) {

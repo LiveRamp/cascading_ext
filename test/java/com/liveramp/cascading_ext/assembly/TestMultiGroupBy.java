@@ -11,24 +11,17 @@ import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.multi_group_by.MultiBuffer;
-import org.apache.hadoop.fs.FileSystem;
+import org.junit.Test;
 
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * @author eddie
- */
+import static org.junit.Assert.*;
+
 public class TestMultiGroupBy extends BaseTestCase {
-  FileSystem fs;
 
-  public TestMultiGroupBy() throws Exception {
-    super();
-    fs = FileSystemHelper.getFS();
-  }
-
+  @Test
   public void testSimple() throws Exception {
     final String SOURCE1 = getTestRoot() + "/mgb_source1";
     final String SOURCE2 = getTestRoot() + "/mgb_source2";

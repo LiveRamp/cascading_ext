@@ -1,9 +1,13 @@
 package com.liveramp.cascading_ext;
 
-/**
- * @author eddie
- */
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
 public class TestFixedSizeBitSet extends BaseTestCase {
+
+  @Test
   public void testGetSet() {
     FixedSizeBitSet s = new FixedSizeBitSet(123);
     for (int i = 0; i < 123; i++) {
@@ -30,6 +34,7 @@ public class TestFixedSizeBitSet extends BaseTestCase {
 
   }
 
+  @Test
   public void testFill() {
     FixedSizeBitSet s = new FixedSizeBitSet(1099);
 

@@ -9,6 +9,7 @@ import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.io.BytesWritable;
+import org.junit.Before;
 
 public abstract class BloomAssemblyTestCase extends BaseTestCase {
 
@@ -17,12 +18,8 @@ public abstract class BloomAssemblyTestCase extends BaseTestCase {
   protected Tap lhs2Store;
   protected Tap rhs2Store;
 
-  public BloomAssemblyTestCase() {
-    super();
-  }
-
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void bloomAssemblySetUp() throws Exception {
     BloomConstants.BUFFER_SIZE = 5;
 
     lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs");

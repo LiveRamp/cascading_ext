@@ -2,16 +2,18 @@ package com.liveramp.cascading_ext;
 
 import cascading.tuple.Tuple;
 import org.apache.hadoop.io.BytesWritable;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * @author eddie
- */
+import static org.junit.Assert.*;
+
 public class TestTupleSerializationUtil extends BaseTestCase {
+
+  @Test
   public void testSerializationWithBytesWritables() throws Exception {
     BytesWritable bw1 = new BytesWritable(new byte[]{1, 2, 3, 4});
     BytesWritable bw2 = new BytesWritable(new byte[]{1, 2, 8, 9});
@@ -27,6 +29,7 @@ public class TestTupleSerializationUtil extends BaseTestCase {
     assertEquals(expectedTuple, actualTuple);
   }
 
+  @Test
   public void testSerializationWithNativeObjects() throws Exception {
     Tuple tuple = new Tuple(1, "andre", 123L);
 
@@ -39,6 +42,7 @@ public class TestTupleSerializationUtil extends BaseTestCase {
     assertEquals(expectedTuple, actualTuple);
   }
 
+  @Test
   public void testNoErrorsAcrossSerializations() throws IOException {
     TupleSerializationUtil serializationUtil = new TupleSerializationUtil(CascadingUtil.get().getJobConf());
     List<Tuple> inputTuples = new ArrayList<Tuple>();
