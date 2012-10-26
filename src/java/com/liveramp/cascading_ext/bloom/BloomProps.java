@@ -7,6 +7,13 @@ import java.util.Map;
 
 public class BloomProps {
 
+  //  dynamic, set at flow construction time
+  public static final String SOURCE_BLOOM_FILTER_ID = "cascading_ext.bloom.source.filter.id";
+  public static final String REQUIRED_BLOOM_FILTER_PATH = "cascading_ext.bloom.required.filter.path";
+  public static final String TARGET_BLOOM_FILTER_ID = "cascading_ext.bloom.target.filter.id";
+  public static final String BLOOM_KEYS_COUNTS_DIR = "cascading_ext.bloom.keys.counts.dir";
+  public static final String BLOOM_FILTER_PARTS_DIR = "cascading_ext.bloom.target.filter.parts";
+
   //  configurable parameters
   public static final String NUM_BLOOM_BITS = "cascading_ext.bloom.num.bits";
   public static final String MAX_BLOOM_HASHES = "cascading_ext.bloom.max.hashes";
@@ -24,13 +31,7 @@ public class BloomProps {
    */
   public static final String HLL_SAMPLE_RATE = "cascading_ext.bloom.hll.sample.rate";
 
-  //  dynamic, set at flow construction time
-  public static final String SOURCE_BLOOM_FILTER_ID = "cascading_ext.bloom.source.filter.id";
-  public static final String REQUIRED_BLOOM_FILTER_PATH = "cascading_ext.bloom.required.filter.path";
-  public static final String TARGET_BLOOM_FILTER_ID = "cascading_ext.bloom.target.filter.id";
-  public static final String BLOOM_KEYS_COUNTS_DIR = "cascading_ext.bloom.keys.counts.dir";
-  public static final String BLOOM_FILTER_PARTS_DIR = "cascading_ext.bloom.target.filter.parts";
-
+  //  default values for configurable params
   public static final long DEFAULT_NUM_BLOOM_BITS = 300L * 1024 * 1024 * 8;
   public static final int DEFAULT_MAX_BLOOM_FILTER_HASHES = 4;
   public static final int DEFAULT_BUFFER_SIZE = 300;

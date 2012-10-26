@@ -27,7 +27,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Random;
 
 public class CreateBloomFilter extends SubAssembly {
@@ -38,9 +37,9 @@ public class CreateBloomFilter extends SubAssembly {
     TUPLE_SIZE_SUM
   }
 
-  public CreateBloomFilter(Pipe keys, String approxCountPartsDir, String bloomPartsDir, String keyBytesField, Map<String, String> stepProps) throws IOException {
+  public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField) throws IOException {
 
-    FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(bloomPartsDir));
+    //  FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(bloomPartsDir));
 
     // Collect stats used to configure the bloom filter creation step
     Pipe smallPipe = new Each(keys, new CollectKeyStats(keyBytesField));
@@ -53,10 +52,7 @@ public class CreateBloomFilter extends SubAssembly {
     ConfigDef bloomDef = smallPipe.getStepConfigDef();
     bloomDef.setProperty(BloomProps.BLOOM_FILTER_PARTS_DIR, bloomPartsDir);
     bloomDef.setProperty(BloomProps.BLOOM_KEYS_COUNTS_DIR, approxCountPartsDir);
-
-    for (Map.Entry<String, String> prop : stepProps.entrySet()) {
-      bloomDef.setProperty(prop.getKey(), prop.getValue());
-    }
+    bloomDef.setProperty(BloomProps.TARGET_BLOOM_FILTER_ID, bloomFilterID);
 
     setTails(smallPipe);
   }

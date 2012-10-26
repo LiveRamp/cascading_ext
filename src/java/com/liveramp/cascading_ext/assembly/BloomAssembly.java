@@ -59,7 +59,7 @@ public abstract class BloomAssembly extends SubAssembly {
       String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
-      FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
+      //FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
 
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if (operationType != Mode.JOIN) {
@@ -68,8 +68,7 @@ public abstract class BloomAssembly extends SubAssembly {
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
 
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new CreateBloomFilter(smallPipe, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key",
-          Collections.singletonMap(BloomProps.TARGET_BLOOM_FILTER_ID, bloomJobID));
+      smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
 
       // This is a bit of a hack to:
       //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
