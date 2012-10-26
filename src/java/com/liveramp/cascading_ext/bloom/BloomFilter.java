@@ -39,10 +39,6 @@ public class BloomFilter implements Writable {
     this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize), 0);
   }
 
-  public BloomFilter(long vectorSize, int numHashes, byte[] arr, long numElems) {
-    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize, arr), numElems);
-  }
-
   public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems) {
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;

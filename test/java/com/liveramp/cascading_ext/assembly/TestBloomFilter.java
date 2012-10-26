@@ -30,7 +30,6 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
 
   @Test
   public void testExact() throws IOException {
-    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");
@@ -55,7 +54,6 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
 
   @Test
   public void testInexact() throws IOException {
-    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");
@@ -79,7 +77,6 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
 
   @Test
   public void testSwapped() throws IOException {
-    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");

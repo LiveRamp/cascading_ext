@@ -5,24 +5,27 @@ import cascading.operation.Aggregator;
 import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
 import cascading.operation.OperationCall;
+import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.Tap;
+import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import com.liveramp.cascading_ext.bloom.BloomConstants;
+import com.liveramp.cascading_ext.bloom.BloomProps;
+import com.liveramp.cascading_ext.bloom.BloomUtil;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
 
 public class CreateBloomFilterFromIndices extends BaseOperation implements Aggregator {
-  private final Tap[] sideBuckets;
   private TupleEntryCollector[] collectors;
 
-  public CreateBloomFilterFromIndices(Tap[] sideBuckets) {
+  public CreateBloomFilterFromIndices() {
     super(Fields.NONE);
-    this.sideBuckets = sideBuckets;
   }
 
   public static class Context {
@@ -32,10 +35,16 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   @Override
   public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
     try {
-      collectors = new TupleEntryCollector[sideBuckets.length];
-      for (int i = 0; i < sideBuckets.length; i++) {
-        collectors[i] = sideBuckets[i].openForWrite(flowProcess);
+      JobConf conf = (JobConf) flowProcess.getConfigCopy();
+      String partsRoot = BloomProps.getBloomFilterPartsDir(conf);
+      Integer maxHashes = BloomProps.getMaxBloomHashes(conf);
+
+      collectors = new TupleEntryCollector[maxHashes];
+      for (int i = 0; i < maxHashes; i++) {
+        collectors[i] = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot+"/"+i+"/")
+            .openForWrite(flowProcess);
       }
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -72,12 +81,15 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   @Override
   public void start(FlowProcess flow, AggregatorCall call) {
     JobConf conf = (JobConf) flow.getConfigCopy();
-    long numBits = Long.parseLong(conf.get("split.size"));
+
+    long numBits = BloomProps.getNumBloomBits(conf);
+    int numSplits = BloomProps.getNumSplits(conf);
+    long splitSize = BloomUtil.getSplitSize(numBits, numSplits);
 
     Context c = new Context();
-    c.bitSet = new FixedSizeBitSet[sideBuckets.length];
+    c.bitSet = new FixedSizeBitSet[collectors.length];
     for (int i = 0; i < c.bitSet.length; i++) {
-      c.bitSet[i] = new FixedSizeBitSet(numBits, new byte[FixedSizeBitSet.getNumBytesToStore(numBits)]);
+      c.bitSet[i] = new FixedSizeBitSet(splitSize, new byte[FixedSizeBitSet.getNumBytesToStore(splitSize)]);
     }
     call.setContext(c);
   }

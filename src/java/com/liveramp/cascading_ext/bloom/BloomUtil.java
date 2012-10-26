@@ -14,7 +14,7 @@ import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -30,12 +30,11 @@ public class BloomUtil {
 
   private final static Object BF_LOAD_LOCK = new Object();
 
-  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems) {
-    double falsePositiveRate = getFalsePositiveRate(BloomConstants.MAX_BLOOM_FILTER_HASHES, numBloomBits, numElems);
-    double newFalsePositiveRate;
+  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems, int maxHashes) {
+    double falsePositiveRate = getFalsePositiveRate(maxHashes, numBloomBits, numElems);
     int numBloomHashes = 1;
-    for (int i = BloomConstants.MAX_BLOOM_FILTER_HASHES - 1; i > 0; i--) {
-      newFalsePositiveRate = getFalsePositiveRate(i, numBloomBits, numElems);
+    for (int i = maxHashes - 1; i > 0; i--) {
+      double newFalsePositiveRate = getFalsePositiveRate(i, numBloomBits, numElems);
       // Break out if you see an increase in false positive rate while decreasing the number of hashes.
       // Since this function has only one critical point, we know that if we see an increase
       // then the one we saw first was the minimum.
@@ -69,20 +68,17 @@ public class BloomUtil {
       }
     }
 
-    return new BloomFilter(numBloomBits, numBloomHashes, bitSet.getRaw(), numElems);
+    return new BloomFilter(numBloomBits, numBloomHashes, bitSet, numElems);
   }
 
-  public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) {
+  public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) throws URISyntaxException {
     properties.putAll(getPropertiesForDistCache(bloomFilterPath));
   }
 
-  public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath) {
-    try {
-      LOG.info("Writing bloom filter to filesystem: " + FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
-      return Collections.singletonMap("mapred.cache.files", FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString());
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+  public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath) throws URISyntaxException {
+    String path = FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString();
+    LOG.info("Writing bloom filter to filesystem: " + path);
+    return Collections.singletonMap(DistributedCache.CACHE_FILES, path);
   }
 
   public static void configureJobConfForRelevance(int requiredFieldsSize, int matchKeySize, Map<Object, Object> properties) {
@@ -94,7 +90,6 @@ public class BloomUtil {
     double bestIOSortRecordPercent = 16.0 / (16.0 + 8 + requiredFieldsSize + matchKeySize);
     bestIOSortRecordPercent = Math.max(Math.round(bestIOSortRecordPercent * 100) / 100.0, 0.01);
     properties.put("io.sort.record.percent", Double.toString(bestIOSortRecordPercent));
-    properties.put("io.sort.mb", Integer.toString(BloomConstants.BUFFER_SIZE));
     return properties;
   }
 
@@ -102,37 +97,36 @@ public class BloomUtil {
     return (numBloomBits + numSplits - 1) / numSplits;
   }
 
-  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath) {
-    String bloomPartsDir = stepConf.get("target.bloom.filter.parts");
+  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath) throws IOException, CardinalityMergeException {
+    String bloomPartsDir = stepConf.get(BloomProps.BLOOM_FILTER_PARTS_DIR);
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
+    int maxHashes = BloomProps.getMaxBloomHashes(stepConf);
+    long bloomFilterBits = BloomProps.getNumBloomBits(stepConf);
+    int numSplits = BloomProps.getNumSplits(stepConf);
+
     // This is the side bucket that the HyperLogLog writes to
-    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.getRaw("bloom.keys.counts.dir"));
+    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.getRaw(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
-    long prevJobTuples = getApproxDistinctKeysCount(approxCountsTap);
+    long prevJobTuples = getApproxDistinctKeysCount(stepConf, approxCountsTap);
 
-    Pair<Double, Integer> optimal = BloomUtil.getOptimalFalsePositiveRateAndNumHashes(BloomConstants.DEFAULT_BLOOM_FILTER_BITS, prevJobTuples);
+    Pair<Double, Integer> optimal = getOptimalFalsePositiveRateAndNumHashes(bloomFilterBits, prevJobTuples, maxHashes);
     LOG.info("Counted " + prevJobTuples + " distinct keys");
-    LOG.info("Using " + BloomConstants.DEFAULT_BLOOM_FILTER_BITS + " bits in the bloom filter");
+    LOG.info("Using " + bloomFilterBits + " bits in the bloom filter");
     LOG.info("Found a false positive rate of: " + optimal.getLhs());
     LOG.info("Will use " + optimal.getRhs() + " bloom hashes");
 
-    long splitSize = Long.parseLong(stepConf.get("split.size"));
+    long splitSize = getSplitSize(bloomFilterBits, numSplits);
     int numBloomHashes = optimal.getRhs();
 
-    try {
-      synchronized (BF_LOAD_LOCK) {
-        // Load bloom filter parts and merge them.
-        Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir + "/" + (numBloomHashes - 1));
-        BloomFilter filter = BloomUtil.mergeBloomParts(bloomParts, BloomConstants.DEFAULT_BLOOM_FILTER_BITS, splitSize, numBloomHashes,
-            prevJobTuples);
+    synchronized (BF_LOAD_LOCK) {
+      // Load bloom filter parts and merge them.
+      Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir + "/" + (numBloomHashes - 1));
+      BloomFilter filter = mergeBloomParts(bloomParts, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
 
-        // Write merged bloom filter to HDFS
-        LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
-        filter.writeOut(FileSystemHelper.getFS(), new Path(requiredBloomPath));
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      // Write merged bloom filter to HDFS
+      LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
+      filter.writeOut(FileSystemHelper.getFS(), new Path(requiredBloomPath));
     }
   }
 
@@ -143,26 +137,16 @@ public class BloomUtil {
    * @param parts
    * @return
    */
-  private static long getApproxDistinctKeysCount(Tap parts) {
-    try {
-      TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
-      List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
+  private static long getApproxDistinctKeysCount(JobConf conf, Tap parts) throws IOException, CardinalityMergeException {
+    TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
+    List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
 
-      while (in.hasNext()) {
-        TupleEntry tuple = in.next();
-        byte[] serializedHll = Bytes.getBytes((BytesWritable) tuple.getObject("bytes"));
-
-        countParts.add(HyperLogLog.Builder.build(serializedHll));
-      }
-
-      ICardinality merged = new HyperLogLog(CreateBloomFilter.DEFAULT_ERR_PERCENTAGE).merge(countParts.toArray(new ICardinality[countParts.size()]));
-
-      return merged.cardinality();
-    } catch (IOException e) {
-      throw new RuntimeException("couldn't open approximate distinct keys tap", e);
-    } catch (CardinalityMergeException e) {
-      throw new RuntimeException(e);
+    while (in.hasNext()) {
+      TupleEntry tuple = in.next();
+      countParts.add(HyperLogLog.Builder.build(Bytes.getBytes((BytesWritable) tuple.getObject("bytes"))));
     }
-  }
 
+    ICardinality merged = new HyperLogLog(BloomProps.getHllErr(conf)).merge(countParts.toArray(new ICardinality[countParts.size()]));
+    return merged.cardinality();
+  }
 }

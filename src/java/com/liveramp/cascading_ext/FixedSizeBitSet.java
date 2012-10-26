@@ -61,6 +61,12 @@ public class FixedSizeBitSet {
     return numBits;
   }
 
+  /**
+   * This exposes the raw underlying byte array.  It is NOT safe to mutate this array.  This should only be used for
+   * serializing or deserializing this bitset.
+   *
+   * @return
+   */
   public byte[] getRaw() {
     return bytes;
   }

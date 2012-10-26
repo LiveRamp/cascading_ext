@@ -80,13 +80,9 @@ public abstract class BloomAssembly extends SubAssembly {
       // Load the bloom filter into memory and apply it to the LHS.
       filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
 
-      // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
-      // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
-      // distributed cache.
-      ConfigDef config = filterPipe.getStepConfigDef();
+      ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
       config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
       config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
-      config.setProperty("mapred.job.reuse.jvm.num.tasks", "-1");
 
       if (operationType == Mode.FILTER_EXACT) {
         // We don't actually care about the fields on the RHS (the user just expects the LHS fields), so we can

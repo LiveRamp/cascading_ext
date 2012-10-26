@@ -25,11 +25,22 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
     JobConf conf = flowStep.getConfig();
 
+    String targetBloomID = conf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
+    if(targetBloomID != null){
+      prepareBloomFilterBuilder(flowStep);
+    }
     //  the job is the filter which needs to use the bloom filter
     String sourceBloomID = conf.get(BloomProps.SOURCE_BLOOM_FILTER_ID);
     if (sourceBloomID != null) {
       buildBloomfilter(sourceBloomID, flowStep, predecessorSteps);
     }
+
+  }
+
+  private void prepareBloomFilterBuilder(FlowStep<JobConf> currentStep){
+    JobConf currentStepConf = currentStep.getConfig();
+    currentStepConf.set("mapred.reduce.tasks", Integer.toString(BloomProps.getNumSplits(currentStepConf)));
+    currentStepConf.set("io.sort.record.percent", Double.toString(0.50));
   }
 
   /**
@@ -40,54 +51,60 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
    * @param predecessorSteps
    */
   private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
-    JobConf currentStepConf = currentStep.getConfig();
-    String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
+    try{
+      JobConf currentStepConf = currentStep.getConfig();
+      currentStepConf.set("io.sort.mb", Integer.toString(BloomProps.getBufferSize(currentStepConf)));
+      currentStepConf.set("mapred.job.reuse.jvm.num.tasks", "-1");
 
-    for (FlowStep<JobConf> step : predecessorSteps) {
-      JobConf stepConf = step.getConfig();
-      String targetBloomID = stepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
+      String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
 
-      if (bloomID.equals(targetBloomID)) {
-        LOG.info("Found step generating required bloom filter: " + targetBloomID);
+      for (FlowStep<JobConf> step : predecessorSteps) {
+        JobConf stepConf = step.getConfig();
+        String targetBloomID = stepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
 
-        // Extract the counters from the previous job to approximate the average key/tuple size
-        FlowStepStats stats = ((BaseFlowStep) step).getFlowStepStats();
+        if (bloomID.equals(targetBloomID)) {
+          LOG.info("Found step generating required bloom filter: " + targetBloomID);
 
-        // Collect some of the stats gathered. This will help configure the bloom filter
-        long numSampled = stats.getCounterValue(CreateBloomFilter.StatsCounters.TOTAL_SAMPLED_TUPLES);
-        long keySizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.KEY_SIZE_SUM);
-        long matchSizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.TUPLE_SIZE_SUM);
+          // Extract the counters from the previous job to approximate the average key/tuple size
+          FlowStepStats stats = ((BaseFlowStep) step).getFlowStepStats();
 
-        int avgKeySize = 0;
-        int avgMatchSize = 0;
+          // Collect some of the stats gathered. This will help configure the bloom filter
+          long numSampled = stats.getCounterValue(CreateBloomFilter.StatsCounters.TOTAL_SAMPLED_TUPLES);
+          long keySizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.KEY_SIZE_SUM);
+          long matchSizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.TUPLE_SIZE_SUM);
 
-        if (numSampled != 0) {
-          avgKeySize = (int) (keySizeSum / numSampled);
-          avgMatchSize = (int) (matchSizeSum / numSampled);
-        }
+          int avgKeySize = 0;
+          int avgMatchSize = 0;
 
-        LOG.info("Avg key size ~= " + avgKeySize);
-        LOG.info("Avg match size ~= " + avgMatchSize);
-
-        for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForRelevance(avgMatchSize, avgKeySize).entrySet()) {
-          currentStepConf.set(entry.getKey(), entry.getValue());
-        }
-
-        // Put merged result in distributed cache
-        LOG.info("Adding dist cache properties to config:");
-        for (Map.Entry<String, String> prop : BloomUtil.getPropertiesForDistCache(requiredBloomPath).entrySet()) {
-          LOG.info(prop.getKey() + " = " + prop.getValue());
-          String previousProperty = currentStepConf.get(prop.getKey());
-          if (previousProperty != null) {
-            LOG.info("found already existing value for key: " + prop.getKey() + ", found " + previousProperty + ".  Appending.");
-            currentStepConf.set(prop.getKey(), previousProperty + "," + prop.getValue());
-          } else {
-            currentStepConf.set(prop.getKey(), prop.getValue());
+          if (numSampled != 0) {
+            avgKeySize = (int) (keySizeSum / numSampled);
+            avgMatchSize = (int) (matchSizeSum / numSampled);
           }
-        }
 
-        BloomUtil.writeFilterToHdfs(stepConf, requiredBloomPath);
+          LOG.info("Avg key size ~= " + avgKeySize);
+          LOG.info("Avg match size ~= " + avgMatchSize);
+          for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForRelevance(avgMatchSize, avgKeySize).entrySet()) {
+            currentStepConf.set(entry.getKey(), entry.getValue());
+          }
+
+          // Put merged result in distributed cache
+          LOG.info("Adding dist cache properties to config:");
+          for (Map.Entry<String, String> prop : BloomUtil.getPropertiesForDistCache(requiredBloomPath).entrySet()) {
+            LOG.info(prop.getKey() + " = " + prop.getValue());
+            String previousProperty = currentStepConf.get(prop.getKey());
+            if (previousProperty != null) {
+              LOG.info("found already existing value for key: " + prop.getKey() + ", found " + previousProperty + ".  Appending.");
+              currentStepConf.set(prop.getKey(), previousProperty + "," + prop.getValue());
+            } else {
+              currentStepConf.set(prop.getKey(), prop.getValue());
+            }
+          }
+
+          BloomUtil.writeFilterToHdfs(stepConf, requiredBloomPath);
+        }
       }
+    }catch(Exception e){
+      throw new RuntimeException("Failed to create bloom filter!", e);
     }
   }
 }
