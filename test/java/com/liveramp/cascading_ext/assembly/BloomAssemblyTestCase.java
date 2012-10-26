@@ -21,7 +21,7 @@ public abstract class BloomAssemblyTestCase extends BaseTestCase {
 
   @Before
   public void bloomAssemblySetUp() throws Exception {
-    CascadingUtil.get().setDefaultProperty(BloomProps.HLL_SAMPLE_RATE, 1.0);
+    CascadingUtil.get().setDefaultProperty(BloomProps.KEY_SAMPLE_RATE, 1.0);
 
     lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs");
     lhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs2");

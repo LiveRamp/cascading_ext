@@ -21,10 +21,11 @@ public abstract class BaseTestCase {
 
     // set the default job polling interval to 10ms. this makes the tests run *much* faster.
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);
+    CascadingUtil.get().setDefaultProperty("io.sort.record.percent", 0.10);
+
     CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 1);
     CascadingUtil.get().setDefaultProperty(BloomProps.NUM_BLOOM_BITS, 10);
     CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 5);
-    //  CascadingUtil.get().setDefaultProperty("io.sort.record.percent", 0.10);
 
     fs.delete(new Path(TEST_ROOT), true);
     System.err.println("------ test start ------");

@@ -40,7 +40,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
   private void prepareBloomFilterBuilder(FlowStep<JobConf> currentStep){
     JobConf currentStepConf = currentStep.getConfig();
     currentStepConf.set("mapred.reduce.tasks", Integer.toString(BloomProps.getNumSplits(currentStepConf)));
-    currentStepConf.set("io.sort.record.percent", Double.toString(0.50));
+    currentStepConf.set("io.sort.record.percent", Double.toString(BloomProps.getIOSortPercent(currentStepConf)));
   }
 
   /**

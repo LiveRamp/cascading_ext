@@ -15,13 +15,11 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
-import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
@@ -38,8 +36,6 @@ public class CreateBloomFilter extends SubAssembly {
   }
 
   public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField) throws IOException {
-
-    //  FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(bloomPartsDir));
 
     // Collect stats used to configure the bloom filter creation step
     Pipe smallPipe = new Each(keys, new CollectKeyStats(keyBytesField));
@@ -104,7 +100,7 @@ public class CreateBloomFilter extends SubAssembly {
 
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
       approxCounter = new HyperLogLog(BloomProps.getHllErr(conf));
-      sampleRate = BloomProps.getHllSampleRate(conf);
+      sampleRate = BloomProps.getKeySampleRate(conf);
       tupleSerializationUtil = new TupleSerializationUtil((JobConf) flowProcess.getConfigCopy());
     }
 
