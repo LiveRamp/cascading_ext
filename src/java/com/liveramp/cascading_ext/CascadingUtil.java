@@ -5,6 +5,7 @@ import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
 import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
+import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
@@ -29,6 +30,8 @@ public class CascadingUtil {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
     addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
     addSerialization(MapSerialization.class);
+
+    defaultProperties.putAll(BloomProps.getDefaultProperties());
   }
 
   private final Map<Object, Object> defaultProperties = new HashMap<Object, Object>();

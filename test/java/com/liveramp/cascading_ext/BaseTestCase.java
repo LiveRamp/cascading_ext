@@ -1,12 +1,10 @@
 package com.liveramp.cascading_ext;
 
-import com.liveramp.cascading_ext.bloom.BloomConstants;
-import junit.framework.TestCase;
+import com.liveramp.cascading_ext.bloom.BloomProps;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.junit.After;
 import org.junit.Before;
 
 public abstract class BaseTestCase {
@@ -21,13 +19,13 @@ public abstract class BaseTestCase {
   public void baseSetUp() throws Exception {
     TEST_ROOT = "/tmp/cascading_ext_"+ this.getClass().getSimpleName() + "_AUTOGEN";
 
-    BloomConstants.DEFAULT_BLOOM_FILTER_BITS = 10;
-    BloomConstants.BUFFER_SIZE = 10;
-
     // set the default job polling interval to 10ms. this makes the tests run *much* faster.
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);
-    CascadingUtil.get().setDefaultProperty("io.sort.mb", 1);
     CascadingUtil.get().setDefaultProperty("io.sort.record.percent", 0.10);
+
+    CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 1);
+    CascadingUtil.get().setDefaultProperty(BloomProps.NUM_BLOOM_BITS, 10);
+    CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 5);
 
     fs.delete(new Path(TEST_ROOT), true);
     System.err.println("------ test start ------");

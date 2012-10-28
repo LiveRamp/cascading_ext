@@ -6,7 +6,8 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.BaseTestCase;
-import com.liveramp.cascading_ext.bloom.BloomConstants;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.tap.TapHelper;
 import org.apache.hadoop.io.BytesWritable;
 import org.junit.Before;
@@ -20,7 +21,7 @@ public abstract class BloomAssemblyTestCase extends BaseTestCase {
 
   @Before
   public void bloomAssemblySetUp() throws Exception {
-    BloomConstants.BUFFER_SIZE = 5;
+    CascadingUtil.get().setDefaultProperty(BloomProps.KEY_SAMPLE_RATE, 1.0);
 
     lhsStore = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs");
     lhs2Store = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/lhs2");

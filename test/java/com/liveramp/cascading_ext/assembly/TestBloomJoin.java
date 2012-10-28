@@ -22,7 +22,6 @@ import static org.junit.Assert.*;
 
 public class TestBloomJoin extends BloomAssemblyTestCase {
 
-
   protected Tap output;
   protected Tap output2;
   protected Tap output3;
@@ -42,7 +41,6 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
 
   @Test
   public void testSingle() throws IOException {
-    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");
@@ -68,8 +66,6 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
 
   @Test
   public void testIt() throws IOException {
-
-    CreateBloomFilter.DEFAULT_SAMPLE_RATE = 1.0;
 
     Pipe lhs = new Pipe("lhs");
     Pipe lhs2 = new Pipe("lhs2");
