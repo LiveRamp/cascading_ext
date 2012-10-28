@@ -111,9 +111,8 @@ public class BloomUtil {
 
     // This is the side bucket that the HyperLogLog writes to
     LOG.info("getting key counts from: "+stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
-    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
-    long prevJobTuples = getApproxDistinctKeysCount(stepConf, approxCountsTap);
+    long prevJobTuples = getApproxDistinctKeysCount(stepConf, stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
     Pair<Double, Integer> optimal = getOptimalFalsePositiveRateAndNumHashes(bloomFilterBits, prevJobTuples, maxHashes);
     LOG.info("Counted " + prevJobTuples + " distinct keys");
@@ -139,11 +138,16 @@ public class BloomUtil {
    * Read from the side bucket that HyperLogLog wrote to, merge the HLL estimators, and return the
    * approximate count of distinct keys
    *
-   * @param parts
    * @return
    */
-  private static long getApproxDistinctKeysCount(JobConf conf, Tap parts) throws IOException, CardinalityMergeException {
-    TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
+  private static long getApproxDistinctKeysCount(JobConf conf, String partsDir) throws IOException, CardinalityMergeException {
+    if(!FileSystemHelper.getFS().exists(new Path(partsDir))){
+      return 0;
+    }
+
+    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), partsDir);
+
+    TupleEntryIterator in = approxCountsTap.openForRead(CascadingUtil.get().getFlowProcess());
     List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
 
     long totalSum = 0;
