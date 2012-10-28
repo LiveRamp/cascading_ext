@@ -16,10 +16,10 @@ import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.cascading_ext.bloom.BloomConstants;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
+import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
@@ -40,7 +40,7 @@ public class CreateBloomFilter extends SubAssembly {
     // Collect stats used to configure the bloom filter creation step
     Pipe smallPipe = new Each(keys, new CollectKeyStats(keyBytesField));
 
-    smallPipe = new Each(smallPipe, new Fields(keyBytesField), new GetIndices(BloomConstants.DEFAULT_HASH_FACTORY), new Fields("split", "index", "hash_num"));
+    smallPipe = new Each(smallPipe, new Fields(keyBytesField), new GetIndices(HashFunctionFactory.DEFAULT_HASH_FACTORY), new Fields("split", "index", "hash_num"));
     smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
     smallPipe = new GroupBy(smallPipe, new Fields("split"));
     smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(), Fields.ALL);

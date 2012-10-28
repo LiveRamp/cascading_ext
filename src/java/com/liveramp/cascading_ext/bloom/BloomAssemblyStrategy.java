@@ -59,8 +59,8 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
       String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
 
       for (FlowStep<JobConf> step : predecessorSteps) {
-        JobConf stepConf = step.getConfig();
-        String targetBloomID = stepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
+        JobConf prevStepConf = step.getConfig();
+        String targetBloomID = prevStepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
 
         if (bloomID.equals(targetBloomID)) {
           LOG.info("Found step generating required bloom filter: " + targetBloomID);
@@ -100,7 +100,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
             }
           }
 
-          BloomUtil.writeFilterToHdfs(stepConf, requiredBloomPath);
+          BloomUtil.writeFilterToHdfs(prevStepConf, requiredBloomPath);
         }
       }
     }catch(Exception e){

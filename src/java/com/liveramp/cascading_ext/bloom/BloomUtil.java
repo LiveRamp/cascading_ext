@@ -106,7 +106,8 @@ public class BloomUtil {
     int numSplits = BloomProps.getNumSplits(stepConf);
 
     // This is the side bucket that the HyperLogLog writes to
-    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.getRaw(BloomProps.BLOOM_KEYS_COUNTS_DIR));
+    LOG.info("getting key counts from: "+stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
+    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
     long prevJobTuples = getApproxDistinctKeysCount(stepConf, approxCountsTap);
 
@@ -141,12 +142,24 @@ public class BloomUtil {
     TupleEntryIterator in = parts.openForRead(CascadingUtil.get().getFlowProcess());
     List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();
 
+    long totalSum = 0;
     while (in.hasNext()) {
       TupleEntry tuple = in.next();
-      countParts.add(HyperLogLog.Builder.build(Bytes.getBytes((BytesWritable) tuple.getObject("bytes"))));
+      HyperLogLog card = HyperLogLog.Builder.build(Bytes.getBytes((BytesWritable) tuple.getObject("bytes")));
+      countParts.add(card);
+      totalSum+=card.cardinality();
     }
 
-    ICardinality merged = new HyperLogLog(BloomProps.getHllErr(conf)).merge(countParts.toArray(new ICardinality[countParts.size()]));
-    return merged.cardinality();
+    HyperLogLog merged = (HyperLogLog) new HyperLogLog(BloomProps.getHllErr(conf)).merge(countParts.toArray(new ICardinality[countParts.size()]));
+    long cardinality = merged.cardinality();
+
+    //  HLL estimation doesn't work over 2^32, and the cardinality code just returns 0.
+    //  Honestly if you get this high, your bloom filter is probably saturated anyway, so just return that max.
+    if(cardinality == 0 && totalSum != 0){
+      LOG.info("HyperLogLog likely reached its max estimation of 2^32! Returning that max, but true count likely higher.");
+      return (long) Math.pow(2, 32);
+    }
+
+    return cardinality;
   }
 }
