@@ -59,8 +59,6 @@ public abstract class BloomAssembly extends SubAssembly {
       String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
-      FileSystemHelper.safeMkdirs(FileSystemHelper.getFS(), new Path(approxCountPartsDir));
-
       //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if (operationType != Mode.JOIN) {
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
@@ -68,8 +66,7 @@ public abstract class BloomAssembly extends SubAssembly {
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
 
       smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new CreateBloomFilter(smallPipe, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key",
-          Collections.singletonMap(BloomProps.TARGET_BLOOM_FILTER_ID, bloomJobID));
+      smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
 
       // This is a bit of a hack to:
       //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
@@ -80,13 +77,9 @@ public abstract class BloomAssembly extends SubAssembly {
       // Load the bloom filter into memory and apply it to the LHS.
       filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
 
-      // Add some config parameters that will allow CascadingHelper$RapleafFlowStepStrategy to detect that this job
-      // needs the bloom filter. It will merge the bloom filter parts created previously and put the result in the
-      // distributed cache.
-      ConfigDef config = filterPipe.getStepConfigDef();
+      ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
       config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
       config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
-      config.setProperty("mapred.job.reuse.jvm.num.tasks", "-1");
 
       if (operationType == Mode.FILTER_EXACT) {
         // We don't actually care about the fields on the RHS (the user just expects the LHS fields), so we can

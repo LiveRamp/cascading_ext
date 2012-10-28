@@ -2,6 +2,7 @@ package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.hash2.HashFunction;
+import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Writable;
 
@@ -39,15 +40,11 @@ public class BloomFilter implements Writable {
     this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize), 0);
   }
 
-  public BloomFilter(long vectorSize, int numHashes, byte[] arr, long numElems) {
-    this(vectorSize, numHashes, new FixedSizeBitSet(vectorSize, arr), numElems);
-  }
-
   public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems) {
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;
     this.bits = bits;
-    this.hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    this.hashFunction = HashFunctionFactory.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
     this.numElems = numElems;
   }
 
@@ -136,7 +133,7 @@ public class BloomFilter implements Writable {
     vectorSize = in.readLong();
     numElems = in.readLong();
     String serilizedHashID = in.readLine();
-    hashFunction = BloomConstants.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    hashFunction = HashFunctionFactory.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
     if (!serilizedHashID.equals(hashFunction.getHashID())) {
       throw new RuntimeException("bloom filter was written with hash type " + serilizedHashID +
           " but current hash function type is " + hashFunction.getHashID() + "!");
