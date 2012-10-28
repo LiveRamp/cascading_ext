@@ -54,16 +54,20 @@ public class BloomUtil {
     return Math.pow(1.0 - Math.exp((double) -numHashes * numElements / vectorSize), numHashes);
   }
 
-  public static BloomFilter mergeBloomParts(Tap tap, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
+  private static BloomFilter mergeBloomParts(String tapPath, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
-    TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
-    while (itr.hasNext()) {
-      TupleEntry cur = itr.next();
-      long split = cur.getLong(0);
-      FixedSizeBitSet curSet = new FixedSizeBitSet(splitSize, ((BytesWritable) cur.getObject(1)).getBytes());
-      for (long i = 0; i < curSet.numBits(); i++) {
-        if (curSet.get(i)) {
-          bitSet.set(split * splitSize + i);
+
+    if(FileSystemHelper.getFS().exists(new Path(tapPath))){
+      Tap tap = new Hfs(new SequenceFile(new Fields("split", "filter")), tapPath);
+      TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
+      while (itr.hasNext()) {
+        TupleEntry cur = itr.next();
+        long split = cur.getLong(0);
+        FixedSizeBitSet curSet = new FixedSizeBitSet(splitSize, ((BytesWritable) cur.getObject(1)).getBytes());
+        for (long i = 0; i < curSet.numBits(); i++) {
+          if (curSet.get(i)) {
+            bitSet.set(split * splitSize + i);
+          }
         }
       }
     }
@@ -122,8 +126,8 @@ public class BloomUtil {
 
     synchronized (BF_LOAD_LOCK) {
       // Load bloom filter parts and merge them.
-      Tap bloomParts = new Hfs(new SequenceFile(new Fields("split", "filter")), bloomPartsDir + "/" + (numBloomHashes - 1));
-      BloomFilter filter = mergeBloomParts(bloomParts, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
+      String path = bloomPartsDir + "/" + (numBloomHashes - 1);
+      BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
 
       // Write merged bloom filter to HDFS
       LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
