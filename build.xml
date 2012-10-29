@@ -21,6 +21,7 @@
   <property name="jar.file" location="${build}/cascading_ext.jar" />
 
   <fileset id="jars" dir="${lib}" includes="*.jar" />
+  <property name="jobjar.tmp.dir" value="/tmp/cascading_ext_build/jobjar-tmp"/>
 
   <path id="compile.classpath">
     <fileset id="jars" dir="${lib}" includes="**/*.jar" />
@@ -143,6 +144,24 @@
       <arg value="-c"/>
       <arg value="test '0' = `find . -name *.java | xargs cat | egrep -c 'cascading.operation.Debug'`"/>
     </exec>
+  </target>
+
+  <target name="jobjar" depends="dist" description="--> build a job jar (with all dependency classes)">
+    <delete file="${build}/cascading_ext.job.jar" />
+    <delete dir="${jobjar.tmp.dir}"/>
+    <mkdir dir="${jobjar.tmp.dir}" />
+    <unjar dest="${jobjar.tmp.dir}" overwrite="false">
+      <fileset refid="jars"/>
+    </unjar>
+    <copy todir="${jobjar.tmp.dir}" >
+      <fileset dir="${build.classes}"/>
+    </copy>
+    <delete quiet="true">
+      <fileset dir="${jobjar.tmp.dir}/META-INF" includes="**/*.DSA,**/*.RSA,**/*.SF"  />
+    </delete>
+    <jar jarfile="${build}/cascading_ext.job.jar"
+      basedir="${jobjar.tmp.dir}" />
+    <delete dir="${jobjar.tmp.dir}"/>
   </target>
 
 

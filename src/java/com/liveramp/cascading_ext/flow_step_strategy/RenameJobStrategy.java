@@ -6,6 +6,7 @@ import cascading.flow.FlowStepStrategy;
 import cascading.tap.MultiSourceTap;
 import cascading.tap.Tap;
 import com.liveramp.cascading_ext.tap.NullTap;
+import com.twitter.maple.tap.MemorySourceTap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -43,9 +44,16 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     Set<String> stringIds = new HashSet<String>();
 
     for (Tap tap : taps) {
+
+      //  MemorySourceTap and NullTap both have  really annoying random identifiers that aren't important to note
       if (tap instanceof NullTap) {
         stringIds.add(NullTap.class.getSimpleName());
-      } else if (tap instanceof MultiSourceTap) {
+      } else if (tap instanceof MemorySourceTap) {
+        stringIds.add(MemorySourceTap.class.getSimpleName());
+      }
+
+      //  concatenate all sources in a multi source tap
+      else if (tap instanceof MultiSourceTap) {
         MultiSourceTap multi = (MultiSourceTap) tap;
         List<String> sources = new ArrayList<String>();
         Iterator<Tap> children = multi.getChildTaps();
@@ -54,7 +62,8 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
           sources.add(t.getIdentifier());
         }
         stringIds.add(StringUtils.join(sources, "+"));
-      } else {
+      }
+      else {
         if (tap.isTemporary()) {
           String tmpDir = tap.getIdentifier();
           Matcher m = TEMP_PIPE_NAME.matcher(tmpDir);
