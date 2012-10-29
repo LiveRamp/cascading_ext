@@ -21,10 +21,13 @@
   <property name="jar.file" location="${build}/cascading_ext.jar" />
 
   <fileset id="jars" dir="${lib}" includes="*.jar" />
+  <fileset id="hadoop.lib" dir="${env.HADOOP_HOME}/lib" includes="**/*.jar" excludes="junit-*.jar,hsqldb*.jar"/>
+
   <property name="jobjar.tmp.dir" value="/tmp/cascading_ext_build/jobjar-tmp"/>
 
   <path id="compile.classpath">
-    <fileset id="jars" dir="${lib}" includes="**/*.jar" />
+    <fileset refid = "jars"/>
+    <fileset refid="hadoop.lib"/>
   </path>
 
   <target name="classpath">

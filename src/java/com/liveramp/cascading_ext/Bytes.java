@@ -2,8 +2,8 @@ package com.liveramp.cascading_ext;
 
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
+import com.google.common.primitives.UnsignedBytes;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.thirdparty.guava.common.primitives.UnsignedBytes;
 import org.apache.thrift.TBaseHelper;
 
 import java.nio.ByteBuffer;
