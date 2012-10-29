@@ -148,21 +148,17 @@
 
   <target name="jobjar" depends="dist" description="--> build a job jar (with all dependency classes)">
     <delete file="${build}/cascading_ext.job.jar" />
-    <delete dir="${jobjar.tmp.dir}"/>
+    <delete dir="${jobjar.tmp.dir}" followSymlinks="false" />
     <mkdir dir="${jobjar.tmp.dir}" />
-    <unjar dest="${jobjar.tmp.dir}" overwrite="false">
+    <copy todir="${jobjar.tmp.dir}/lib" >
       <fileset refid="jars"/>
-    </unjar>
-    <copy todir="${jobjar.tmp.dir}" >
-      <fileset dir="${build.classes}"/>
     </copy>
-    <delete quiet="true">
-      <fileset dir="${jobjar.tmp.dir}/META-INF" includes="**/*.DSA,**/*.RSA,**/*.SF"  />
-    </delete>
+    <copy todir="${jobjar.tmp.dir}" >
+      <fileset dir="${build}/classes"/>
+    </copy>
     <jar jarfile="${build}/cascading_ext.job.jar"
       basedir="${jobjar.tmp.dir}" />
-    <delete dir="${jobjar.tmp.dir}"/>
+    <delete dir="${jobjar.tmp.dir}" followSymlinks="false" />
   </target>
-
 
 </project>
