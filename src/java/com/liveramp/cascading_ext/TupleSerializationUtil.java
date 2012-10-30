@@ -29,7 +29,7 @@ public class TupleSerializationUtil implements Serializable {
   }
 
   public byte[] serialize(Tuple tuple) throws IOException {
-    init();
+    initSerializer();
     bytesOutputStream.reset();
     tupleSerializer.open(tupleOutputStream);
     tupleSerializer.serialize(tuple);
@@ -37,7 +37,7 @@ public class TupleSerializationUtil implements Serializable {
   }
 
   public Tuple deserialize(byte[] bytes) throws IOException {
-    init();
+    initDeserializer();
     Tuple tuple = new Tuple();
     ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
     TupleInputStream tupleInputStream = new HadoopTupleInputStream(inputStream, serialization.getElementReader());
@@ -46,25 +46,29 @@ public class TupleSerializationUtil implements Serializable {
     return tuple;
   }
 
-  private void init() {
-    if (serialization == null) {
-      serialization = new TupleSerialization(jobConf);
-    }
-
+  private void initSerializer(){
+    init();
     if (bytesOutputStream == null) {
       bytesOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
     }
-
     if (tupleOutputStream == null) {
       tupleOutputStream = new HadoopTupleOutputStream(bytesOutputStream, serialization.getElementWriter());
     }
-
     if (tupleSerializer == null) {
       tupleSerializer = serialization.getSerializer(Tuple.class);
     }
+  }
 
+  private void initDeserializer(){
+    init();
     if (tupleDeserializer == null) {
       tupleDeserializer = serialization.getDeserializer(Tuple.class);
+    }
+  }
+
+  private void init() {
+    if (serialization == null) {
+      serialization = new TupleSerialization(jobConf);
     }
   }
 }
