@@ -8,17 +8,17 @@ import cascading.operation.FilterCall;
 // interface by forwarding calls to the underlying object.
 // A Filter Decorator can be easily implemented by subclassing the
 // Forwarding class and overriding only the desired methods.
-public class ForwardingFilter extends ForwardingOperation implements Filter {
+public class ForwardingFilter <C> extends ForwardingOperation<C> implements Filter<C> {
 
-  private final Filter filter;
+  private final Filter<C> filter;
 
-  public ForwardingFilter(Filter filter) {
+  public ForwardingFilter(Filter<C> filter) {
     super(filter);
     this.filter = filter;
   }
 
   @Override
-  public boolean isRemove(FlowProcess process, FilterCall call) {
+  public boolean isRemove(FlowProcess process, FilterCall<C> call) {
     return filter.isRemove(process, call);
   }
 }

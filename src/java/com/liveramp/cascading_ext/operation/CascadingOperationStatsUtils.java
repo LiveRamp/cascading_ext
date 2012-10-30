@@ -1,5 +1,6 @@
 package com.liveramp.cascading_ext.operation;
 
+import cascading.operation.AggregatorCall;
 import cascading.operation.ConcreteCall;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
@@ -13,8 +14,8 @@ public class CascadingOperationStatsUtils {
   static public final String COUNTER_CATEGORY = "Stats";
 
   // Copies a given ConcreteCall and sets the outputCollector.
-  public static ConcreteCall copyConcreteCallAndSetOutputCollector(ConcreteCall call, TupleEntryCollector outputCollector) {
-    ConcreteCall newCall = new ConcreteCall();
+  public static <Context> ConcreteCall<Context> copyConcreteCallAndSetOutputCollector(AggregatorCall<Context> call, TupleEntryCollector outputCollector) {
+    ConcreteCall<Context> newCall = new ConcreteCall<Context>();
     newCall.setArguments(call.getArguments());
     newCall.setContext(call.getContext());
     newCall.setGroup(call.getGroup());

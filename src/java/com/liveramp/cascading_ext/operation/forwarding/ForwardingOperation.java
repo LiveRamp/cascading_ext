@@ -9,15 +9,15 @@ import cascading.tuple.Fields;
 // interface by forwarding calls to the underlying object.
 // The point of this class is to provide common functionality to the specific
 // Forwarding classes ForwardingFilter, ForwardingFunction, etc.
-public class ForwardingOperation implements java.io.Serializable, cascading.operation.Operation {
-  private final Operation operation;
+public class ForwardingOperation <C> implements java.io.Serializable, cascading.operation.Operation<C> {
+  private final Operation<C> operation;
 
-  public ForwardingOperation(Operation operation) {
+  public ForwardingOperation(Operation<C> operation) {
     this.operation = operation;
   }
 
   @Override
-  public void cleanup(FlowProcess process, OperationCall call) {
+  public void cleanup(FlowProcess process, OperationCall<C> call) {
     operation.cleanup(process, call);
   }
 
@@ -37,12 +37,12 @@ public class ForwardingOperation implements java.io.Serializable, cascading.oper
   }
 
   @Override
-  public void prepare(FlowProcess process, OperationCall call) {
+  public void prepare(FlowProcess process, OperationCall<C> call) {
     operation.prepare(process, call);
   }
 
   @Override
-  public void flush(FlowProcess flowProcess, OperationCall operationCall) {
+  public void flush(FlowProcess flowProcess, OperationCall<C> operationCall) {
     operation.flush(flowProcess, operationCall);
   }
 }

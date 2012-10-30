@@ -3,14 +3,13 @@ package com.liveramp.cascading_ext.operation;
 import cascading.flow.FlowProcess;
 import cascading.operation.Aggregator;
 import cascading.operation.AggregatorCall;
-import cascading.operation.ConcreteCall;
 import cascading.stats.FlowStats;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingAggregator;
 
 // An AggregatorStats instance decorates an Aggregator instance and
 // automatically maintains input/output records counters in addition to
 // providing the functionality of the wrapped object.
-public class AggregatorStats extends ForwardingAggregator {
+public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
 
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String START_OUTPUT_RECORDS_COUNTER_NAME = "Start output records";
@@ -24,7 +23,7 @@ public class AggregatorStats extends ForwardingAggregator {
   private final String nameCompletionOutputRecords;
   private final String nameTotalOutputRecords;
 
-  public AggregatorStats(Aggregator aggregator) {
+  public AggregatorStats(Aggregator<Context> aggregator) {
     super(aggregator);
     String className = aggregator.getClass().getSimpleName();
     this.nameInputRecords = className + " - " + INPUT_RECORDS_COUNTER_NAME;
@@ -34,7 +33,7 @@ public class AggregatorStats extends ForwardingAggregator {
     this.nameTotalOutputRecords = className + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
   }
 
-  public AggregatorStats(Aggregator aggregator, String name) {
+  public AggregatorStats(Aggregator<Context> aggregator, String name) {
     super(aggregator);
     String className = aggregator.getClass().getSimpleName();
     this.nameInputRecords = className + " - " + name + " - " + INPUT_RECORDS_COUNTER_NAME;
@@ -45,9 +44,9 @@ public class AggregatorStats extends ForwardingAggregator {
   }
 
   @Override
-  public void start(FlowProcess process, AggregatorCall call) {
+  public void start(FlowProcess process, AggregatorCall<Context> call) {
     CascadingOperationStatsUtils.TupleEntryCollectorCounter outputCollectorCounter = new CascadingOperationStatsUtils.TupleEntryCollectorCounter(call.getOutputCollector());
-    super.start(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector((ConcreteCall) call, outputCollectorCounter));
+    super.start(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector(call, outputCollectorCounter));
     if (outputCollectorCounter.getCount() > 0) {
       process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameStartOutputRecords, outputCollectorCounter.getCount());
       process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameTotalOutputRecords, outputCollectorCounter.getCount());
@@ -55,9 +54,9 @@ public class AggregatorStats extends ForwardingAggregator {
   }
 
   @Override
-  public void aggregate(FlowProcess process, AggregatorCall call) {
+  public void aggregate(FlowProcess process, AggregatorCall<Context> call) {
     CascadingOperationStatsUtils.TupleEntryCollectorCounter outputCollectorCounter = new CascadingOperationStatsUtils.TupleEntryCollectorCounter(call.getOutputCollector());
-    super.aggregate(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector((ConcreteCall) call, outputCollectorCounter));
+    super.aggregate(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector(call, outputCollectorCounter));
     process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameInputRecords, 1);
     if (outputCollectorCounter.getCount() > 0) {
       process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameAggregationOutputRecords, outputCollectorCounter.getCount());
@@ -66,9 +65,9 @@ public class AggregatorStats extends ForwardingAggregator {
   }
 
   @Override
-  public void complete(FlowProcess process, AggregatorCall call) {
+  public void complete(FlowProcess process, AggregatorCall<Context> call) {
     CascadingOperationStatsUtils.TupleEntryCollectorCounter outputCollectorCounter = new CascadingOperationStatsUtils.TupleEntryCollectorCounter(call.getOutputCollector());
-    super.start(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector((ConcreteCall) call, outputCollectorCounter));
+    super.start(process, CascadingOperationStatsUtils.copyConcreteCallAndSetOutputCollector(call, outputCollectorCounter));
     if (outputCollectorCounter.getCount() > 0) {
       process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameCompletionOutputRecords, outputCollectorCounter.getCount());
       process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameTotalOutputRecords, outputCollectorCounter.getCount());
