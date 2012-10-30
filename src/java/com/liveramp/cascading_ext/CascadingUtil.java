@@ -51,6 +51,10 @@ public class CascadingUtil {
     defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
   }
 
+  public void clearDefaultFlowStepStrategies(){
+    defaultFlowStepStrategies.clear();
+  }
+
   public void addSerialization(Class<? extends Serialization> serialization) {
     serializations.add(serialization);
     conf = null;
