@@ -28,7 +28,6 @@ public class CascadingUtil {
   protected CascadingUtil() {
     addDefaultFlowStepStrategy(RenameJobStrategy.class);
     addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
-    addSerialization(MapSerialization.class);
 
     defaultProperties.putAll(BloomProps.getDefaultProperties());
   }
