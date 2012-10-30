@@ -76,7 +76,11 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
       id = "null";
     }
 
-    String name = getName(id);
+    final String[] tokens = id.split("/");
+
+    // use the last token as the file name (works well for things that
+    // are paths and doesn't break things that are not
+    String name = tokens[tokens.length-1];
 
     // For temporary sources, we don't care about the random suffix appended by cascading
     if (tap.isTemporary() && removeRandomSuffixFromTempTaps) {
@@ -85,9 +89,8 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
 
     if (name.matches("^\\d+$")) {
       // For versioned stores, return "store_name/version_number", instead of just "version_number"
-      String[] tokens = id.split("/");
       if (tokens.length > 1) {
-        return tokens[tokens.length - 2] + "/" + name;
+        return tokens[tokens.length-2] + "/" + name;
       } else {
         return name;
       }
@@ -108,10 +111,5 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     } else {
       return name;
     }
-  }
-
-  private static String getName(String id) {
-    String[] tokens = id.split("/");
-    return tokens[tokens.length - 1];
   }
 }
