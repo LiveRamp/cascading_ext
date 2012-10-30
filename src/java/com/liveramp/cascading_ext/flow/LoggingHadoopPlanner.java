@@ -16,7 +16,7 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
 
   @Override
   public Flow buildFlow(FlowDef flowDef) {
-    Flow internalFlow = super.buildFlow(flowDef);
+    Flow<JobConf> internalFlow = super.buildFlow(flowDef);
     internalFlow.setFlowStepStrategy(flowStepStrategy);
     return new LoggingFlow(internalFlow);
   }

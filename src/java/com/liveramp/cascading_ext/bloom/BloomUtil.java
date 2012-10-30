@@ -1,7 +1,6 @@
 package com.liveramp.cascading_ext.bloom;
 
 import cascading.scheme.hadoop.SequenceFile;
-import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.TupleEntry;
@@ -58,7 +57,7 @@ public class BloomUtil {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
 
     if(FileSystemHelper.getFS().exists(new Path(tapPath))){
-      Tap tap = new Hfs(new SequenceFile(new Fields("split", "filter")), tapPath);
+      Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), tapPath);
       TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
       while (itr.hasNext()) {
         TupleEntry cur = itr.next();
@@ -137,15 +136,13 @@ public class BloomUtil {
   /**
    * Read from the side bucket that HyperLogLog wrote to, merge the HLL estimators, and return the
    * approximate count of distinct keys
-   *
-   * @return
    */
   private static long getApproxDistinctKeysCount(JobConf conf, String partsDir) throws IOException, CardinalityMergeException {
     if(!FileSystemHelper.getFS().exists(new Path(partsDir))){
       return 0;
     }
 
-    Tap approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), partsDir);
+    Hfs approxCountsTap = new Hfs(new SequenceFile(new Fields("bytes")), partsDir);
 
     TupleEntryIterator in = approxCountsTap.openForRead(CascadingUtil.get().getFlowProcess());
     List<HyperLogLog> countParts = new LinkedList<HyperLogLog>();

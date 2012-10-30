@@ -11,7 +11,7 @@ public class TestFixedSizeBitSet extends BaseTestCase {
   public void testGetSet() {
     FixedSizeBitSet s = new FixedSizeBitSet(123);
     for (int i = 0; i < 123; i++) {
-      assertTrue(s.get(i) == false);
+      assertTrue(!s.get(i));
     }
     s.set(5);
     s.set(8);

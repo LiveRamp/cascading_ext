@@ -49,12 +49,10 @@ public abstract class RawComparator implements StreamComparator<BufferedInputStr
   }
 
   protected static int readSize(byte[] buffer, int off) {
-    int size =
-        ((buffer[off] & 0xff) << 24) |
-            ((buffer[off + 1] & 0xff) << 16) |
-            ((buffer[off + 2] & 0xff) << 8) |
-            ((buffer[off + 3] & 0xff));
 
-    return size;
+    return ((buffer[off] & 0xff) << 24) |
+        ((buffer[off + 1] & 0xff) << 16) |
+        ((buffer[off + 2] & 0xff) << 8) |
+        ((buffer[off + 3] & 0xff));
   }
 }

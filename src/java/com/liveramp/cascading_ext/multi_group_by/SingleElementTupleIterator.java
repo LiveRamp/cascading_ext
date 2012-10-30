@@ -14,10 +14,6 @@ public class SingleElementTupleIterator<T> implements Iterator<T> {
   private final Iterator<Tuple> iter;
   private final int value;
 
-  public SingleElementTupleIterator(Iterator<Tuple> interior) {
-    this(interior, 0);
-  }
-
   public SingleElementTupleIterator(Iterator<Tuple> interior, int pos) {
     this.iter = interior;
     this.value = pos;

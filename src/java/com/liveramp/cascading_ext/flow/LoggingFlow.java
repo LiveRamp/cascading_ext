@@ -16,7 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.RunningJob;
@@ -194,8 +193,7 @@ public class LoggingFlow implements Flow<JobConf> {
       String taskLogUrl = getTaskLogURL(taskId, baseUrl);
 
       // Copy tasks's stdout of the JobClient
-      String taskLogs = getTaskLogStream(taskId, new URL(taskLogUrl + "&filter=syslog"));
-      return taskLogs;
+      return getTaskLogStream(taskId, new URL(taskLogUrl + "&filter=syslog"));
 
     }
     return "";
@@ -215,7 +213,7 @@ public class LoggingFlow implements Flow<JobConf> {
         StringBuilder logData = new StringBuilder();
         String line = null;
         while ((line = input.readLine()) != null) {
-          logData.append(line + "\n");
+          logData.append(line).append("\n");
         }
         return logData.toString();
       } finally {
@@ -323,7 +321,7 @@ public class LoggingFlow implements Flow<JobConf> {
   }
 
   @Override
-  public FlowProcess getFlowProcess() {
+  public FlowProcess<JobConf> getFlowProcess() {
     return internalFlow.getFlowProcess();
   }
 

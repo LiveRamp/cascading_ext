@@ -96,8 +96,6 @@ public class CreateBloomFilter extends SubAssembly {
 
     @Override
     public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
-      super.prepare(flowProcess, operationCall);
-
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
       approxCounter = new HyperLogLog(BloomProps.getHllErr(conf));
       sampleRate = BloomProps.getKeySampleRate(conf);
@@ -106,7 +104,6 @@ public class CreateBloomFilter extends SubAssembly {
 
     @Override
     public void cleanup(FlowProcess flowProcess, OperationCall operationCall) {
-      super.cleanup(flowProcess, operationCall);
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
 
       try {

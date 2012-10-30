@@ -34,14 +34,10 @@ public class JavaHadoopSerializer<T> implements Serializer<T> {
       dataOut.writeInt(bosBytes.length);
       dataOut.write(bosBytes);
     } finally {
-      if (bos != null) {
-        bos.flush();
-        bos.close();
-      }
-      if (tempOut != null) {
-        tempOut.flush();
-        tempOut.close();
-      }
+      bos.flush();
+      bos.close();
+      tempOut.flush();
+      tempOut.close();
     }
   }
 }

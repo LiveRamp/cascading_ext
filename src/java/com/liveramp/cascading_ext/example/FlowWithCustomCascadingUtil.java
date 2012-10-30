@@ -63,7 +63,7 @@ public class FlowWithCustomCascadingUtil {
     }
 
     String outputDir = args[0];
-    Tap sink = new Hfs(new SequenceFile(new Fields("field1", "field2", "field3", "field4")), outputDir);
+    Hfs sink = new Hfs(new SequenceFile(new Fields("field1", "field2", "field3", "field4")), outputDir);
 
     Pipe source1 = new Pipe("source1");
 

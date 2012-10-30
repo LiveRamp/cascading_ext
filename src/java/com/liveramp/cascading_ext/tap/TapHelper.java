@@ -6,6 +6,7 @@ import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
 import com.liveramp.cascading_ext.CascadingUtil;
+import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class TapHelper {
 
-  public static void writeToTap(Tap t, Tuple... tuples) throws IOException {
+  public static void writeToTap(Tap<JobConf, ?, ?> t, Tuple... tuples) throws IOException {
     TupleEntryCollector collector = t.openForWrite(CascadingUtil.get().getFlowProcess());
     for (Tuple tuple : tuples) {
       collector.add(tuple);
@@ -21,7 +22,7 @@ public class TapHelper {
     collector.close();
   }
 
-  public static List<TupleEntry> getAllTupleEntries(Tap t) throws IOException {
+  public static List<TupleEntry> getAllTupleEntries(Tap<JobConf, ?, ?> t) throws IOException {
     TupleEntryIterator iter = t.openForRead(CascadingUtil.get().getFlowProcess());
     List<TupleEntry> tuples = new ArrayList<TupleEntry>();
     while (iter.hasNext()) {
@@ -30,7 +31,7 @@ public class TapHelper {
     return tuples;
   }
 
-  public static List<Tuple> getAllTuples(Tap t) throws IOException {
+  public static List<Tuple> getAllTuples(Tap<JobConf, ?, ?> t) throws IOException {
     TupleEntryIterator iter = t.openForRead(CascadingUtil.get().getFlowProcess());
     List<Tuple> tuples = new ArrayList<Tuple>();
     while (iter.hasNext()) {

@@ -144,10 +144,11 @@ public class Counters {
     return builder.toString();
   }
 
-  private static final String prettyTaps(Map<String, Tap> taps) {
+  private static String prettyTaps(Map<String, Tap> taps) {
     if (taps.keySet().isEmpty()) return "[]";
 
-    Tap first = taps.values().toArray(new Tap[0])[0];
+    Collection<Tap> values = taps.values();
+    Tap first = values.toArray(new Tap[values.size()])[0];
     if (first == null) return "[null tap]";
 
     if (taps.keySet().size() == 1) {

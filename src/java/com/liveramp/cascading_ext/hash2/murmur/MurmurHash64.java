@@ -35,7 +35,7 @@ public class MurmurHash64 extends HashFunction {
       k = k << 8;
       k = k | (data[i + 1] & 0xff);
       k = k << 8;
-      k = k | (data[i + 0] & 0xff);
+      k = k | (data[i] & 0xff);
 
       k *= m;
       k ^= k >>> r;
