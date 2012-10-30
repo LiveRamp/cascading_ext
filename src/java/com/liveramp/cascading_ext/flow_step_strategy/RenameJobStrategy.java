@@ -55,9 +55,12 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
         pathNames.add(tap.getClass().getSimpleName());
       } else if (tap instanceof MultiSourceTap) {
         // concatenate all sources in a multi source tap
-        Iterator<Tap> children = ((MultiSourceTap) tap).getChildTaps();
+        Iterator children = ((MultiSourceTap) tap).getChildTaps();
         while (children.hasNext()) {
-          pathNames.add(getPathName(children.next(), removeRandomSuffixFromTempTaps));
+          Object object = children.next();
+          if (object instanceof Tap) {
+            pathNames.add(getPathName((Tap) object, removeRandomSuffixFromTempTaps));
+          }
         }
       } else {
         pathNames.add(getPathName(tap, removeRandomSuffixFromTempTaps));
