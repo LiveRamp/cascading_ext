@@ -79,7 +79,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
    * @param tap
    * @return
    */
-  protected String getTapIdentifier(Tap tap, boolean removeRandomSuffixFromTempTaps){
+  private String getTapIdentifier(Tap tap, boolean removeRandomSuffixFromTempTaps){
     //  MemorySourceTap and NullTap both have  really annoying random identifiers that aren't important to note
     if (tap instanceof NullTap || tap instanceof MemorySourceTap) {
       return tap.getClass().getSimpleName();
