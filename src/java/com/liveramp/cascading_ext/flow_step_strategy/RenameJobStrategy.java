@@ -40,14 +40,14 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
         flowStep.getStepNum(),
         flowStep.getFlow().getFlowSteps().size(),
         StringUtils.abbreviate(
-            join(getPathNamesFromTaps(flowStep.getSources())),
+            join(getPathNamesFromTaps(flowStep.getSources(), true)),
             MAX_SOURCE_PATH_NAMES_LENGTH),
-        join(getPathNamesFromTaps(flowStep.getSinks())));
+        join(getPathNamesFromTaps(flowStep.getSinks(), false)));
 
     return StringUtils.abbreviate(jobName, MAX_JOB_NAME_LENGTH);
   }
 
-  private static List<String> getPathNamesFromTaps(Set<Tap> taps) {
+  private static List<String> getPathNamesFromTaps(Set<Tap> taps, boolean removeRandomSuffixFromTempTaps) {
     List<String> pathNames = new ArrayList<String>();
 
     for (Tap tap : taps) {
@@ -58,17 +58,17 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
         // concatenate all sources in a multi source tap
         Iterator<Tap> children = ((MultiSourceTap) tap).getChildTaps();
         while (children.hasNext()) {
-          pathNames.add(getPathName(children.next()));
+          pathNames.add(getPathName(children.next(), removeRandomSuffixFromTempTaps));
         }
       } else {
-        pathNames.add(getPathName(tap));
+        pathNames.add(getPathName(tap, removeRandomSuffixFromTempTaps));
       }
     }
 
     return pathNames;
   }
 
-  private static String getPathName(Tap tap) {
+  private static String getPathName(Tap tap, boolean removeRandomSuffixFromTempTaps) {
     String id = tap.getIdentifier();
     if (id == null) {
       id = "null";
@@ -78,7 +78,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     String name = path.getName();
 
     // For temporary sources, we don't care about the random suffix appended by cascading
-    if (tap.isSource() && tap.isTemporary()) {
+    if (tap.isTemporary() && removeRandomSuffixFromTempTaps) {
       name = getCanonicalName(name);
     }
 
