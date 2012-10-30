@@ -110,8 +110,13 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
       id = "null";
     }
 
-    Path path = new Path(id);
-    String name = path.getName();
+    String name;
+    if(tap instanceof Hfs){
+      Path path = new Path(id);
+      name = path.getName();
+    }else{
+      name = id;
+    }
 
     // For temporary sources, we don't care about the random suffix appended by cascading
     if (tap.isTemporary() && removeRandomSuffixFromTempTaps) {
