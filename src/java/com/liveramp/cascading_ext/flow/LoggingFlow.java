@@ -193,7 +193,7 @@ public class LoggingFlow implements Flow<JobConf> {
       String taskLogUrl = getTaskLogURL(taskId, baseUrl);
 
       // Copy tasks's stdout of the JobClient
-      return getTaskLogStream(taskId, new URL(taskLogUrl + "&filter=syslog"));
+      return getTaskLogStream(new URL(taskLogUrl + "&filter=syslog"));
 
     }
     return "";
@@ -204,14 +204,14 @@ public class LoggingFlow implements Flow<JobConf> {
   }
 
   // This method pulled wholesale from a private mthod in hadoop's JobClient
-  private static String getTaskLogStream(TaskAttemptID taskId, URL taskLogUrl) {
+  private static String getTaskLogStream(URL taskLogUrl) {
     try {
       URLConnection connection = taskLogUrl.openConnection();
       BufferedReader input =
           new BufferedReader(new InputStreamReader(connection.getInputStream()));
       try {
         StringBuilder logData = new StringBuilder();
-        String line = null;
+        String line;
         while ((line = input.readLine()) != null) {
           logData.append(line).append("\n");
         }

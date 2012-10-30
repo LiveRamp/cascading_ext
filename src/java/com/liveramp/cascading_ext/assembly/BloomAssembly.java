@@ -30,7 +30,6 @@ import java.util.UUID;
  * the LHS using the bloom filter and, depending on parameters, does a CoGroup for exactness.
  */
 public abstract class BloomAssembly extends SubAssembly {
-  private static Logger LOG = Logger.getLogger(BloomAssembly.class);
 
   protected enum Mode {
     FILTER_EXACT, FILTER_INEXACT, JOIN

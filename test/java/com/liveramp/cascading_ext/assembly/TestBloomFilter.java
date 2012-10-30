@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class TestBloomFilter extends BloomAssemblyTestCase {
 
-  protected Tap output;
+  protected Hfs output;
 
   @Before
   public void setUp() throws Exception {

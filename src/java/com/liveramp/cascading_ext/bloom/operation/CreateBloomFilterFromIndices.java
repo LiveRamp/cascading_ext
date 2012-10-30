@@ -1,6 +1,7 @@
 package com.liveramp.cascading_ext.bloom.operation;
 
 import cascading.flow.FlowProcess;
+import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Aggregator;
 import cascading.operation.AggregatorCall;
 import cascading.operation.BaseOperation;
@@ -19,7 +20,7 @@ import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
 
-public class CreateBloomFilterFromIndices extends BaseOperation implements Aggregator {
+public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilterFromIndices.Context> implements Aggregator<CreateBloomFilterFromIndices.Context> {
   private TupleEntryCollector[] collectors;
 
   public CreateBloomFilterFromIndices() {
@@ -31,7 +32,7 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   }
 
   @Override
-  public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
+  public void prepare(FlowProcess flowProcess, OperationCall<CreateBloomFilterFromIndices.Context> operationCall) {
     try {
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
       String partsRoot = BloomProps.getBloomFilterPartsDir(conf);
@@ -39,8 +40,8 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
 
       collectors = new TupleEntryCollector[maxHashes];
       for (int i = 0; i < maxHashes; i++) {
-        collectors[i] = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot+"/"+i+"/")
-            .openForWrite(flowProcess);
+        Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot+"/"+i+"/");
+        collectors[i] = tap.openForWrite(new HadoopFlowProcess(conf));
       }
 
     } catch (IOException e) {
@@ -49,9 +50,9 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   }
 
   @Override
-  public void aggregate(FlowProcess flow, AggregatorCall call) {
+  public void aggregate(FlowProcess flow, AggregatorCall<CreateBloomFilterFromIndices.Context> call) {
 
-    Context c = (Context) call.getContext();
+    Context c = call.getContext();
     long bit = (Long) call.getArguments().getObject(0);
     int hashNum = (Integer) call.getArguments().getObject(1);
 
@@ -61,8 +62,8 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   }
 
   @Override
-  public void complete(FlowProcess flow, AggregatorCall call) {
-    Context c = (Context) call.getContext();
+  public void complete(FlowProcess flow, AggregatorCall<CreateBloomFilterFromIndices.Context> call) {
+    Context c = call.getContext();
     TupleEntry group = call.getGroup();
     for (int i = 0; i < collectors.length; i++) {
       collectors[i].add(new Tuple(group.getObject("split"), new BytesWritable(c.bitSet[i].getRaw())));
@@ -70,14 +71,14 @@ public class CreateBloomFilterFromIndices extends BaseOperation implements Aggre
   }
 
   @Override
-  public void cleanup(FlowProcess flowProcess, OperationCall operationCall) {
+  public void cleanup(FlowProcess flowProcess, OperationCall<CreateBloomFilterFromIndices.Context> operationCall) {
     for (TupleEntryCollector collector : collectors) {
       collector.close();
     }
   }
 
   @Override
-  public void start(FlowProcess flow, AggregatorCall call) {
+  public void start(FlowProcess flow, AggregatorCall<CreateBloomFilterFromIndices.Context> call) {
     JobConf conf = (JobConf) flow.getConfigCopy();
 
     long numBits = BloomProps.getNumBloomBits(conf);

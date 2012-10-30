@@ -1,7 +1,6 @@
 package com.liveramp.cascading_ext.assembly;
 
 import cascading.scheme.hadoop.SequenceFile;
-import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
@@ -14,10 +13,10 @@ import org.junit.Before;
 
 public abstract class BloomAssemblyTestCase extends BaseTestCase {
 
-  protected Tap lhsStore;
-  protected Tap rhsStore;
-  protected Tap lhs2Store;
-  protected Tap rhs2Store;
+  protected Hfs lhsStore;
+  protected Hfs rhsStore;
+  protected Hfs lhs2Store;
+  protected Hfs rhs2Store;
 
   @Before
   public void bloomAssemblySetUp() throws Exception {

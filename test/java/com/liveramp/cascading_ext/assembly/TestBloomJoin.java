@@ -22,9 +22,9 @@ import static org.junit.Assert.*;
 
 public class TestBloomJoin extends BloomAssemblyTestCase {
 
-  protected Tap output;
-  protected Tap output2;
-  protected Tap output3;
+  protected Hfs output;
+  protected Hfs output2;
+  protected Hfs output3;
 
   @Before
   public void setUp() throws Exception {

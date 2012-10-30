@@ -1,6 +1,7 @@
 package com.liveramp.cascading_ext.assembly;
 
 import cascading.flow.FlowProcess;
+import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Filter;
 import cascading.operation.FilterCall;
@@ -109,11 +110,11 @@ public class CreateBloomFilter extends SubAssembly {
       try {
         LOG.info("HLL counter found " + approxCounter.cardinality() + " distinct keys");
 
-        String approxCountPartsDir = BloomProps.getApproxCountsDir(conf);
-        TupleEntryCollector out = new Hfs(new SequenceFile(new Fields("bytes")), approxCountPartsDir)
-            .openForWrite(flowProcess);
+        Hfs tap = new Hfs(new SequenceFile(new Fields("bytes")), BloomProps.getApproxCountsDir(conf));
+        TupleEntryCollector out = tap.openForWrite(new HadoopFlowProcess(conf));
         out.add(new Tuple(new BytesWritable(approxCounter.getBytes())));
         out.close();
+
       } catch (IOException e) {
         throw new RuntimeException("couldn't write approximate counts to side bucket", e);
       }

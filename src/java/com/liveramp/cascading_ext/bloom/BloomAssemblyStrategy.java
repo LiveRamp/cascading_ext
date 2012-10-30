@@ -45,10 +45,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
   /**
    * Merges bloom filter parts created across multiple splits of the keys and put the result in the distributed cache.
-   *
-   * @param bloomID
-   * @param currentStep
-   * @param predecessorSteps
    */
   private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
     try{

@@ -84,7 +84,7 @@ public class Bytes {
    * @return the field bytes
    */
   public static byte[] getBytes(TupleEntry tupleEntry, String fieldName) {
-    return getBytes((BytesWritable) tupleEntry.get(fieldName));
+    return getBytes((BytesWritable) tupleEntry.getObject(fieldName));
   }
 
   /**
@@ -96,6 +96,6 @@ public class Bytes {
    * @return the field bytes
    */
   public static byte[] getBytes(Tuple tuple, int fieldIndex) {
-    return getBytes((BytesWritable) tuple.get(fieldIndex));
+    return getBytes((BytesWritable) tuple.getObject(fieldIndex));
   }
 }

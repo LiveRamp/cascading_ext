@@ -22,67 +22,85 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
 
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
-    //  Give jobs human readable names. The default naming scheme includes a bunch of randomly
-    //  generated IDs.
+    //  Give jobs human readable names. The default naming scheme includes a bunch of randomly generated IDs.
     flowStep.getConfig().setJobName(formatJobName(flowStep));
   }
 
-  private static String formatJobName(FlowStep<JobConf> flowStep) {
+  protected String formatJobName(FlowStep<JobConf> flowStep) {
     return String.format("%s[%s%s]",
-        flowStep.getFlowName(), // for example "Creating Bloom Filter"
-        "(" + flowStep.getStepNum() + "/" + flowStep.getFlow().getFlowSteps().size() + ")", // for some unknown reason, this is set to, for example (1/6)
-        formatSourcesAndSinks(flowStep)); // add in sources and sinks
+        flowStep.getFlowName(),
+        getStepNumber(flowStep),
+        formatSourcesAndSinks(flowStep));
   }
 
-  private static String formatSourcesAndSinks(FlowStep<JobConf> flowStep) {
+  protected String getStepNumber(FlowStep<JobConf> flowStep){
+    return "(" + flowStep.getStepNum() + "/" + flowStep.getFlow().getFlowSteps().size() + ")";
+  }
+
+  protected String formatSourcesAndSinks(FlowStep<JobConf> flowStep) {
     return String.format("[%s]=>[%s]",
         getTapSetString(flowStep.getSources()),
         getTapSetString(flowStep.getSinks()));
   }
 
-  private static String getTapSetString(Set<Tap> taps) {
+  protected String getTapSetString(Set<Tap> taps) {
     Set<String> stringIds = new HashSet<String>();
 
     for (Tap tap : taps) {
-
-      //  MemorySourceTap and NullTap both have  really annoying random identifiers that aren't important to note
-      if (tap instanceof NullTap) {
-        stringIds.add(NullTap.class.getSimpleName());
-      } else if (tap instanceof MemorySourceTap) {
-        stringIds.add(MemorySourceTap.class.getSimpleName());
-      }
-
-      //  concatenate all sources in a multi source tap
-      else if (tap instanceof MultiSourceTap) {
-        MultiSourceTap multi = (MultiSourceTap) tap;
-        List<String> sources = new ArrayList<String>();
-        Iterator<Tap> children = multi.getChildTaps();
-        while (children.hasNext()) {
-          Tap t = children.next();
-          sources.add(t.getIdentifier());
-        }
-        stringIds.add(StringUtils.join(sources, "+"));
-      }
-      else {
-        if (tap.isTemporary()) {
-          String tmpDir = tap.getIdentifier();
-          Matcher m = TEMP_PIPE_NAME.matcher(tmpDir);
-          m.matches();
-          if (m.groupCount() > 1) {
-            stringIds.add("pipe:" + m.group(m.groupCount()));
-          } else {
-            stringIds.add(TMP_TAP_NAME);
-          }
-        } else {
-          stringIds.add(tap.getIdentifier());
-        }
-      }
+      stringIds.add(getTapIdentifier(tap));
     }
     String tapSet = formatSetOfNames(stringIds);
     return StringUtils.abbreviate(tapSet, tapSet.length(), MAX_SOURCE_OR_SINK_LENGTH);
   }
 
-  private static String formatSetOfNames(Set<String> names) {
+  /**
+   * Subclasses can override this and call super() to add handling for other unrecognized classes
+   *
+   * @param tap
+   * @return
+   */
+  protected String getTapIdentifier(Tap tap){
+
+    //  MemorySourceTap and NullTap both have  really annoying random identifiers that aren't important to note
+    if (tap instanceof NullTap) {
+      return NullTap.class.getSimpleName();
+    } else if (tap instanceof MemorySourceTap) {
+      return MemorySourceTap.class.getSimpleName();
+    }
+
+    //  concatenate all sources in a multi source tap
+    else if (tap instanceof MultiSourceTap) {
+      MultiSourceTap multi = (MultiSourceTap) tap;
+      List<String> sources = new ArrayList<String>();
+      Iterator children = multi.getChildTaps();
+      while (children.hasNext()) {
+        Object t = children.next();
+        if(t instanceof Tap){
+          sources.add(getTapIdentifier((Tap) t));
+        }
+      }
+      return StringUtils.join(sources, "+");
+    }
+
+    // add the pipe name for temporary taps
+    else if (tap.isTemporary()) {
+      String tmpDir = tap.getIdentifier();
+      Matcher m = TEMP_PIPE_NAME.matcher(tmpDir);
+      m.matches();
+      if (m.groupCount() > 1) {
+        return "pipe:" + m.group(m.groupCount());
+      } else {
+        return TMP_TAP_NAME;
+      }
+    }
+
+    //  otherwise hope the identifier is useful
+    else {
+      return tap.getIdentifier();
+    }
+  }
+
+  protected String formatSetOfNames(Set<String> names) {
     return StringUtils.join(names, ",");
   }
 }
