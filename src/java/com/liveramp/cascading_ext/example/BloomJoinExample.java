@@ -17,11 +17,11 @@ import java.util.Map;
  * An example of how to use the BloomJoin class when using CascadingUtil.  In practice this isn't nearly enough data
  * to warrant using BloomJoin, but it will work fine for a test job.
  */
-public class BloomJoinWithCascadingUtil {
+public class BloomJoinExample {
 
   public static void main(String[] args) throws IOException {
     if(args.length != 1){
-      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.BloomJoinWithCascadingUtil <output dir>");
+      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.BloomJoinExample <output dir>");
       return;
     }
 

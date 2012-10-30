@@ -2,6 +2,9 @@ package com.liveramp.cascading_ext.hash2.murmur;
 
 import com.liveramp.cascading_ext.hash2.HashFunction;
 
+/**
+ * Implementation from http://d3s.mff.cuni.cz/~holub/sw/javamurmurhash/
+ */
 public class MurmurHash64 extends HashFunction {
 
   protected MurmurHash64(long maxValue, int numHashes) {

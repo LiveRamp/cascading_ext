@@ -23,11 +23,11 @@ import java.util.Map;
  *
  *  In practice this isn't nearly enough data to warrant using BloomJoin, but it will work fine for a test job.
  */
-public class BloomJoinWithoutCascadingUtil {
+public class BloomJoinExampleWithoutCascadingUtil {
 
   public static void main(String[] args) throws IOException {
     if(args.length != 1){
-      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.BloomJoinWithoutCascadingUtil <output dir>");
+      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.BloomJoinExampleWithoutCascadingUtil <output dir>");
       return;
     }
 

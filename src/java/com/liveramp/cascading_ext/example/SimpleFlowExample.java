@@ -16,10 +16,10 @@ import java.util.Map;
 /**
  * An example of a simple flow that is connected and run using a default instance of CascadingUtil.
  */
-public class SimpleFlow {
+public class SimpleFlowExample {
   public static void main(String[] args) throws IOException {
     if(args.length != 1){
-      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.SimpleFlow <output dir>");
+      System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.SimpleFlowExample <output dir>");
       return;
     }
 

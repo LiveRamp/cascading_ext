@@ -9,19 +9,9 @@ import org.apache.hadoop.io.Writable;
 import java.io.*;
 
 /**
- * Implements a <i>Bloom filter</i>, as defined by Bloom in 1970.
- * <p/>
- * The Bloom filter is a data structure that was introduced in 1970 and that has been adopted by the networking research community in the past decade thanks to
- * the bandwidth efficiencies that it offers for the transmission of set membership information between networked hosts. A sender encodes the information into a
- * bit vector, the Bloom filter, that is more compact than a conventional representation. Computation and space costs for construction are linear in the number
- * of elements. The receiver uses the filter to test whether various elements are members of the set. Though the filter will occasionally return a false
- * positive, it will never return a false negative. When creating the filter, the sender can choose its desired point in a trade-off between the false positive
- * rate and the size.
- * <p/>
- * contract <a href="http://www.one-lab.org">European Commission One-Lab Project 034819</a>.
+ *  This bloom filter implementation is based on the org.apache.hadoop.util.bloom.BloomFilter implementation, but was
+ *  modified to allow 64 bit hashes and larger bloom filters.
  *
- * @version 1.0 - 2 Feb. 07
- * @see <a href="http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal">Space/Time Trade-Offs in Hash Coding with Allowable Errors</a>
  */
 public class BloomFilter implements Writable {
 
