@@ -31,7 +31,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
   }
 
   private static String formatJobName(FlowStep<JobConf> flowStep) {
-    // WordCount [(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
+    // WordCount[(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
 
     String jobName = String.format(
         "%s[(%d/%d) %s] -> %s",
@@ -39,60 +39,63 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
         flowStep.getStepNum(),
         flowStep.getFlow().getFlowSteps().size(),
         StringUtils.abbreviate(
-            join(getPathNamesFromTaps(flowStep.getSources(), true)),
+            join(getPrettyNamesForTaps(flowStep.getSources(), true)),
             MAX_SOURCE_PATH_NAMES_LENGTH),
-        join(getPathNamesFromTaps(flowStep.getSinks(), false)));
+        join(getPrettyNamesForTaps(flowStep.getSinks(), false)));
 
     return StringUtils.abbreviate(jobName, MAX_JOB_NAME_LENGTH);
   }
 
-  private static List<String> getPathNamesFromTaps(Set<Tap> taps, boolean removeRandomSuffixFromTempTaps) {
-    List<String> pathNames = new ArrayList<String>();
+  private static List<String> getPrettyNamesForTaps(Set<Tap> taps, boolean removeRandomSuffixFromTempTaps) {
+    List<String> prettyNames = new ArrayList<String>();
 
     for (Tap tap : taps) {
       if (tap instanceof NullTap || tap instanceof MemorySourceTap) {
         // MemorySourceTap and NullTap both have really annoying random identifiers that aren't important to note
-        pathNames.add(tap.getClass().getSimpleName());
+        prettyNames.add(tap.getClass().getSimpleName());
       } else if (tap instanceof MultiSourceTap) {
         // concatenate all sources in a multi source tap
         Iterator children = ((MultiSourceTap) tap).getChildTaps();
         while (children.hasNext()) {
           Object object = children.next();
           if (object instanceof Tap) {
-            pathNames.add(getPathName((Tap) object, removeRandomSuffixFromTempTaps));
+            prettyNames.add(getPrettyNameForTap((Tap) object, removeRandomSuffixFromTempTaps));
           }
         }
       } else {
-        pathNames.add(getPathName(tap, removeRandomSuffixFromTempTaps));
+        prettyNames.add(getPrettyNameForTap(tap, removeRandomSuffixFromTempTaps));
       }
     }
 
-    return pathNames;
+    return prettyNames;
   }
 
-  private static String getPathName(Tap tap, boolean removeRandomSuffixFromTempTaps) {
+  private static String getPrettyNameForTap(Tap tap, boolean removeRandomSuffixFromTempTaps) {
     String id = tap.getIdentifier();
     if (id == null) {
       id = "null";
     }
 
-    String name = getName(id);
+    final String[] tokens = id.split("/");
+
+    // use the last token as the pretty name (works well for things that
+    // are paths and doesn't break things that are not)
+    String prettyName = tokens[tokens.length-1];
 
     // For temporary sources, we don't care about the random suffix appended by cascading
     if (tap.isTemporary() && removeRandomSuffixFromTempTaps) {
-      name = getCanonicalName(name);
+      prettyName = getCanonicalName(prettyName);
     }
 
-    if (name.matches("^\\d+$")) {
+    if (prettyName.matches("^\\d+$")) {
       // For versioned stores, return "store_name/version_number", instead of just "version_number"
-      String[] tokens = id.split("/");
       if (tokens.length > 1) {
-        return tokens[tokens.length - 2] + "/" + name;
+        return tokens[tokens.length-2] + "/" + prettyName;
       } else {
-        return name;
+        return prettyName;
       }
     } else {
-      return name;
+      return prettyName;
     }
   }
 
@@ -108,10 +111,5 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     } else {
       return name;
     }
-  }
-
-  private static String getName(String id) {
-    String[] tokens = id.split("/");
-    return tokens[tokens.length - 1];
   }
 }
