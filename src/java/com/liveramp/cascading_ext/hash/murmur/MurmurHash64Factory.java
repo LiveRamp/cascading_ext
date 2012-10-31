@@ -19,7 +19,7 @@ package com.liveramp.cascading_ext.hash.murmur;
 import com.liveramp.cascading_ext.hash.HashFunction;
 import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 
-public class Murmur64HashFactory extends HashFunctionFactory {
+public class MurmurHash64Factory extends HashFunctionFactory {
   @Override
   public HashFunction getFunction(long maxValue, int numHashes) {
     return new MurmurHash64(maxValue, numHashes);

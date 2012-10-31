@@ -16,12 +16,12 @@
 
 package com.liveramp.cascading_ext.hash;
 
-import com.liveramp.cascading_ext.hash.murmur.Murmur64HashFactory;
+import com.liveramp.cascading_ext.hash.murmur.MurmurHash64Factory;
 
 import java.io.Serializable;
 
 public abstract class HashFunctionFactory implements Serializable {
-  public static final HashFunctionFactory DEFAULT_HASH_FACTORY = new Murmur64HashFactory();
+  public static final HashFunctionFactory DEFAULT_HASH_FACTORY = new MurmurHash64Factory();
 
   public abstract HashFunction getFunction(long maxValue, int numHashes);
 }
