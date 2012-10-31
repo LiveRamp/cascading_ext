@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
   private static final int MAX_JOB_NAME_LENGTH = 175;
-  private static final int MAX_SOURCE_PATH_NAMES_LENGTH = 60;
+  private static final int MAX_SOURCE_PATH_NAMES_LENGTH = 75;
   private static final Pattern TEMP_PIPE_NAME = Pattern.compile("^(.*?)_\\d+_[A-Z0-9]{32}$");
 
   @Override
@@ -47,10 +47,10 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
   }
 
   private static String formatJobName(FlowStep<JobConf> flowStep) {
-    // WordCount[(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
+    // WordCount [(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
 
     String jobName = String.format(
-        "%s[(%d/%d) %s] -> %s",
+        "%s [(%d/%d) %s] -> %s",
         flowStep.getFlowName(),
         flowStep.getStepNum(),
         flowStep.getFlow().getFlowSteps().size(),
