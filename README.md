@@ -134,17 +134,20 @@ Contributors
 
 Most of the code here has been moved from our internal repositories so much of the original authorship has been lost in the git history.  Contributors include:
 
-- Andre Rodriguez
-- Ben Podgursky
-- Bryan Duxbury
-- Chris Mullins
-- Diane Yap
-- Eddie Siegel
-- Nathan Marz
-- Piotr Kozikowski
-- Porter Westling
-- Takashi Yonebayashi
-- Thomas Kielbus
+- [Andre Rodriguez](https://github.com/andrerodriguez)
+- [Ben Pastel](https://github.com/benpastel)
+- [Ben Podgursky](https://github.com/bpodgursky)
+- [Bryan Duxbury](https://github.com/bryanduxbury)
+- [Chris Mullins](https://github.com/sidoh)
+- [Diane Yap](https://github.com/dianey)
+- [Eddie Siegel](https://github.com/eddiesiegel)
+- [Emily Leathers](https://github.com/eleather)
+- [Nathan Marz](https://github.com/nathanmarz)
+- [Piotr Kozikowski](https://github.com/pkozikow)
+- [Porter Westling](https://github.com/pwestling)
+- [Sean Carr](https://github.com/scarr2508)
+- [Takashi Yonebayashi](https://github.com/takashiyonebayashi)
+- [Thomas Kielbus](https://github.com/thomas-kielbus)
 
 License
 ====
