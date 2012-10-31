@@ -73,7 +73,7 @@ public abstract class BloomAssembly extends SubAssembly {
       String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
       String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
-      //  if it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
+      //  If it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if (operationType != Mode.JOIN) {
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
       }
