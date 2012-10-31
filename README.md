@@ -134,18 +134,17 @@ Contributors
 
 Most of the code here has been moved from our internal repositories so much of the original authorship has been lost in the git history.  Contributors include:
 
-Andre Rodriguez
-Ben Podgursky
-Bryan Duxbury
-Chris Mullins
-Diane Yap
-Eddie Siegel
-Nathan Marz
-Piotr Kozikowski
-Porter Westling
-Takashi Yonebayashi
-Thomas Kielbus
-
+- Andre Rodriguez
+- Ben Podgursky
+- Bryan Duxbury
+- Chris Mullins
+- Diane Yap
+- Eddie Siegel
+- Nathan Marz
+- Piotr Kozikowski
+- Porter Westling
+- Takashi Yonebayashi
+- Thomas Kielbus
 
 License
 ====
