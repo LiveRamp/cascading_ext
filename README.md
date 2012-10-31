@@ -129,6 +129,24 @@ Bug reports or feature requests are welcome: https://github.com/liveramp/cascadi
 
 Changes you'd like us to merge in?  We love [pull requests](https://github.com/LiveRamp/cascading_ext/pulls).
 
+Contributors
+====
+
+Most of the code here has been moved from our internal repositories so much of the original authorship has been lost in the git history.  Contributors include:
+
+Andre Rodriguez
+Ben Podgursky
+Bryan Duxbury
+Chris Mullins
+Diane Yap
+Eddie Siegel
+Nathan Marz
+Piotr Kozikowski
+Porter Westling
+Takashi Yonebayashi
+Thomas Kielbus
+
+
 License
 ====
 Copyright 2012 LiveRamp
