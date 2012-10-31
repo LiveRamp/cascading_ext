@@ -25,9 +25,8 @@ import org.apache.hadoop.io.Writable;
 import java.io.*;
 
 /**
- *  This bloom filter implementation is based on the org.apache.hadoop.util.bloom.BloomFilter implementation, but was
- *  modified to allow 64 bit hashes and larger bloom filters.
- *
+ * This bloom filter implementation is based on the org.apache.hadoop.util.bloom.BloomFilter implementation, but was
+ * modified to allow 64 bit hashes and larger bloom filters.
  */
 public class BloomFilter implements Writable {
 

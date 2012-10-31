@@ -32,11 +32,11 @@ public class BufferStats<Context> extends ForwardingBuffer<Context> {
   private final String prefix;
 
   public BufferStats(Buffer<Context> buffer) {
-    this(buffer.getClass().getSimpleName()+" - ", buffer);
+    this(buffer.getClass().getSimpleName() + " - ", buffer);
   }
 
   public BufferStats(Buffer<Context> buffer, String name) {
-    this(buffer.getClass().getSimpleName() + " - " + name +" - ", buffer);
+    this(buffer.getClass().getSimpleName() + " - " + name + " - ", buffer);
   }
 
   protected BufferStats(String prefix, Buffer<Context> buffer) {
@@ -68,7 +68,7 @@ public class BufferStats<Context> extends ForwardingBuffer<Context> {
     }
 
     @Override
-    public void setDelegate(BufferCall<Context> delegate){
+    public void setDelegate(BufferCall<Context> delegate) {
       super.setDelegate(delegate);
       collector.setOutputCollector(delegate.getOutputCollector());
     }

@@ -46,11 +46,12 @@ public class FlowWithCustomCascadingUtil {
    */
   public static class MyCascadingUtil extends CascadingUtil {
     private static final CascadingUtil INSTANCE = new MyCascadingUtil();
+
     public static CascadingUtil get() {
       return INSTANCE;
     }
 
-    private MyCascadingUtil(){
+    private MyCascadingUtil() {
       super();
 
       //  if the strategy doesn't require parameters, it can be added instead of a factory and instantiated
@@ -58,7 +59,7 @@ public class FlowWithCustomCascadingUtil {
       addDefaultFlowStepStrategy(MyFlowStepStrategy.class);
 
       //  set a default property.  This property can still be overridden either by properties passed into the flow
-      //  connectory, attached to the pipe itself, or set a the flow step strategy
+      //  connector, attached to the pipe itself, or set a the flow step strategy
       setDefaultProperty("mapred.reduce.tasks", 5);
 
       //  calls to addSerialization or addSerializationToken should go here as well
@@ -73,7 +74,7 @@ public class FlowWithCustomCascadingUtil {
   }
 
   public static void main(String[] args) throws IOException {
-    if(args.length != 1){
+    if (args.length != 1) {
       System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.FlowWithCustomCascadingUtil <output dir>");
       return;
     }
@@ -102,7 +103,7 @@ public class FlowWithCustomCascadingUtil {
     //  Take a look at the output tuples
     TupleEntryIterator output = sink.openForRead(CascadingUtil.get().getFlowProcess());
     System.out.println("Output tuples from flow:");
-    while(output.hasNext()){
+    while (output.hasNext()) {
       System.out.println(output.next().getTuple());
     }
   }

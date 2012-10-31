@@ -41,7 +41,7 @@ import java.util.Arrays;
 public class TestAggregatorStats extends BaseTestCase {
 
   @Test
-  public void run(){
+  public void run() {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),
@@ -64,11 +64,12 @@ public class TestAggregatorStats extends BaseTestCase {
 
   private static class MyAggregator extends BaseOperation<MyAggregator.Context> implements Aggregator<MyAggregator.Context> {
 
-    public MyAggregator(){
+    public MyAggregator() {
       super(new Fields("output"));
     }
 
-    public static class Context {}
+    public static class Context {
+    }
 
     @Override
     public void start(FlowProcess flowProcess, AggregatorCall<Context> aggregatorCall) {

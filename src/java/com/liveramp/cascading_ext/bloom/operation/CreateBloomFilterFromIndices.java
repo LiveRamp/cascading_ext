@@ -56,7 +56,7 @@ public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilte
 
       collectors = new TupleEntryCollector[maxHashes];
       for (int i = 0; i < maxHashes; i++) {
-        Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot+"/"+i+"/");
+        Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot + "/" + i + "/");
         collectors[i] = tap.openForWrite(new HadoopFlowProcess(conf));
       }
 

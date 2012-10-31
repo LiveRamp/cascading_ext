@@ -20,7 +20,6 @@ import java.util.Arrays;
 
 /**
  * A BitSet implementation that allows for long-sized index queries.
- *
  */
 public class FixedSizeBitSet {
   private static final long MAX_VECTOR_SIZE = Integer.MAX_VALUE * 8L;

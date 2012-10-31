@@ -23,13 +23,13 @@ import cascading.tuple.Fields;
 /**
  * This SubAssembly behaves almost exactly like CoGroup, except that the LHS is filtered using a bloom filter
  * built from the keys on the RHS.  This means that the side with fewer keys should always be passed in as the RHS.
- *
+ * <p/>
  * Note that if there are field name conflicts on the LHS and RHS, you'll have to pass in renameFields (just like
  * with CoGroup).  Additionally, @param coGroupOrder allows tweaking of reduce performance (default is LARGE_LHS).
- *
+ * <p/>
  * Note: if this SubAssembly is used without CascadingUtil, the flow will need certain properties set.
  * See BloomJoinExampleWithoutCascadingUtil for details.
- *
+ * <p/>
  * <b>IMPORTANT:</b> one important behavior difference between BloomJoin and CoGroup is that RHS and LHS keys which are expected
  * to match in the join MUST serialize identically as well (the bloom filter is built by serializing key fields.)  If
  * normal java/hadoop types are used this should not be a problem, but comparing key types which extend each other WILL
@@ -39,7 +39,6 @@ import cascading.tuple.Fields;
 public class BloomJoin extends BloomAssembly {
 
   /**
-   *
    * @param largePipe       the left hand side of the bloom operation. this will be the side that is filtered by
    *                        the bloom filter.  Usually, this should be the side with more tuples.
    * @param largeJoinFields the fields on the left hand side that will be compared with the right hand side

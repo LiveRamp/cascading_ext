@@ -25,6 +25,7 @@ import cascading.operation.AggregatorCall;
  * interface by forwarding calls to the underlying object.
  * An Aggregator Decorator can be easily implemented by subclassing the
  * Forwarding class and overriding only the desired methods.
+ *
  * @param <Context>
  */
 

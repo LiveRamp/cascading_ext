@@ -40,8 +40,7 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
 
   @Before
   public void setUp() throws Exception {
-    output = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")),
-        getTestRoot() + "/output");
+    output = new Hfs(new SequenceFile(new Fields("key", "key2", "lhs-value")), getTestRoot() + "/output");
   }
 
   @Test
@@ -50,8 +49,7 @@ public class TestBloomFilter extends BloomAssemblyTestCase {
     Pipe lhs = new Pipe("lhs");
     Pipe rhs = new Pipe("rhs");
 
-    Pipe joined = new BloomFilter(lhs, new Fields("key", "key2"),
-        rhs, new Fields("key", "key2"), true);
+    Pipe joined = new BloomFilter(lhs, new Fields("key", "key2"), rhs, new Fields("key", "key2"), true);
 
     Map<String, Tap> input = new HashMap<String, Tap>();
     input.put("lhs", this.lhsStore);

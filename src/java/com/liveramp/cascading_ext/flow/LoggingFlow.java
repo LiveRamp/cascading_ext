@@ -16,37 +16,7 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobID;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TaskAttemptID;
-import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
-import org.apache.log4j.Logger;
-
-import cascading.flow.Flow;
-import cascading.flow.FlowException;
-import cascading.flow.FlowListener;
-import cascading.flow.FlowProcess;
-import cascading.flow.FlowSkipStrategy;
-import cascading.flow.FlowStep;
-import cascading.flow.FlowStepStrategy;
+import cascading.flow.*;
 import cascading.management.UnitOfWorkSpawnStrategy;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
@@ -54,8 +24,20 @@ import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-
 import com.liveramp.cascading_ext.counters.Counters;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
+import org.apache.log4j.Logger;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Delegates actual flow operations to a flow that gets passed in, but performs some additonal logging when the job
@@ -166,7 +148,7 @@ public class LoggingFlow implements Flow<JobConf> {
           // We limit the number of potential logs being pulled to spare the jobtracker
           if (failures.size() > 0) {
             Collections.shuffle(failures);
-            for (int i = 0; i < FAILURES_TO_QUERY; i++ ) {
+            for (int i = 0; i < FAILURES_TO_QUERY; i++) {
               jobFailures.add(getFailureLog(failures.get(i)));
             }
           }
@@ -202,7 +184,7 @@ public class LoggingFlow implements Flow<JobConf> {
 
   // This method pulled wholesale from a private mthod in hadoop's JobClient
   private static String retrieveTaskLogs(TaskAttemptID taskId, String baseUrl)
-    throws IOException {
+      throws IOException {
     // The tasktracker for a 'failed/killed' job might not be around...
     if (baseUrl != null) {
       // Construct the url for the tasklogs

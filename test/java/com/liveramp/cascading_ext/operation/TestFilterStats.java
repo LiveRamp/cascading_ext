@@ -40,11 +40,11 @@ import java.util.Arrays;
 public class TestFilterStats extends BaseTestCase {
 
   @Test
-  public void run(){
+  public void run() {
 
     Tap source = new MemorySourceTap(Arrays.asList(
-          new Tuple("A", true),
-          new Tuple("B", false)),
+        new Tuple("A", true),
+        new Tuple("B", false)),
         new Fields("field1", "field2"));
 
     Pipe pipe = new Pipe("pipe");

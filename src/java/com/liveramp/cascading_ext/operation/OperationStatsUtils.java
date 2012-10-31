@@ -16,9 +16,8 @@
 
 package com.liveramp.cascading_ext.operation;
 
-import cascading.operation.*;
+import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 
@@ -29,12 +28,12 @@ public class OperationStatsUtils {
   // The counter category used by the Operation stats decorators
   static public final String COUNTER_CATEGORY = "Stats";
 
-  public static final class TupleEntryCollectorCounter extends TupleEntryCollector implements Serializable{
+  public static final class TupleEntryCollectorCounter extends TupleEntryCollector implements Serializable {
 
     private int count = 0;
     private TupleEntryCollector tupleEntryCollector;
 
-    public void setOutputCollector(TupleEntryCollector collector){
+    public void setOutputCollector(TupleEntryCollector collector) {
       count = 0;
       this.tupleEntryCollector = collector;
     }
@@ -71,7 +70,7 @@ public class OperationStatsUtils {
     protected Call delegate;
     protected TupleEntryCollectorCounter collector = new TupleEntryCollectorCounter();
 
-    public void setDelegate(Call delegate){
+    public void setDelegate(Call delegate) {
       this.delegate = delegate;
     }
 

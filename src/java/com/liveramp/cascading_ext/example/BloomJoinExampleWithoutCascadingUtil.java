@@ -36,13 +36,13 @@ import java.util.Map;
 /**
  * An example of how to use the BloomJoin class if for whatever reason you can't run the job using CascadingUtil.
  * The only additional steps needed are setting some default properties and attaching the FlowStepStrategy manually.
- *
- *  In practice this isn't nearly enough data to warrant using BloomJoin, but it will work fine for a test job.
+ * <p/>
+ * In practice this isn't nearly enough data to warrant using BloomJoin, but it will work fine for a test job.
  */
 public class BloomJoinExampleWithoutCascadingUtil {
 
   public static void main(String[] args) throws IOException {
-    if(args.length != 1){
+    if (args.length != 1) {
       System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.BloomJoinExampleWithoutCascadingUtil <output dir>");
       return;
     }
@@ -70,7 +70,7 @@ public class BloomJoinExampleWithoutCascadingUtil {
     //  Take a look at the output tuples
     TupleEntryIterator output = sink.openForRead(CascadingUtil.get().getFlowProcess());
     System.out.println("Output tuples from flow:");
-    while(output.hasNext()){
+    while (output.hasNext()) {
       System.out.println(output.next().getTuple());
     }
   }

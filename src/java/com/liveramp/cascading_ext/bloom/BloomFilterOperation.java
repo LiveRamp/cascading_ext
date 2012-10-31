@@ -61,7 +61,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
   }
 
   @Override
-  public void prepare( FlowProcess flowProcess, OperationCall operationCall ){
+  public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
     if (filter == null || !filterJobId.equals(jobId)) {
       try {
         LOG.info("Loading bloom filter");

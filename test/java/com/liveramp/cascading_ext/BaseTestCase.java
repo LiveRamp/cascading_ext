@@ -33,7 +33,7 @@ public abstract class BaseTestCase {
 
   @Before
   public void baseSetUp() throws Exception {
-    TEST_ROOT = "/tmp/cascading_ext_"+ this.getClass().getSimpleName() + "_AUTOGEN";
+    TEST_ROOT = "/tmp/cascading_ext_" + this.getClass().getSimpleName() + "_AUTOGEN";
 
     // set the default job polling interval to 10ms. this makes the tests run *much* faster.
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);

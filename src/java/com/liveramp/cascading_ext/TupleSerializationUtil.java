@@ -62,7 +62,7 @@ public class TupleSerializationUtil implements Serializable {
     return tuple;
   }
 
-  private void initSerializer(){
+  private void initSerializer() {
     init();
     if (bytesOutputStream == null) {
       bytesOutputStream = new ByteArrayOutputStream(BUFFER_SIZE);
@@ -75,7 +75,7 @@ public class TupleSerializationUtil implements Serializable {
     }
   }
 
-  private void initDeserializer(){
+  private void initDeserializer() {
     init();
     if (tupleDeserializer == null) {
       tupleDeserializer = serialization.getDeserializer(Tuple.class);

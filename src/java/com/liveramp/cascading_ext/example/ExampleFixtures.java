@@ -45,7 +45,7 @@ public class ExampleFixtures {
   final static Tap SOURCE_TAP_2 = new MemorySourceTap(sources2,
       new Fields("field3", "field4"));
 
-  private static Tuple tuple(Object ... objects) {
+  private static Tuple tuple(Object... objects) {
     return new Tuple(objects);
   }
 }

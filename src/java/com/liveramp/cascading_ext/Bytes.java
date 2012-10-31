@@ -43,7 +43,7 @@ public class Bytes {
     return TBaseHelper.byteBufferToByteArray(byteBuffer);
   }
 
-  public static boolean wrapsFullArray(ByteBuffer byteBuffer){
+  public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
     return TBaseHelper.wrapsFullArray(byteBuffer);
   }
 
