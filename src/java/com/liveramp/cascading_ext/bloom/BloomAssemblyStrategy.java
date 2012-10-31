@@ -42,7 +42,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
     JobConf conf = flowStep.getConfig();
 
     String targetBloomID = conf.get(BloomProps.TARGET_BLOOM_FILTER_ID);
-    if(targetBloomID != null){
+    if (targetBloomID != null) {
       prepareBloomFilterBuilder(flowStep);
     }
     //  the job is the filter which needs to use the bloom filter
@@ -53,7 +53,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
   }
 
-  private void prepareBloomFilterBuilder(FlowStep<JobConf> currentStep){
+  private void prepareBloomFilterBuilder(FlowStep<JobConf> currentStep) {
     JobConf currentStepConf = currentStep.getConfig();
     currentStepConf.set("mapred.reduce.tasks", Integer.toString(BloomProps.getNumSplits(currentStepConf)));
     currentStepConf.set("io.sort.record.percent", Double.toString(BloomProps.getIOSortPercent(currentStepConf)));
@@ -63,7 +63,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
    * Merges bloom filter parts created across multiple splits of the keys and put the result in the distributed cache.
    */
   private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
-    try{
+    try {
       JobConf currentStepConf = currentStep.getConfig();
       currentStepConf.set("io.sort.mb", Integer.toString(BloomProps.getBufferSize(currentStepConf)));
       currentStepConf.set("mapred.job.reuse.jvm.num.tasks", "-1");
@@ -115,7 +115,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           BloomUtil.writeFilterToHdfs(prevStepConf, requiredBloomPath);
         }
       }
-    }catch(Exception e){
+    } catch (Exception e) {
       throw new RuntimeException("Failed to create bloom filter!", e);
     }
   }

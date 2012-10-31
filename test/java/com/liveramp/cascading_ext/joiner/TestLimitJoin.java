@@ -44,8 +44,8 @@ public class TestLimitJoin extends BaseTestCase {
   @Before
   public void setUp() throws IOException {
 
-    inputLhs = new Hfs(new SequenceFile(new Fields("a", "b")), getTestRoot()+"/lhs");
-    inputRhs = new Hfs(new SequenceFile(new Fields("c", "d")), getTestRoot()+"/rhs");
+    inputLhs = new Hfs(new SequenceFile(new Fields("a", "b")), getTestRoot() + "/lhs");
+    inputRhs = new Hfs(new SequenceFile(new Fields("c", "d")), getTestRoot() + "/rhs");
 
     TapHelper.writeToTap(inputLhs,
         new Tuple("1", "A"),
@@ -63,7 +63,7 @@ public class TestLimitJoin extends BaseTestCase {
 
   @Test
   public void checkLimits() throws IOException {
-    Tap<JobConf, ?, ?> output = new Hfs(new SequenceFile(new Fields("a", "b", "d")), getTestRoot()+"/output");
+    Tap<JobConf, ?, ?> output = new Hfs(new SequenceFile(new Fields("a", "b", "d")), getTestRoot() + "/output");
 
     Pipe lhs = new Pipe("lhs");
 

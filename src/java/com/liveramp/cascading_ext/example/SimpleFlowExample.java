@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class SimpleFlowExample {
   public static void main(String[] args) throws IOException {
-    if(args.length != 1){
+    if (args.length != 1) {
       System.out.println("Usage: hadoop jar cascading_ext.job.jar com.liveramp.cascading_ext.example.SimpleFlowExample <output dir>");
       return;
     }
@@ -58,7 +58,7 @@ public class SimpleFlowExample {
     //  Take a look at the output tuples
     TupleEntryIterator output = sink.openForRead(CascadingUtil.get().getFlowProcess());
     System.out.println("Output tuples from flow:");
-    while(output.hasNext()){
+    while (output.hasNext()) {
       System.out.println(output.next().getTuple());
     }
   }

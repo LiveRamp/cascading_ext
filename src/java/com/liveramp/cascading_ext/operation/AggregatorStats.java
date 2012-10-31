@@ -27,7 +27,7 @@ import com.liveramp.cascading_ext.operation.forwarding.ForwardingAggregator;
  * automatically maintains input/output records counters in addition to
  * providing the functionality of the wrapped object.
  */
-public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
+public class AggregatorStats<Context> extends ForwardingAggregator<Context> {
   private final ForwardingAggregatorCall<Context> wrapper = new ForwardingAggregatorCall<Context>();
 
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
@@ -40,10 +40,10 @@ public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
   }
 
   public AggregatorStats(Aggregator<Context> aggregator, String name) {
-    this(aggregator.getClass().getSimpleName() +" - "+ name +" - ", aggregator);
+    this(aggregator.getClass().getSimpleName() + " - " + name + " - ", aggregator);
   }
 
-  protected AggregatorStats(String prefix, Aggregator<Context> aggregator){
+  protected AggregatorStats(String prefix, Aggregator<Context> aggregator) {
     super(aggregator);
     this.prefix = prefix;
   }
@@ -82,7 +82,7 @@ public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
     }
 
     @Override
-    public void setDelegate(AggregatorCall<Context> delegate){
+    public void setDelegate(AggregatorCall<Context> delegate) {
       super.setDelegate(delegate);
       collector.setOutputCollector(delegate.getOutputCollector());
     }

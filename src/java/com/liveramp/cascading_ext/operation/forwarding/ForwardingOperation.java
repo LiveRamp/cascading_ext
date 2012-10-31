@@ -26,9 +26,10 @@ import cascading.tuple.Fields;
  * interface by forwarding calls to the underlying object.
  * The point of this class is to provide common functionality to the specific
  * Forwarding classes ForwardingFilter, ForwardingFunction, etc.
+ *
  * @param <C>
  */
-public class ForwardingOperation <C> implements java.io.Serializable, cascading.operation.Operation<C> {
+public class ForwardingOperation<C> implements java.io.Serializable, cascading.operation.Operation<C> {
   private final Operation<C> operation;
 
   public ForwardingOperation(Operation<C> operation) {

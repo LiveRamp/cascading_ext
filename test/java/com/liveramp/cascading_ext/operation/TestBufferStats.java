@@ -41,7 +41,7 @@ import java.util.Arrays;
 public class TestBufferStats extends BaseTestCase {
 
   @Test
-  public void run(){
+  public void run() {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),

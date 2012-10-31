@@ -36,6 +36,7 @@ import java.util.*;
 
 public class CascadingUtil {
   private static final CascadingUtil INSTANCE = new CascadingUtil();
+
   public static CascadingUtil get() {
     return INSTANCE;
   }
@@ -67,7 +68,7 @@ public class CascadingUtil {
     defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
   }
 
-  public void clearDefaultFlowStepStrategies(){
+  public void clearDefaultFlowStepStrategies() {
     defaultFlowStepStrategies.clear();
   }
 

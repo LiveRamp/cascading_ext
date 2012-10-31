@@ -25,9 +25,10 @@ import cascading.operation.FunctionCall;
  * interface by forwarding calls to the underlying object.
  * A Function Decorator can be easily implemented by subclassing the
  * Forwarding class and overriding only the desired methods.
+ *
  * @param <Context>
  */
-public class ForwardingFunction <Context> extends ForwardingOperation<Context> implements Function<Context> {
+public class ForwardingFunction<Context> extends ForwardingOperation<Context> implements Function<Context> {
 
   private final Function<Context> function;
 

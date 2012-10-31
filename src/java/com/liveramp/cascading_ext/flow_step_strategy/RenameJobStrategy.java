@@ -96,7 +96,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
 
     // use the last token as the pretty name (works well for things that
     // are paths and doesn't break things that are not)
-    String prettyName = tokens[tokens.length-1];
+    String prettyName = tokens[tokens.length - 1];
 
     // For temporary sources, we don't care about the random suffix appended by cascading
     if (tap.isTemporary() && removeRandomSuffixFromTempTaps) {
@@ -106,7 +106,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     if (prettyName.matches("^\\d+$")) {
       // For versioned stores, return "store_name/version_number", instead of just "version_number"
       if (tokens.length > 1) {
-        return tokens[tokens.length-2] + "/" + prettyName;
+        return tokens[tokens.length - 2] + "/" + prettyName;
       } else {
         return prettyName;
       }

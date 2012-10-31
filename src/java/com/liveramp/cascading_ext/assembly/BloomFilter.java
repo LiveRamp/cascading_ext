@@ -23,17 +23,17 @@ import cascading.tuple.Fields;
  * This SubAssembly filters the LHS ("largePipe") to retain only the tuples with selected fields that appear also in
  * the RHS ("smallPipe").  This is accomplished by running the LHS against a bloom filter built from the fields on the
  * RHS. As such, the side with lower cardinality should be passed in as the RHS.
- *
+ * <p/>
  * It's possible to do an exact or inexact filter. <b>An inexact filter will have a small number of false
  * positives</b> (e.g., tuples on the LHS that aren't on the RHS), but doesn't require a CoGroup at the end. An exact
  * filter is generally faster than doing a CoGroup by itself because it filters the LHS with a bloom filter.
- *
+ * <p/>
  * Additionally, @param coGroupOrder allows tweaking of reduce performance, see constructor (default is LARGE_LHS).
- *
+ * <p/>
  * Most of the functionality of BloomFilter (except for the ability to do inexact joins) is available via
  * com.liveramp.cascading_ext.assembly.BloomJoin as well.  However, by discarding all RHS fields after the join, the
  * Fields algebra is easier to manage (no need to deal with conflicting field names.)
- *
+ * <p/>
  * <b>IMPORTANT:</b> the same warning about serialization in BloomJoin also applies here.  See
  * com.liveramp.cascading_ext.assembly.BloomJoin for details.
  */

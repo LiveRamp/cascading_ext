@@ -57,7 +57,7 @@ public abstract class BloomAssembly extends SubAssembly {
   /**
    * See BloomJoin(...) for other argument usages.
    *
-   * @param operationType  whether the operation is a join, filter, or inexact filter (passed in by subclasses)
+   * @param operationType whether the operation is a join, filter, or inexact filter (passed in by subclasses)
    */
   protected BloomAssembly(Pipe largePipe, Fields largeJoinFields,
                           Pipe smallPipe, Fields smallJoinFields,

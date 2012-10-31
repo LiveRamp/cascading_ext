@@ -38,7 +38,7 @@ import java.util.Arrays;
 public class TestFunctionStats extends BaseTestCase {
 
   @Test
-  public void run(){
+  public void run() {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),
@@ -68,7 +68,7 @@ public class TestFunctionStats extends BaseTestCase {
 
   private static class MyFunction extends BaseOperation<NoContext> implements Function<NoContext> {
 
-    public MyFunction(){
+    public MyFunction() {
       super(new Fields("field3"));
     }
 

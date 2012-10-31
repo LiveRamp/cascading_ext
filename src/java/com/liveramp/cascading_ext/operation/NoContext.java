@@ -19,4 +19,5 @@ package com.liveramp.cascading_ext.operation;
 /**
  * Stub to indicate a BaseOperation doesn't need a context.  Don't use for anything else.
  */
-public class NoContext {}
+public class NoContext {
+}

@@ -36,7 +36,7 @@ public class FilterStats<Context> extends ForwardingFilter<Context> {
     this(filter.getClass().getSimpleName() + " - " + name + " - ", filter);
   }
 
-  protected FilterStats(String prefix, Filter<Context> filter){
+  protected FilterStats(String prefix, Filter<Context> filter) {
     super(filter);
     this.prefix = prefix;
   }
@@ -44,11 +44,11 @@ public class FilterStats<Context> extends ForwardingFilter<Context> {
   @Override
   public boolean isRemove(FlowProcess process, FilterCall<Context> call) {
     boolean isRemove = super.isRemove(process, call);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+INPUT_RECORDS_COUNTER_NAME, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
     if (isRemove) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+REJECTED_RECORDS_COUNTER_NAME, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + REJECTED_RECORDS_COUNTER_NAME, 1);
     } else {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+ACCEPTED_RECORDS_COUNTER_NAME, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + ACCEPTED_RECORDS_COUNTER_NAME, 1);
     }
     return isRemove;
   }

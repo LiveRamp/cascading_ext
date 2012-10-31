@@ -31,14 +31,14 @@ public class FunctionStats<Context> extends ForwardingFunction<Context> {
   private final String prefix;
 
   public FunctionStats(Function<Context> function) {
-    this(function.getClass().getSimpleName()+" - ", function);
+    this(function.getClass().getSimpleName() + " - ", function);
   }
 
   public FunctionStats(Function<Context> function, String name) {
     this(function.getClass().getSimpleName() + " - " + name + " - ", function);
   }
 
-  protected FunctionStats(String prefix, Function<Context> function){
+  protected FunctionStats(String prefix, Function<Context> function) {
     super(function);
     this.prefix = prefix;
   }
@@ -63,7 +63,7 @@ public class FunctionStats<Context> extends ForwardingFunction<Context> {
     }
 
     @Override
-    public void setDelegate(FunctionCall<Context> delegate){
+    public void setDelegate(FunctionCall<Context> delegate) {
       super.setDelegate(delegate);
       collector.setOutputCollector(delegate.getOutputCollector());
     }

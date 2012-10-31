@@ -72,7 +72,7 @@ public class BloomUtil {
   private static BloomFilter mergeBloomParts(String tapPath, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
 
-    if(FileSystemHelper.getFS().exists(new Path(tapPath))){
+    if (FileSystemHelper.getFS().exists(new Path(tapPath))) {
       Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), tapPath);
       TupleEntryIterator itr = tap.openForRead(CascadingUtil.get().getFlowProcess());
       while (itr.hasNext()) {
@@ -124,7 +124,7 @@ public class BloomUtil {
     int numSplits = BloomProps.getNumSplits(stepConf);
 
     // This is the side bucket that the HyperLogLog writes to
-    LOG.info("Getting key counts from: "+stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
+    LOG.info("Getting key counts from: " + stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
     long prevJobTuples = getApproxDistinctKeysCount(stepConf, stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
@@ -153,7 +153,7 @@ public class BloomUtil {
    * approximate count of distinct keys
    */
   private static long getApproxDistinctKeysCount(JobConf conf, String partsDir) throws IOException, CardinalityMergeException {
-    if(!FileSystemHelper.getFS().exists(new Path(partsDir))){
+    if (!FileSystemHelper.getFS().exists(new Path(partsDir))) {
       return 0;
     }
 
@@ -167,7 +167,7 @@ public class BloomUtil {
       TupleEntry tuple = in.next();
       HyperLogLog card = HyperLogLog.Builder.build(Bytes.getBytes((BytesWritable) tuple.getObject("bytes")));
       countParts.add(card);
-      totalSum+=card.cardinality();
+      totalSum += card.cardinality();
     }
 
     HyperLogLog merged = (HyperLogLog) new HyperLogLog(BloomProps.getHllErr(conf)).merge(countParts.toArray(new ICardinality[countParts.size()]));
@@ -175,7 +175,7 @@ public class BloomUtil {
 
     //  HLL estimation doesn't work over 2^32, and the cardinality code just returns 0.
     //  Honestly if you get this high, your bloom filter is probably saturated anyway, so just return that max.
-    if(cardinality == 0 && totalSum != 0){
+    if (cardinality == 0 && totalSum != 0) {
       LOG.info("HyperLogLog likely reached its max estimation of 2^32! Returning that max, but true count likely higher.");
       return (long) Math.pow(2, 32);
     }

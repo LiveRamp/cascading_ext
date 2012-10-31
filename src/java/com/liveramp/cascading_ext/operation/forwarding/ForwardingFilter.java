@@ -25,9 +25,10 @@ import cascading.operation.FilterCall;
  * interface by forwarding calls to the underlying object.
  * A Filter Decorator can be easily implemented by subclassing the
  * Forwarding class and overriding only the desired methods.
+ *
  * @param <C>
  */
-public class ForwardingFilter <C> extends ForwardingOperation<C> implements Filter<C> {
+public class ForwardingFilter<C> extends ForwardingOperation<C> implements Filter<C> {
 
   private final Filter<C> filter;
 

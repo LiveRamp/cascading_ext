@@ -57,7 +57,7 @@ public class BloomProps {
   public static double DEFAULT_KEY_SAMPLE_RATE = 0.01;
   public static double DEFAULT_IO_SORT_PERCENT = .5;
 
-  public static Map<Object,Object> getDefaultProperties(){
+  public static Map<Object, Object> getDefaultProperties() {
     Map<Object, Object> properties = new HashMap<Object, Object>();
     properties.put(NUM_BLOOM_BITS, Long.toString(DEFAULT_NUM_BLOOM_BITS));
     properties.put(MAX_BLOOM_HASHES, Integer.toString(DEFAULT_MAX_BLOOM_FILTER_HASHES));
@@ -81,23 +81,23 @@ public class BloomProps {
     return Integer.parseInt(conf.get(NUM_SPLITS));
   }
 
-  public static int getBufferSize(JobConf conf){
+  public static int getBufferSize(JobConf conf) {
     return Integer.parseInt(conf.get(BUFFER_SIZE));
   }
 
-  public static String getBloomFilterPartsDir(JobConf conf){
+  public static String getBloomFilterPartsDir(JobConf conf) {
     return conf.get(BLOOM_FILTER_PARTS_DIR);
   }
 
-  public static String getApproxCountsDir(JobConf conf){
+  public static String getApproxCountsDir(JobConf conf) {
     return conf.get(BLOOM_KEYS_COUNTS_DIR);
   }
 
-  public static double getHllErr(JobConf conf){
+  public static double getHllErr(JobConf conf) {
     return Double.parseDouble(conf.get(HLL_ERR));
   }
 
-  public static double getKeySampleRate(JobConf conf){
+  public static double getKeySampleRate(JobConf conf) {
     return Double.parseDouble(conf.get(KEY_SAMPLE_RATE));
   }
 
