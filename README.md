@@ -15,10 +15,10 @@ Some of the most interesting public classes in the project (so far).
 [BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a [bloom filter](http://en.wikipedia.org/wiki/Bloom_filter) built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
 
 - joining a large LHS store against a relatively small RHS store
-- most reduce input data is not in the output store
+- most reduce input data does not make it into the output store
 - the job is a good candidate for HashJoin, but the RHS tuples don't fit in memory
 
-Internally, we have cut the reduce time of jobs by up to 90% when using a BloomJoin lets the job only reduce over the small subset of the data that makes it past the bloom filter.
+Internally, we have cut the reduce time of jobs by up to 90% when a BloomJoin lets the job only reduce over the small subset of the data that makes it past the bloom filter.
 
 The constructor signature mirrors CoGroup:
 
@@ -79,13 +79,12 @@ By default CascadingUtil will
   - retrieve and log map or reduce task errors if the job fails
   - extend Cascading's job naming scheme with improved naming for some taps which use UUID identifiers.
 
-see [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/FlowWithCustomCascadingUtil.java) to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily: 
+See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/FlowWithCustomCascadingUtil.java) to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily: 
 
-  - set default properties
-  - add serialization classes (addSerialization)
-  - add serialization tokens (addSerializationToken)
-  - add flow step strategies (addDefaultFlowStepStrategy)
-
+  - set default properties in the job Configuration
+  - add serialization classes
+  - add serialization tokens
+  - add flow step strategies
 
 <b>FunctionStats, FilterStats, BufferStats, AggregatorStats</b>
 
@@ -95,15 +94,21 @@ Download
 ====
 
 Building
-====
+====  
 
-To build cascading_ext.jar from source:
+To build cascading_ext.jar from source,
 
 ```bash
 > ant dist
 ```
 
-To run the test suite locally, HADOOP_HOME and HADOOP_CONF_DIR must point to your local hadoop install.
+will generate build/cascading_ext.jar.  To run the test suite locally, 
+
+```bash
+> ant test
+```
+
+HADOOP_HOME and HADOOP_CONF_DIR must point to your local hadoop install.
 
 Usage
 ====
@@ -121,7 +126,7 @@ Bugs, features, pull requests
 
 Bug reports or feature requests are welcome: https://github.com/liveramp/cascading_ext/issues
 
-Changes you'd like us to merge in?  We love pull requests.
+Changes you'd like us to merge in?  We love [pull requests](https://github.com/LiveRamp/cascading_ext/pulls).
 
 License
 ====
