@@ -94,7 +94,6 @@ public abstract class BloomFilterOperation extends BaseOperation {
     try {
       Path[] files = DistributedCache.getLocalCacheFiles(config);
       List<Path> bloomFilterFiles = new ArrayList<Path>();
-      LOG.info("cached files: ");
       for (Path p : files) {
         if (p.toString().endsWith(".bloomfilter")) {
           bloomFilterFiles.add(p);

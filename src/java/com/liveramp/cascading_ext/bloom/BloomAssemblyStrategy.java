@@ -95,7 +95,7 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
           LOG.info("Avg key size ~= " + avgKeySize);
           LOG.info("Avg match size ~= " + avgMatchSize);
-          for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForRelevance(avgMatchSize, avgKeySize).entrySet()) {
+          for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForBloomFilter(avgMatchSize, avgKeySize).entrySet()) {
             currentStepConf.set(entry.getKey(), entry.getValue());
           }
 

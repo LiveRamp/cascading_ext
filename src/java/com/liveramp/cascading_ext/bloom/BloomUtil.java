@@ -96,15 +96,14 @@ public class BloomUtil {
 
   public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath) throws URISyntaxException {
     String path = FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString();
-    LOG.info("Writing bloom filter to filesystem: " + path);
     return Collections.singletonMap(DistributedCache.CACHE_FILES, path);
   }
 
-  public static void configureJobConfForRelevance(int requiredFieldsSize, int matchKeySize, Map<Object, Object> properties) {
-    properties.putAll(getPropertiesForRelevance(requiredFieldsSize, matchKeySize));
+  public static void configureJobConfForBloomFilter(int requiredFieldsSize, int matchKeySize, Map<Object, Object> properties) {
+    properties.putAll(getPropertiesForBloomFilter(requiredFieldsSize, matchKeySize));
   }
 
-  public static Map<String, String> getPropertiesForRelevance(int requiredFieldsSize, int matchKeySize) {
+  public static Map<String, String> getPropertiesForBloomFilter(int requiredFieldsSize, int matchKeySize) {
     Map<String, String> properties = new HashMap<String, String>();
     double bestIOSortRecordPercent = 16.0 / (16.0 + 8 + requiredFieldsSize + matchKeySize);
     bestIOSortRecordPercent = Math.max(Math.round(bestIOSortRecordPercent * 100) / 100.0, 0.01);
@@ -116,7 +115,7 @@ public class BloomUtil {
     return (numBloomBits + numSplits - 1) / numSplits;
   }
 
-  public static void writeFilterToHdfs(JobConf stepConf, String requiredBloomPath) throws IOException, CardinalityMergeException {
+  public static void writeFilterToHdfs(JobConf stepConf, String bloomTargetPath) throws IOException, CardinalityMergeException {
     String bloomPartsDir = stepConf.get(BloomProps.BLOOM_FILTER_PARTS_DIR);
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
@@ -125,12 +124,12 @@ public class BloomUtil {
     int numSplits = BloomProps.getNumSplits(stepConf);
 
     // This is the side bucket that the HyperLogLog writes to
-    LOG.info("getting key counts from: "+stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
+    LOG.info("Getting key counts from: "+stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
     long prevJobTuples = getApproxDistinctKeysCount(stepConf, stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
     Pair<Double, Integer> optimal = getOptimalFalsePositiveRateAndNumHashes(bloomFilterBits, prevJobTuples, maxHashes);
-    LOG.info("Counted " + prevJobTuples + " distinct keys");
+    LOG.info("Counted about " + prevJobTuples + " distinct keys");
     LOG.info("Using " + bloomFilterBits + " bits in the bloom filter");
     LOG.info("Found a false positive rate of: " + optimal.getLhs());
     LOG.info("Will use " + optimal.getRhs() + " bloom hashes");
@@ -144,8 +143,8 @@ public class BloomUtil {
       BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
 
       // Write merged bloom filter to HDFS
-      LOG.info("Writing created bloom filter to FS: " + requiredBloomPath);
-      filter.writeOut(FileSystemHelper.getFS(), new Path(requiredBloomPath));
+      LOG.info("Writing created bloom filter to FS: " + bloomTargetPath);
+      filter.writeOut(FileSystemHelper.getFS(), new Path(bloomTargetPath));
     }
   }
 
