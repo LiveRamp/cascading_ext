@@ -38,8 +38,8 @@ public class TestFunctionStats extends BaseTestCase {
 
     FlowStats fs = f.getFlowStats();
 
-    Assert.assertEquals(2l, Counters.get(fs, CascadingOperationStatsUtils.COUNTER_CATEGORY, "MyFunction - Input records").longValue());
-    Assert.assertEquals(4l, Counters.get(fs, CascadingOperationStatsUtils.COUNTER_CATEGORY, "MyFunction - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFunction - Input records").longValue());
+    Assert.assertEquals(4l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFunction - Output records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {

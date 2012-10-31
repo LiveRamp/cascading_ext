@@ -16,35 +16,33 @@ public class BufferStats<Context> extends ForwardingBuffer<Context> {
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input groups";
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
-  private final String nameInputRecords;
-  private final String nameOutputRecords;
+  private final String prefix;
 
   public BufferStats(Buffer<Context> buffer) {
-    super(buffer);
-    String className = buffer.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.nameOutputRecords = className + " - " + OUTPUT_RECORDS_COUNTER_NAME;
+    this(buffer.getClass().getSimpleName()+" - ", buffer);
   }
 
   public BufferStats(Buffer<Context> buffer, String name) {
+    this(buffer.getClass().getSimpleName() + " - " + name +" - ", buffer);
+  }
+
+  protected BufferStats(String prefix, Buffer<Context> buffer) {
     super(buffer);
-    String className = buffer.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + name + INPUT_RECORDS_COUNTER_NAME;
-    this.nameOutputRecords = className + " - " + name + OUTPUT_RECORDS_COUNTER_NAME;
+    this.prefix = prefix;
   }
 
   @Override
   public void operate(FlowProcess process, BufferCall<Context> call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
-    process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameInputRecords, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
     int output = wrapper.getOutputCollector().getCount();
     if (output > 0) {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameOutputRecords, output);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + OUTPUT_RECORDS_COUNTER_NAME, output);
     }
   }
 
-  private static class ForwardingBufferCall<Context> extends CascadingOperationStatsUtils.ForwardingOperationCall<Context, BufferCall<Context>> implements BufferCall<Context> {
+  private static class ForwardingBufferCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, BufferCall<Context>> implements BufferCall<Context> {
 
     @Override
     public TupleEntry getGroup() {

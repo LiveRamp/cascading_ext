@@ -42,8 +42,8 @@ public class TestAggregatorStats extends BaseTestCase {
     f.complete();
     FlowStats stats = f.getFlowStats();
 
-    Assert.assertEquals(4l, Counters.get(stats, CascadingOperationStatsUtils.COUNTER_CATEGORY, "MyAggregator - Input records").longValue());
-    Assert.assertEquals(2l, Counters.get(stats, CascadingOperationStatsUtils.COUNTER_CATEGORY, "MyAggregator - Total output records").longValue());
+    Assert.assertEquals(4l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "MyAggregator - Input records").longValue());
+    Assert.assertEquals(2l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "MyAggregator - Total output records").longValue());
   }
 
   private static class MyAggregator extends BaseOperation<MyAggregator.Context> implements Aggregator<MyAggregator.Context> {

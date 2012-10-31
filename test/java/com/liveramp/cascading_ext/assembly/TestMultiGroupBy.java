@@ -28,7 +28,7 @@ public class TestMultiGroupBy extends BaseTestCase {
     final String SOURCE2 = getTestRoot() + "/mgb_source2";
     final String OUTPUT = getTestRoot() + "/mgb_output";
 
-    Tap<JobConf, ?, ?> source1 = new Hfs(new SequenceFile(new Fields("key", "num")), SOURCE1);
+    Hfs source1 = new Hfs(new SequenceFile(new Fields("key", "num")), SOURCE1);
     TapHelper.writeToTap(source1,
         new Tuple(1, 1),
         new Tuple(1, 3),
@@ -37,7 +37,7 @@ public class TestMultiGroupBy extends BaseTestCase {
         new Tuple(3, 3),
         new Tuple(3, 3));
 
-    Tap<JobConf, ?, ?> source2 = new Hfs(new SequenceFile(new Fields("key2", "num1", "num2")), SOURCE2);
+    Hfs source2 = new Hfs(new SequenceFile(new Fields("key2", "num1", "num2")), SOURCE2);
     TapHelper.writeToTap(source2,
         new Tuple(1, 101, 1),
         new Tuple(5, 5, 2),
@@ -50,7 +50,7 @@ public class TestMultiGroupBy extends BaseTestCase {
     Pipe results = new MultiGroupBy(new Pipe[]{s1, s2}, new Fields[]{new Fields("key"),
         new Fields("key2")}, new Fields("key"), new AddEmUp());
 
-    Tap<JobConf, ?, ?> sink = new Hfs(new SequenceFile(new Fields("key", "result", " result1", "result2", "result3", "result4", "result5")), OUTPUT);
+    Hfs sink = new Hfs(new SequenceFile(new Fields("key", "result", " result1", "result2", "result3", "result4", "result5")), OUTPUT);
 
     Map<String, Tap> sources = Cascades.tapsMap(new Pipe[]{s1, s2},
         new Tap[]{source1, source2});

@@ -9,7 +9,7 @@ import cascading.tuple.TupleEntryCollector;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class CascadingOperationStatsUtils {
+public class OperationStatsUtils {
   // The counter category used by the Operation stats decorators
   static public final String COUNTER_CATEGORY = "Stats";
 

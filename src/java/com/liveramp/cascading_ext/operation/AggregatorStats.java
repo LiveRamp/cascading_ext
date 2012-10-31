@@ -15,43 +15,30 @@ public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String TOTAL_OUTPUT_RECORDS_COUNTER_NAME = "Total output records";
 
-  private final String nameInputRecords;
-  private final String nameTotalOutputRecords;
+  private final String prefix;
 
   public AggregatorStats(Aggregator<Context> aggregator) {
-    super(aggregator);
-    String className = aggregator.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.nameTotalOutputRecords = className + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
+    this(aggregator.getClass().getSimpleName() + " - ", aggregator);
   }
 
   public AggregatorStats(Aggregator<Context> aggregator, String name) {
+    this(aggregator.getClass().getSimpleName() +" - "+ name +" - ", aggregator);
+  }
+
+  protected AggregatorStats(String prefix, Aggregator<Context> aggregator){
     super(aggregator);
-    String className = aggregator.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + name + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.nameTotalOutputRecords = className + " - " + name + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
+    this.prefix = prefix;
   }
 
   @Override
   public void start(FlowProcess process, AggregatorCall<Context> call) {
-    wrapper.setDelegate(call);
-    super.start(process, wrapper);
-
-    int output = wrapper.getOutputCollector().getCount();
-    if (output > 0) {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameTotalOutputRecords, output);
-    }
+    super.start(process, call);
   }
 
   @Override
   public void aggregate(FlowProcess process, AggregatorCall<Context> call) {
-    wrapper.setDelegate(call);
     super.aggregate(process, wrapper);
-    int output = wrapper.getOutputCollector().getCount();
-    process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameInputRecords, 1);
-    if (output > 0) {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameTotalOutputRecords, output);
-    }
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
   }
 
   @Override
@@ -60,11 +47,11 @@ public class AggregatorStats <Context> extends ForwardingAggregator<Context> {
     super.complete(process, wrapper);
     int output = wrapper.getOutputCollector().getCount();
     if (output > 0) {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, nameTotalOutputRecords, output);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + TOTAL_OUTPUT_RECORDS_COUNTER_NAME, output);
     }
   }
 
-  private static class ForwardingAggregatorCall<Context> extends CascadingOperationStatsUtils.ForwardingOperationCall<Context, AggregatorCall<Context>> implements AggregatorCall<Context> {
+  private static class ForwardingAggregatorCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, AggregatorCall<Context>> implements AggregatorCall<Context> {
 
     @Override
     public TupleEntry getGroup() {

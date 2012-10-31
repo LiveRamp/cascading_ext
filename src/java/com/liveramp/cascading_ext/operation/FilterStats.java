@@ -9,39 +9,33 @@ import com.liveramp.cascading_ext.operation.forwarding.ForwardingFilter;
 // maintains input/accepted/rejected records counters in addition to providing
 // the functionality of the wrapped object.
 public class FilterStats<Context> extends ForwardingFilter<Context> {
-
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String ACCEPTED_RECORDS_COUNTER_NAME = "Accepted records";
   public static final String REJECTED_RECORDS_COUNTER_NAME = "Rejected records";
 
-  private final String nameInputRecords;
-  private final String nameAcceptedRecords;
-  private final String nameRejectedRecords;
+  private final String prefix;
 
   public FilterStats(Filter<Context> filter) {
-    super(filter);
-    String className = filter.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.nameAcceptedRecords = className + " - " + ACCEPTED_RECORDS_COUNTER_NAME;
-    this.nameRejectedRecords = className + " - " + REJECTED_RECORDS_COUNTER_NAME;
+    this(filter.getClass().getSimpleName() + " - ", filter);
   }
 
   public FilterStats(Filter<Context> filter, String name) {
+    this(filter.getClass().getSimpleName() + " - " + name + " - ", filter);
+  }
+
+  protected FilterStats(String prefix, Filter<Context> filter){
     super(filter);
-    String className = filter.getClass().getSimpleName();
-    this.nameInputRecords = className + " - " + name + INPUT_RECORDS_COUNTER_NAME;
-    this.nameAcceptedRecords = className + " - " + name + ACCEPTED_RECORDS_COUNTER_NAME;
-    this.nameRejectedRecords = className + " - " + name + REJECTED_RECORDS_COUNTER_NAME;
+    this.prefix = prefix;
   }
 
   @Override
   public boolean isRemove(FlowProcess process, FilterCall<Context> call) {
     boolean isRemove = super.isRemove(process, call);
-    process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, this.nameInputRecords, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+INPUT_RECORDS_COUNTER_NAME, 1);
     if (isRemove) {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, this.nameRejectedRecords, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+REJECTED_RECORDS_COUNTER_NAME, 1);
     } else {
-      process.increment(CascadingOperationStatsUtils.COUNTER_CATEGORY, this.nameAcceptedRecords, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix+ACCEPTED_RECORDS_COUNTER_NAME, 1);
     }
     return isRemove;
   }

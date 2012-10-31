@@ -80,6 +80,7 @@ public class FlowWithCustomCascadingUtil {
     Map<Object, Object> flowSpecificProps = new HashMap<Object, Object>();
     flowSpecificProps.put("io.sort.mb", "100");
 
+    //  use MyCascadingUtil just like CascadingUtil would be used
     MyCascadingUtil.get().getFlowConnector(flowSpecificProps).connect("Example flow", sources, sink, joined).complete();
 
     //  Take a look at the output tuples

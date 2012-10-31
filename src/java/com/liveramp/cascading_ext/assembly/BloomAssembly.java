@@ -18,7 +18,6 @@ import com.liveramp.cascading_ext.joiner.LimitJoin;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Collections;
