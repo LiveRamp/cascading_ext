@@ -31,7 +31,7 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
   }
 
   private static String formatJobName(FlowStep<JobConf> flowStep) {
-    // WordCount [(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
+    // WordCount[(2/5) input_1, input_2] -> output_1232_ABCDEF123456789...
 
     String jobName = String.format(
         "%s[(%d/%d) %s] -> %s",
