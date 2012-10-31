@@ -11,6 +11,9 @@ import cascading.tuple.Fields;
  * Note that if there are field name conflicts on the LHS and RHS, you'll have to pass in renameFields (just like
  * with CoGroup).  Additionally, @param coGroupOrder allows tweaking of reduce performance (default is LARGE_LHS).
  *
+ * Note: if this SubAssembly is used without CascadingUtil, the flow will need certain properties set.
+ * See BloomJoinExampleWithoutCascadingUtil for details.
+ *
  * <b>IMPORTANT:</b> one important behavior difference between BloomJoin and CoGroup is that RHS and LHS keys which are expected
  * to match in the join MUST serialize identically as well (the bloom filter is built by serializing key fields.)  If
  * normal java/hadoop types are used this should not be a problem, but comparing key types which extend each other WILL

@@ -3,7 +3,7 @@ Project cascading_ext
 
 cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows. 
 
-Project Features
+Features
 ====
 
 Some of the most interesting public classes in the project (so far).
@@ -16,27 +16,29 @@ Some of the most interesting public classes in the project (so far).
 
 When joining a very large LHS store against a relatively small RHS store, using a BloomJoin can massively reduce the performance cost of the job (internally, we have cut the reduce time of jobs by up to 90% by only reducing over the tiny subset of the data that makes it past the bloom filter.)  Jobs which are good candidates for HashJoin, but whose RHS tuples don't fit in memory, should benefit from a BloomJoin vs a CoGroup.
 
-see example usage: BloomJoinExample, BloomJoinExampleWithoutCascadingUtil
+see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/BloomJoinExample.java), [BloomJoinExampleWithoutCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/BloomJoinExampleWithoutCascadingUtil.java)
 
-*BloomFilter*
+<b>BloomFilter</b>
 
 [BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem.)
 
 Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output. 
 
-*MultiGroupBy* 
+<b>MultiGroupBy</b> 
 
 [MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The MultiBuffer interface gives a user-defined function access to all tuples sharing a common key, across all input pipes.  
 
-see TestMultiGroupBy for example usage
+see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestMultiGroupBy.java) for example usage
 
 ### Tools ###
 
-CascadingUtil 
+<b>CascadingUtil</b> 
 
-CascadingUtil is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see com.liveramp.cascading_ext.example.SimpleFlowExample:
+[CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see com.liveramp.cascading_ext.example.SimpleFlowExample:
 
+```java
 CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, pipe).complete();
+```
 
 By default CascadingUtil will
   - print and format counters for each step
@@ -51,9 +53,9 @@ see com.liveramp.cascading_ext.example.FlowWithCustomCascadingUtil to see exampl
   - add flow step strategies (addDefaultFlowStepStrategy)
 
 
-FunctionStats, FilterStats, BufferStats, AggregatorStats, 
+<b>FunctionStats, FilterStats, BufferStats, AggregatorStats</b>
 
-Wrapper classes which make it easier to debug a complex flow with many Filters / Functions / etc.  These wrapper classes add counters logging the number of tuples a given operation inputs or outputs.  See Test*Stats to see usage examples.
+[FunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FunctionStats.java), [FilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FilterStats.java), [BufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/BufferStats.java), and [AggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/AggregatorStats.java) are wrapper classes which make it easier to debug a complex flow with many Filters / Functions / etc.  These wrapper classes add counters logging the number of tuples a given operation inputs or outputs.  See Test*Stats to see usage examples.
 
 Download
 ====
@@ -72,9 +74,7 @@ To run the test suite locally, HADOOP_HOME and HADOOP_CONF_DIR must point to you
 Usage
 ====
 
-See usage instructions here for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext and all third-party jars in lib/ are in your jobjar.
-
-https://github.com/cwensel/cascading
+See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/README.md) for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext and all third-party jars in lib/ are in your jobjar.
 
 To try out any of the code in the com.liveramp.cascading_ext.example package in production, a jobjar task for cascading_ext itself is available:
 
@@ -87,7 +87,7 @@ Bugs, features, pull requests
 
 Bug reports or feature requests are welcome: https://github.com/liveramp/cascading_ext/issues
 
-Changes you'd like us to merge in?  Pull requests are welcome. 
+Changes you'd like us to merge in?  We love pull requests.
 
 License
 ====
