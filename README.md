@@ -12,7 +12,16 @@ Some of the most interesting public classes in the project (so far).
 
 <b>BloomJoin</b>
 
-[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  
+[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  The method signature mirrors CoGroup:
+
+```java
+Pipe source1 = new Pipe("source1");
+Pipe source2 = new Pipe("source2");
+
+Pipe joined = new BloomJoin(source1, new Fields("field1"), source2, new Fields("field3"));
+
+CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, joined).complete();
+```
 
 When joining a very large LHS store against a relatively small RHS store, using a BloomJoin can massively reduce the performance cost of the job (internally, we have cut the reduce time of jobs by up to 90% by only reducing over the tiny subset of the data that makes it past the bloom filter.)  Jobs which are good candidates for HashJoin, but whose RHS tuples don't fit in memory, should benefit from a BloomJoin vs a CoGroup.
 
@@ -20,15 +29,34 @@ see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext
 
 <b>BloomFilter</b>
 
-[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem.)
+[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem):
 
-Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output. 
+```java
+Pipe source1 = new Pipe("source1");
+Pipe source2 = new Pipe("source2");
+
+Pipe joined = new BloomFilter(source1, new Fields("field1"), source2, new Fields("field1"), true);
+
+CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, joined).complete();
+```
+
+Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output.   See [TestBloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestBloomFilter.java) for more examples.
 
 <b>MultiGroupBy</b> 
 
-[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The MultiBuffer interface gives a user-defined function access to all tuples sharing a common key, across all input pipes.  
+[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The [MultiBuffer](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/multi_group_by/MultiBuffer.java) interface gives a user-defined function access to all tuples sharing a common key, across all input pipes:  
 
-see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestMultiGroupBy.java) for example usage
+```java
+Pipe s1 = new Pipe("s1");
+Pipe s2 = new Pipe("s2");
+
+Pipe results = new MultiGroupBy(s1, new Fields("key"), s2, new Fields("key"),
+    new Fields("key-rename"), new CustomBuffer());
+
+CascadingUtil.get().getFlowConnector().connect(sources, sink, results).complete();
+```
+
+see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestMultiGroupBy.java) for example usage.
 
 ### Tools ###
 

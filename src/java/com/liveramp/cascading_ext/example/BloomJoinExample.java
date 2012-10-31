@@ -25,19 +25,17 @@ public class BloomJoinExample {
       return;
     }
 
+    Map<String, Tap> sources = new HashMap<String, Tap>();
+    sources.put("source1", ExampleFixtures.SOURCE_TAP_1);
+    sources.put("source2", ExampleFixtures.SOURCE_TAP_2);
+
     String outputDir = args[0];
     Hfs sink = new Hfs(new SequenceFile(new Fields("field1", "field2", "field3", "field4")), outputDir);
 
     Pipe source1 = new Pipe("source1");
-
     Pipe source2 = new Pipe("source2");
 
-    Pipe joined = new BloomJoin(source1, new Fields("field1"),
-        source2, new Fields("field3"));
-
-    Map<String, Tap> sources = new HashMap<String, Tap>();
-    sources.put("source1", ExampleFixtures.SOURCE_TAP_1);
-    sources.put("source2", ExampleFixtures.SOURCE_TAP_2);
+    Pipe joined = new BloomJoin(source1, new Fields("field1"), source2, new Fields("field3"));
 
     CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, joined).complete();
 
