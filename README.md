@@ -12,7 +12,7 @@ Some of the most interesting public classes in the project (so far).
 
 <b>BloomJoin</b>
 
-[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
+[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a [bloom filter](http://en.wikipedia.org/wiki/Bloom_filter) built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
 
 - joining a large LHS store against a relatively small RHS store
 - most reduce input data is not in the output store
@@ -46,7 +46,7 @@ Pipe joined = new BloomFilter(source1, new Fields("field1"), source2, new Fields
 CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, joined).complete();
 ```
 
-Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output.   See [TestBloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestBloomFilter.java) for more examples.
+Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is filtered by the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output.   See [TestBloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/assembly/TestBloomFilter.java) for more examples.
 
 <b>MultiGroupBy</b> 
 
@@ -68,7 +68,7 @@ see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/tes
 
 <b>CascadingUtil</b> 
 
-[CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see com.liveramp.cascading_ext.example.SimpleFlowExample:
+[CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see [SimpleFlowExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/SimpleFlowExample.java):
 
 ```java
 CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, pipe).complete();
@@ -79,7 +79,7 @@ By default CascadingUtil will
   - retrieve and log map or reduce task errors if the job fails
   - extend Cascading's job naming scheme with improved naming for some taps which use UUID identifiers.
 
-see com.liveramp.cascading_ext.example.FlowWithCustomCascadingUtil to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily: 
+see [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/FlowWithCustomCascadingUtil.java) to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily: 
 
   - set default properties
   - add serialization classes (addSerialization)
@@ -89,7 +89,7 @@ see com.liveramp.cascading_ext.example.FlowWithCustomCascadingUtil to see exampl
 
 <b>FunctionStats, FilterStats, BufferStats, AggregatorStats</b>
 
-[FunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FunctionStats.java), [FilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FilterStats.java), [BufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/BufferStats.java), and [AggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/AggregatorStats.java) are wrapper classes which make it easier to debug a complex flow with many Filters / Functions / etc.  These wrapper classes add counters logging the number of tuples a given operation inputs or outputs.  See Test*Stats to see usage examples.
+[FunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FunctionStats.java), [FilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/FilterStats.java), [BufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/BufferStats.java), and [AggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/operation/AggregatorStats.java) are wrapper classes which make it easier to debug a complex flow with many Filters / Functions / etc.  These wrapper classes add counters logging the number of tuples a given operation inputs or outputs.  See [TestAggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/operation/TestAggregatorStats.java), [TestFilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/operation/TestFilterStats.java), [TestFunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/operation/TestFunctionStats.java), and [TestBufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/test/java/com/liveramp/cascading_ext/operation/TestBufferStats.java) to see usage examples.
 
 Download
 ====
@@ -125,7 +125,7 @@ Changes you'd like us to merge in?  We love pull requests.
 
 License
 ====
-Copyright 2012 Liveramp
+Copyright 2012 LiveRamp
 
 Licensed under the Apache License, Version 2.0
 
