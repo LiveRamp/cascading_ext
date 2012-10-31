@@ -92,6 +92,7 @@ See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob
 
 Download
 ====
+You can either build cascading_ext from source as described below, or pull the latest jar from [downloads](https://github.com/LiveRamp/cascading_ext/downloads).
 
 Building
 ====  
