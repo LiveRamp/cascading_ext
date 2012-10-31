@@ -12,7 +12,15 @@ Some of the most interesting public classes in the project (so far).
 
 <b>BloomJoin</b>
 
-[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  The method signature mirrors CoGroup:
+[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
+
+- joining a large LHS store against a relatively small RHS store
+- most reduce input data is not in the output store
+- the job is a good candidate for HashJoin, but the RHS tuples don't fit in memory
+
+Internally, we have cut the reduce time of jobs by up to 90% when using a BloomJoin lets the job only reduce over the small subset of the data that makes it past the bloom filter.
+
+The constructor signature mirrors CoGroup:
 
 ```java
 Pipe source1 = new Pipe("source1");
@@ -22,8 +30,6 @@ Pipe joined = new BloomJoin(source1, new Fields("field1"), source2, new Fields("
 
 CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, joined).complete();
 ```
-
-When joining a very large LHS store against a relatively small RHS store, using a BloomJoin can massively reduce the performance cost of the job (internally, we have cut the reduce time of jobs by up to 90% by only reducing over the tiny subset of the data that makes it past the bloom filter.)  Jobs which are good candidates for HashJoin, but whose RHS tuples don't fit in memory, should benefit from a BloomJoin vs a CoGroup.
 
 see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/BloomJoinExample.java), [BloomJoinExampleWithoutCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/example/BloomJoinExampleWithoutCascadingUtil.java)
 
@@ -102,7 +108,7 @@ To run the test suite locally, HADOOP_HOME and HADOOP_CONF_DIR must point to you
 Usage
 ====
 
-See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/README.md) for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext and all third-party jars in lib/ are in your jobjar.
+See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/README.md) for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext.jar and all third-party jars in lib/ are in your jobjar.
 
 To try out any of the code in the com.liveramp.cascading_ext.example package in production, a jobjar task for cascading_ext itself is available:
 
