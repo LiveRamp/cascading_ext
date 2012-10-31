@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.liveramp.cascading_ext.hash2;
+package com.liveramp.cascading_ext.hash;
 
 import java.io.Serializable;
 

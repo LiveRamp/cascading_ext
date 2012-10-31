@@ -26,8 +26,8 @@ import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.BloomUtil;
-import com.liveramp.cascading_ext.hash2.HashFunction;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import com.liveramp.cascading_ext.hash.HashFunction;
+import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 

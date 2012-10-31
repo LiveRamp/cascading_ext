@@ -36,7 +36,7 @@ import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;

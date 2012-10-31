@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-package com.liveramp.cascading_ext.hash2.murmur;
+package com.liveramp.cascading_ext.hash.murmur;
 
-import com.liveramp.cascading_ext.hash2.HashFunction;
+import com.liveramp.cascading_ext.hash.HashFunction;
 
 /**
  * Implementation from http://d3s.mff.cuni.cz/~holub/sw/javamurmurhash/

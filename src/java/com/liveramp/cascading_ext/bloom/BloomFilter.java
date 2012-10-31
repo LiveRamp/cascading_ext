@@ -17,8 +17,8 @@
 package com.liveramp.cascading_ext.bloom;
 
 import com.liveramp.cascading_ext.FixedSizeBitSet;
-import com.liveramp.cascading_ext.hash2.HashFunction;
-import com.liveramp.cascading_ext.hash2.HashFunctionFactory;
+import com.liveramp.cascading_ext.hash.HashFunction;
+import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Writable;
 

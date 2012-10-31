@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-package com.liveramp.cascading_ext.hash2;
+package com.liveramp.cascading_ext.hash;
 
-import com.liveramp.cascading_ext.hash2.murmur.Murmur64HashFactory;
+import com.liveramp.cascading_ext.hash.murmur.Murmur64HashFactory;
 
 import java.io.Serializable;
 
