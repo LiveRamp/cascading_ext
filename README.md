@@ -1,5 +1,5 @@
 Project cascading_ext
-
+========
 
 cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows. 
 
@@ -10,7 +10,7 @@ Some of the most interesting public classes in the project (so far).
 
 ### SubAssemblies ###
 
-*BloomJoin*
+<b>BloomJoin</b>
 
 [BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  
 
@@ -24,7 +24,7 @@ see example usage: BloomJoinExample, BloomJoinExampleWithoutCascadingUtil
 
 Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output. 
 
-*MultiGroupBy*
+*MultiGroupBy* 
 
 [MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The MultiBuffer interface gives a user-defined function access to all tuples sharing a common key, across all input pipes.  
 
