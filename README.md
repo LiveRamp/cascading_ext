@@ -1,5 +1,6 @@
 Project cascading_ext
 
+
 cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows. 
 
 Project Features
@@ -9,23 +10,23 @@ Some of the most interesting public classes in the project (so far).
 
 ### SubAssemblies ###
 
-[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java)
+*BloomJoin*
 
-BloomJoin is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  
+[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup, with significant performance improvements on some datasets by filtering the LHS pipe against a bloom filter built from the keys on the RHS.  
 
-BloomJoin should improve the performance of a job if it is a good candidate for a HashJoin, but the RHS tuples don't fit in memory.  When joining a very large LHS store against a relatively small RHS store, using a BloomJoin can massively reduce the performance cost of the job (internally, we have cut the reduce time of jobs by up to 90% by only reducing over the tiny subset of the data that makes it past the bloom filter.)
+When joining a very large LHS store against a relatively small RHS store, using a BloomJoin can massively reduce the performance cost of the job (internally, we have cut the reduce time of jobs by up to 90% by only reducing over the tiny subset of the data that makes it past the bloom filter.)  Jobs which are good candidates for HashJoin, but whose RHS tuples don't fit in memory, should benefit from a BloomJoin vs a CoGroup.
 
 see example usage: BloomJoinExample, BloomJoinExampleWithoutCascadingUtil
 
-[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java)
+*BloomFilter*
 
-BloomFilter is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem.)
+[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem.)
 
 Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is passed over the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output. 
 
-[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java)
+*MultiGroupBy*
 
-com.liveramp.cascading_ext.assembly.MultiGroupBy allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The MultiBuffer interface gives a user-defined function access to all tuples sharing a common key, across all input pipes.  
+[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The MultiBuffer interface gives a user-defined function access to all tuples sharing a common key, across all input pipes.  
 
 see TestMultiGroupBy for example usage
 
@@ -94,4 +95,5 @@ Copyright 2012 Liveramp
 
 Licensed under the Apache License, Version 2.0
 
-http://www.apache.org/licenses/LICENSE-2.0 
+http://www.apache.org/licenses/LICENSE-2.0
+
