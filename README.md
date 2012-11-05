@@ -100,13 +100,13 @@ Building
 To build cascading_ext.jar from source,
 
 ```bash
-> ant dist
+> mvn package
 ```
 
 will generate build/cascading_ext.jar.  To run the test suite locally, 
 
 ```bash
-> ant test
+> mvn test
 ```
 
 HADOOP_HOME and HADOOP_CONF_DIR must point to your local hadoop install.
@@ -119,7 +119,7 @@ See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/
 To try out any of the code in the com.liveramp.cascading_ext.example package in production, a jobjar task for cascading_ext itself is available:
 
 ```bash
-> ant jobjar
+> mvn assembly:single
 ```
 
 Bugs, features, pull requests
