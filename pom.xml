@@ -9,6 +9,12 @@
 
     <version>0.1-SNAPSHOT</version>
 
+    <scm>
+        <connection>scm:git:git@github.com:LiveRamp/cascading_ext.git</connection>
+        <url>scm:git:git@github.com:LiveRamp/cascading_ext.git</url>
+        <developerConnection>scm:git:git@github.com:LiveRamp/cascading_ext.git</developerConnection>
+    </scm>
+
     <repositories>
         <repository>
             <id>cdh.repo</id>
@@ -19,6 +25,18 @@
             <url>http://conjars.org/repo</url>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype-releases</id>
+            <url>http://oss.sonatype.org/content/repositories/releases</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </pluginRepository>
+
+    </pluginRepositories>
 
 
     <dependencies>
@@ -128,6 +146,37 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                </configuration>
+            </plugin>
+
+
+            <plugin>
+                <groupId>com.code54.mojo</groupId>
+                <artifactId>buildversion-plugin</artifactId>
+                <version>1.0.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>set-properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Tag the MAINFEST.MF in the jar with the latest git commit-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Build>${build-commit}</Implementation-Build>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
 
