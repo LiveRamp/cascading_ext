@@ -12,7 +12,7 @@ Some of the most interesting public classes in the project (so far).
 
 <b>BloomJoin</b>
 
-[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a [bloom filter](http://en.wikipedia.org/wiki/Bloom_filter) built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
+[BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a [bloom filter](http://en.wikipedia.org/wiki/Bloom_filter) built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
 
 - joining a large LHS store against a relatively small RHS store
 - most reduce input data does not make it into the output store
@@ -35,7 +35,7 @@ see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext
 
 <b>BloomFilter</b>
 
-[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem):
+[BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem):
 
 ```java
 Pipe source1 = new Pipe("source1");
