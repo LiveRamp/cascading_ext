@@ -185,7 +185,7 @@ public class LoggingFlow implements Flow<JobConf> {
     Matcher matcher = LOG_ERROR_PATTERN.matcher(fullLog);
     matcher.find();
     exception = matcher.group();
-    exception.substring(0, exception.length() - 10);
+    exception = exception.substring(0, exception.length() - 10);
     return exception;
   }
 
