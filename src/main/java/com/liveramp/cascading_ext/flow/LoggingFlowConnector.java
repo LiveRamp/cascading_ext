@@ -24,7 +24,6 @@ import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 import org.apache.hadoop.mapred.JobConf;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class LoggingFlowConnector extends HadoopFlowConnector {
@@ -37,8 +36,8 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
 
   @Override
   public Flow connect(String name, Map<String, Tap> sources, Map<String, Tap> sinks, Map<String, Tap> traps, Pipe... tails) {
-    LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy);
-    planner.initialize(this, new HashMap<Object, Object>(getProperties()));
+    LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy, getProperties());
+    planner.initialize(this);
 
     return planner
         .buildFlow(new FlowDef()
