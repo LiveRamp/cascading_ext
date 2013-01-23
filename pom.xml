@@ -4,7 +4,7 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.liveramp.cascading_ext</groupId>
+  <groupId>com.liveramp</groupId>
   <artifactId>cascading_ext</artifactId>
 
   <version>0.1-SNAPSHOT</version>
@@ -120,6 +120,14 @@
     </dependency>
 
   </dependencies>
+
+  <distributionManagement>
+    <snapshotRepository>
+       <id>repository.liveramp.com</id>
+       <name>repository.liveramp.com-snapshots</name>
+       <url>http://repository.liveramp.com/artifactory/ext-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <build>
     <plugins>
