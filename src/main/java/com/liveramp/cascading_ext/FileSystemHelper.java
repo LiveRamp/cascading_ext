@@ -19,10 +19,7 @@ package com.liveramp.cascading_ext;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.UUID;
 
 /**
@@ -256,6 +253,20 @@ public class FileSystemHelper {
       for (FileStatus child : fs.listStatus(p)) {
         printFiles(fs, child.getPath(), indent + 1);
       }
+    }
+  }
+
+  public static FileStatus[] safeListStatus(Path p) throws IOException {
+    return safeListStatus(getFS(), p);
+  }
+
+  public static FileStatus[] safeListStatus(FileSystem fs, Path p) throws IOException {
+    try{
+      return fs.listStatus(p);
+    }
+    //  CDH4 will throw FNFEs if p doesn't exist--let people safely check for files at a path
+    catch(FileNotFoundException e){
+      return new FileStatus[0];
     }
   }
 }
