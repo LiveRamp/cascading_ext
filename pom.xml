@@ -131,6 +131,11 @@
        <name>repository.liveramp.com-snapshots</name>
        <url>http://repository.liveramp.com/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
+    <repository>
+       <id>repository.liveramp.com</id>
+       <name>repository.liveramp.com-releases</name>
+       <url>http://repository.liveramp.com/artifactory/libs-release-local</url>
+    </repository>
   </distributionManagement>
 
   <build>
