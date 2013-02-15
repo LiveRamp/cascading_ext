@@ -135,8 +135,6 @@ will generate build/cascading_ext.jar.  To run the test suite locally,
 > mvn test
 ```
 
-HADOOP_HOME and HADOOP_CONF_DIR must point to your local hadoop install.
-
 Usage
 ====
 
