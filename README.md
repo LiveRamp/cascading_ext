@@ -92,7 +92,35 @@ See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob
 
 Download
 ====
-You can either build cascading_ext from source as described below, or pull the latest jar from [downloads](https://github.com/LiveRamp/cascading_ext/downloads).
+You can either build cascading_ext from source as described below, or pull the latest jar from the Liveramp Maven repository:
+
+```xml
+
+<repository>
+  <id>repository.liveramp.com</id>
+  <name>liveramp-repositories</name>
+  <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+</repository>
+
+```
+
+Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot version (0.2) is built against CDH4.1.2.  Both are available via Maven:
+
+```
+
+<dependency>
+    <groupId>com.liveramp</groupId>
+    <artifactId>cascading_ext</artifactId>
+    <version>0.1</version>
+</dependency>
+
+<dependency>
+    <groupId>com.liveramp</groupId>
+    <artifactId>cascading_ext</artifactId>
+    <version>0.2-SNAPSHOT</version>
+</dependency>
+ 
+```
 
 Building
 ====  
@@ -151,7 +179,7 @@ Most of the code here has been moved from our internal repositories so much of t
 
 License
 ====
-Copyright 2012 LiveRamp
+Copyright 2013 LiveRamp
 
 Licensed under the Apache License, Version 2.0
 
