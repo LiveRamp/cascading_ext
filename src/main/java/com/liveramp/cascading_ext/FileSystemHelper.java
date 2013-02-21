@@ -33,11 +33,7 @@ public class FileSystemHelper {
   @Deprecated
   // use getFS() instead.
   public static FileSystem getFileSystem() {
-    try {
-      return FileSystem.get(new Configuration());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return getFS();
   }
 
   public static FileSystem getFS() {
@@ -260,9 +256,21 @@ public class FileSystemHelper {
     return safeListStatus(getFS(), p);
   }
 
+  public static FileStatus[] safeListStatus(Path p, PathFilter filter) throws IOException {
+    return safeListStatus(getFS(), p, filter);
+  }
+
   public static FileStatus[] safeListStatus(FileSystem fs, Path p) throws IOException {
-    try{
-      return fs.listStatus(p);
+    return safeListStatus(fs, p, null);
+  }
+
+  public static FileStatus[] safeListStatus(FileSystem fs, Path p, PathFilter filter) throws IOException {
+    try {
+      if (filter == null) {
+        return fs.listStatus(p);
+      } else {
+        return fs.listStatus(p, filter);
+      }
     }
     //  CDH4 will throw FNFEs if p doesn't exist--let people safely check for files at a path
     catch(FileNotFoundException e){
