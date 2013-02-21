@@ -33,11 +33,7 @@ public class FileSystemHelper {
   @Deprecated
   // use getFS() instead.
   public static FileSystem getFileSystem() {
-    try {
-      return FileSystem.get(new Configuration());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return getFS();
   }
 
   public static FileSystem getFS() {
