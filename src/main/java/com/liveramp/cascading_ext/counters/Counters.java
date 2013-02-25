@@ -92,6 +92,10 @@ public class Counters {
       }
     }
 
+    for (Map.Entry<FlowStepStats, List<Counter>> entry : counters.entrySet()) {
+      Collections.sort(entry.getValue());
+    }
+
     return counters;
   }
 
@@ -108,15 +112,27 @@ public class Counters {
   }
 
   public static List<Counter> getCounters(FlowStats flowStats) {
+    return getCountersForGroup(flowStats, null);
+  }
+
+  public static List<Counter> getCountersForGroup(Flow flow, String group) {
+    return getCountersForGroup(flow.getFlowStats(), group);
+  }
+
+  public static List<Counter> getCountersForGroup(FlowStats flowStats, String group) {
     List<Counter> counters = new ArrayList<Counter>();
 
     for (FlowStepStats step : flowStats.getFlowStepStats()) {
-      for (String group : safeGetCounterGroups(step)) {
-        for (String name : step.getCountersFor(group)) {
-          counters.add(new Counter(group, name, Counters.safeGet(flowStats, group, name)));
+      for (String currentGroup : safeGetCounterGroups(step)) {
+        if (group == null || group.equals(currentGroup)) {
+          for (String name : step.getCountersFor(group)) {
+            counters.add(new Counter(group, name, Counters.safeGet(flowStats, group, name)));
+          }
         }
       }
     }
+
+    Collections.sort(counters);
 
     return counters;
   }
@@ -147,8 +163,12 @@ public class Counters {
         if (counter.getValue() != null && counter.getValue() > 0) {
           builder.append("    ").append(counter).append("\n");
 
-          if (counter.getName().equals("Tuples_Read")) anyTuplesRead = true;
-          if (counter.getName().equals("Tuples_Written")) anyTuplesWritten = true;
+          if (counter.getName().equals("Tuples_Read")) {
+            anyTuplesRead = true;
+          }
+          if (counter.getName().equals("Tuples_Written")) {
+            anyTuplesWritten = true;
+          }
         }
       }
 
@@ -161,11 +181,15 @@ public class Counters {
   }
 
   private static String prettyTaps(Map<String, Tap> taps) {
-    if (taps.keySet().isEmpty()) return "[]";
+    if (taps.keySet().isEmpty()) {
+      return "[]";
+    }
 
     Collection<Tap> values = taps.values();
     Tap first = values.toArray(new Tap[values.size()])[0];
-    if (first == null) return "[null tap]";
+    if (first == null) {
+      return "[null tap]";
+    }
 
     if (taps.keySet().size() == 1) {
       return "[\"" + first.getIdentifier() + "\"]";

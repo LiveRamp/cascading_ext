@@ -18,8 +18,9 @@ package com.liveramp.cascading_ext.counters;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.CompareToBuilder;
 
-public class Counter {
+public class Counter implements Comparable<Counter> {
   private final String group;
   private final String name;
   private final Long value;
@@ -59,13 +60,26 @@ public class Counter {
   }
 
   private String prettyValue() {
-    if (value == null) return "null";
-    if (name.contains("BYTES")) return FileUtils.byteCountToDisplaySize(value);
+    if (value == null) {
+      return "null";
+    }
+    if (name.contains("BYTES")) {
+      return FileUtils.byteCountToDisplaySize(value);
+    }
     return value.toString();
   }
 
   private static String padSpaces(String str, int num) {
     int numSpaces = Math.max(0, num - str.length());
     return str + StringUtils.repeat(" ", numSpaces);
+  }
+
+
+  @Override
+  public int compareTo(Counter counter) {
+    return new CompareToBuilder()
+        .append(group, counter.getGroup())
+        .append(name, counter.getName())
+        .append(value, counter.getValue()).toComparison();
   }
 }
