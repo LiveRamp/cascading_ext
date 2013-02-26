@@ -125,7 +125,7 @@ public class Counters {
     for (FlowStepStats step : flowStats.getFlowStepStats()) {
       for (String currentGroup : safeGetCounterGroups(step)) {
         if (group == null || group.equals(currentGroup)) {
-          for (String name : step.getCountersFor(group)) {
+          for (String name : step.getCountersFor(currentGroup)) {
             counters.add(new Counter(group, name, Counters.safeGet(flowStats, group, name)));
           }
         }
