@@ -8,18 +8,19 @@ import cascading.operation.FilterCall;
 
 public class IncrementCounter extends BaseOperation implements Filter {
 
+  private final String fieldName;
   private final String counterGroup;
   private final String counterName;
 
-  public IncrementCounter(String counterGroup, String counterName) {
-
+  public IncrementCounter(String fieldName, String counterGroup, String counterName) {
+    this.fieldName = fieldName;
     this.counterGroup = counterGroup;
     this.counterName = counterName;
   }
 
   @Override
   public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
-    Long value = filterCall.getArguments().getLong(0);
+    Long value = filterCall.getArguments().getLong(fieldName);
     flowProcess.increment(counterGroup, counterName, value);
     return false;
   }
