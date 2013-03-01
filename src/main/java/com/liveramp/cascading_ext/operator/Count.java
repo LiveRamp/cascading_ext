@@ -7,21 +7,21 @@ import cascading.operation.FilterCall;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 
-public class Turnstile extends Each {
+public class Count extends Each {
 
-  public Turnstile(Pipe pipe, String counterName) {
-    super(pipe, new TurnstileFilterString(counterName));
+  public Count(Pipe pipe, String counterName) {
+    super(pipe, new CountFilterString(counterName));
   }
 
-  public Turnstile(Pipe pipe, String counterGroup, String counterName) {
-    super(pipe, new TurnstileFilterString(counterGroup, counterName));
+  public Count(Pipe pipe, String counterGroup, String counterName) {
+    super(pipe, new CountFilterString(counterGroup, counterName));
   }
 
-  public Turnstile(Pipe pipe, Enum counter) {
-    super(pipe, new TurnstileFilterEnum(counter));
+  public Count(Pipe pipe, Enum counter) {
+    super(pipe, new CountFilterEnum(counter));
   }
 
-  private static abstract class TurnstileFilter extends BaseOperation implements Filter {
+  private static abstract class CountFilter extends BaseOperation implements Filter {
 
     @Override
     public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
@@ -32,11 +32,11 @@ public class Turnstile extends Each {
     protected abstract void increment(FlowProcess flowProcess);
   }
 
-  private static class TurnstileFilterEnum extends TurnstileFilter {
+  private static class CountFilterEnum extends CountFilter {
 
     private final Enum counter;
 
-    public TurnstileFilterEnum(Enum counter) {
+    public CountFilterEnum(Enum counter) {
       this.counter = counter;
     }
 
@@ -46,17 +46,17 @@ public class Turnstile extends Each {
     }
   }
 
-  private static class TurnstileFilterString extends TurnstileFilter {
+  private static class CountFilterString extends CountFilter {
 
     private final String counterGroup;
     private final String counterName;
 
-    public TurnstileFilterString(String counterName) {
+    public CountFilterString(String counterName) {
       this.counterGroup = "";
       this.counterName = counterName;
     }
 
-    public TurnstileFilterString(String counterGroup, String counterName) {
+    public CountFilterString(String counterGroup, String counterName) {
       this.counterGroup = counterGroup;
       this.counterName = counterName;
     }
