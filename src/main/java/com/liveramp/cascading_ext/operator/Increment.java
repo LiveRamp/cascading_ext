@@ -7,21 +7,21 @@ import cascading.operation.FilterCall;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 
-public class Count extends Each {
+public class Increment extends Each {
 
-  public Count(Pipe pipe, String counterName) {
-    super(pipe, new CountFilterString(counterName));
+  public Increment(Pipe pipe, String counterName) {
+    super(pipe, new IncrementFilterString(counterName));
   }
 
-  public Count(Pipe pipe, String counterGroup, String counterName) {
-    super(pipe, new CountFilterString(counterGroup, counterName));
+  public Increment(Pipe pipe, String counterGroup, String counterName) {
+    super(pipe, new IncrementFilterString(counterGroup, counterName));
   }
 
-  public Count(Pipe pipe, Enum counter) {
-    super(pipe, new CountFilterEnum(counter));
+  public Increment(Pipe pipe, Enum counter) {
+    super(pipe, new IncrementFilterEnum(counter));
   }
 
-  private static abstract class CountFilter extends BaseOperation implements Filter {
+  private static abstract class IncrementFilter extends BaseOperation implements Filter {
 
     @Override
     public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
@@ -32,11 +32,11 @@ public class Count extends Each {
     protected abstract void increment(FlowProcess flowProcess);
   }
 
-  private static class CountFilterEnum extends CountFilter {
+  private static class IncrementFilterEnum extends IncrementFilter {
 
     private final Enum counter;
 
-    public CountFilterEnum(Enum counter) {
+    public IncrementFilterEnum(Enum counter) {
       this.counter = counter;
     }
 
@@ -46,17 +46,17 @@ public class Count extends Each {
     }
   }
 
-  private static class CountFilterString extends CountFilter {
+  private static class IncrementFilterString extends IncrementFilter {
 
     private final String counterGroup;
     private final String counterName;
 
-    public CountFilterString(String counterName) {
+    public IncrementFilterString(String counterName) {
       this.counterGroup = "";
       this.counterName = counterName;
     }
 
-    public CountFilterString(String counterGroup, String counterName) {
+    public IncrementFilterString(String counterGroup, String counterName) {
       this.counterGroup = counterGroup;
       this.counterName = counterName;
     }
