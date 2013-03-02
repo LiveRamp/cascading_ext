@@ -2,20 +2,20 @@ package com.liveramp.cascading_ext.operator;
 
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
+import cascading.pipe.SubAssembly;
 import com.liveramp.cascading_ext.operation.IncrementCounter;
 
-public class Increment extends Each {
+public class Increment extends SubAssembly {
 
   public Increment(Pipe pipe, String counterName) {
-    super(pipe, new IncrementCounter(counterName));
+    setTails(new Each(pipe, new IncrementCounter(counterName)));
   }
 
   public Increment(Pipe pipe, String counterGroup, String counterName) {
-    super(pipe, new IncrementCounter(counterGroup, counterName));
+    setTails(new Each(pipe, new IncrementCounter(counterGroup, counterName)));
   }
 
   public Increment(Pipe pipe, Enum counter) {
-    super(pipe, new IncrementCounter(counter));
+    setTails(new Each(pipe, new IncrementCounter(counter)));
   }
-
 }
