@@ -20,6 +20,10 @@ import java.util.Arrays;
 
 public class TestIncrement extends BaseTestCase {
 
+  private static enum Counter {
+    B
+  }
+
   @Test
   public void run() {
     Tap source = new MemorySourceTap(Arrays.asList(
@@ -31,7 +35,7 @@ public class TestIncrement extends BaseTestCase {
     Pipe pipe = new Pipe("pipe");
     pipe = new Increment(pipe, "Group", "CounterA");
     pipe = new Each(pipe, new FilterNull());
-    pipe = new Increment(pipe, "Group", "CounterB");
+    pipe = new Increment(pipe, Counter.B);
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
@@ -39,6 +43,6 @@ public class TestIncrement extends BaseTestCase {
     FlowStats fs = f.getFlowStats();
 
     Assert.assertEquals(3l, Counters.get(fs, "Group", "CounterA").longValue());
-    Assert.assertEquals(2l, Counters.get(fs, "Group", "CounterB").longValue());
+    Assert.assertEquals(2l, Counters.get(fs, Counter.B).longValue());
   }
 }
