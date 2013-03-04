@@ -22,28 +22,31 @@ import cascading.operation.FunctionCall;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFunction;
 
-public class FunctionStats<Context> extends ForwardingFunction<Context> {
+public class FunctionStats extends ForwardingFunction {
+
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
-  private final ForwardingFunctionCall<Context> wrapper = new ForwardingFunctionCall<Context>();
+  private final ForwardingFunctionCall wrapper = new ForwardingFunctionCall();
   private final String prefix;
 
-  public FunctionStats(Function<Context> function) {
+  public FunctionStats(Function function) {
     this(OperationStatsUtils.getCounterNamePrefix(function), function);
   }
 
-  public FunctionStats(Function<Context> function, String name) {
+  public FunctionStats(Function function, String name) {
     this(OperationStatsUtils.getCounterNamePrefix(function, name), function);
   }
 
-  protected FunctionStats(String prefix, Function<Context> function) {
+  @SuppressWarnings("unchecked")
+  protected FunctionStats(String prefix, Function function) {
     super(function);
     this.prefix = prefix;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public void operate(FlowProcess process, FunctionCall<Context> call) {
+  public void operate(FlowProcess process, FunctionCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);

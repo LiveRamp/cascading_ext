@@ -21,7 +21,7 @@ import cascading.operation.Filter;
 import cascading.operation.FilterCall;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFilter;
 
-public class FilterStats<Context> extends ForwardingFilter<Context> {
+public class FilterStats extends ForwardingFilter {
 
   // Note: counter names are such that they make sense when sorted alphabetically
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
@@ -30,21 +30,23 @@ public class FilterStats<Context> extends ForwardingFilter<Context> {
 
   private final String prefix;
 
-  public FilterStats(Filter<Context> filter) {
+  public FilterStats(Filter filter) {
     this(OperationStatsUtils.getCounterNamePrefix(filter), filter);
   }
 
-  public FilterStats(Filter<Context> filter, String name) {
+  public FilterStats(Filter filter, String name) {
     this(OperationStatsUtils.getCounterNamePrefix(filter, name), filter);
   }
 
-  protected FilterStats(String prefix, Filter<Context> filter) {
+  @SuppressWarnings("unchecked")
+  protected FilterStats(String prefix, Filter filter) {
     super(filter);
     this.prefix = prefix;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public boolean isRemove(FlowProcess process, FilterCall<Context> call) {
+  public boolean isRemove(FlowProcess process, FilterCall call) {
     boolean isRemove = super.isRemove(process, call);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
     if (isRemove) {

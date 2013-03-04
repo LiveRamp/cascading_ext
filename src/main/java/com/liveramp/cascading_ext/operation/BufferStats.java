@@ -24,29 +24,32 @@ import com.liveramp.cascading_ext.operation.forwarding.ForwardingBuffer;
 
 import java.util.Iterator;
 
-public class BufferStats<Context> extends ForwardingBuffer<Context> {
-  private final ForwardingBufferCall<Context> wrapper = new ForwardingBufferCall<Context>();
+public class BufferStats extends ForwardingBuffer {
+
+  private final ForwardingBufferCall wrapper = new ForwardingBufferCall();
 
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input groups";
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
   private final String prefix;
 
-  public BufferStats(Buffer<Context> buffer) {
+  public BufferStats(Buffer buffer) {
     this(OperationStatsUtils.getCounterNamePrefix(buffer), buffer);
   }
 
-  public BufferStats(Buffer<Context> buffer, String name) {
+  public BufferStats(Buffer buffer, String name) {
     this(OperationStatsUtils.getCounterNamePrefix(buffer, name), buffer);
   }
 
-  protected BufferStats(String prefix, Buffer<Context> buffer) {
+  @SuppressWarnings("unchecked")
+  protected BufferStats(String prefix, Buffer buffer) {
     super(buffer);
     this.prefix = prefix;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public void operate(FlowProcess process, BufferCall<Context> call) {
+  public void operate(FlowProcess process, BufferCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);

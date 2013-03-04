@@ -27,40 +27,45 @@ import com.liveramp.cascading_ext.operation.forwarding.ForwardingAggregator;
  * automatically maintains input/output records counters in addition to
  * providing the functionality of the wrapped object.
  */
-public class AggregatorStats<Context> extends ForwardingAggregator<Context> {
-  private final ForwardingAggregatorCall<Context> wrapper = new ForwardingAggregatorCall<Context>();
+public class AggregatorStats extends ForwardingAggregator {
+
+  private final ForwardingAggregatorCall wrapper = new ForwardingAggregatorCall();
 
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String TOTAL_OUTPUT_RECORDS_COUNTER_NAME = "Total output records";
 
   private final String prefix;
 
-  public AggregatorStats(Aggregator<Context> aggregator) {
+  public AggregatorStats(Aggregator aggregator) {
     this(OperationStatsUtils.getCounterNamePrefix(aggregator), aggregator);
   }
 
-  public AggregatorStats(Aggregator<Context> aggregator, String name) {
+  public AggregatorStats(Aggregator aggregator, String name) {
     this(OperationStatsUtils.getCounterNamePrefix(aggregator, name), aggregator);
   }
 
-  protected AggregatorStats(String prefix, Aggregator<Context> aggregator) {
+  @SuppressWarnings("unchecked")
+  protected AggregatorStats(String prefix, Aggregator aggregator) {
     super(aggregator);
     this.prefix = prefix;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public void start(FlowProcess process, AggregatorCall<Context> call) {
+  public void start(FlowProcess process, AggregatorCall call) {
     super.start(process, call);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public void aggregate(FlowProcess process, AggregatorCall<Context> call) {
+  public void aggregate(FlowProcess process, AggregatorCall call) {
     super.aggregate(process, wrapper);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public void complete(FlowProcess process, AggregatorCall<Context> call) {
+  public void complete(FlowProcess process, AggregatorCall call) {
     wrapper.setDelegate(call);
     super.complete(process, wrapper);
     int output = wrapper.getOutputCollector().getCount();
@@ -69,7 +74,9 @@ public class AggregatorStats<Context> extends ForwardingAggregator<Context> {
     }
   }
 
-  private static class ForwardingAggregatorCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, AggregatorCall<Context>> implements AggregatorCall<Context> {
+  private static class ForwardingAggregatorCall<Context>
+      extends OperationStatsUtils.ForwardingOperationCall<Context, AggregatorCall<Context>>
+      implements AggregatorCall<Context> {
 
     @Override
     public TupleEntry getGroup() {
