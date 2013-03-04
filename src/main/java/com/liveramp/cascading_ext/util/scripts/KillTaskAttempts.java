@@ -18,18 +18,22 @@ public class KillTaskAttempts {
   //  allow the main jar on the classpath to implement main itself so this can be launched from a jobjar
   public static void run(String[] args) throws IOException {
 
-    if(args.length != 3 || !(args[1].equals("map") || args[1].equals("reduce"))){
+    if(args.length != 5 || !(args[3].equals("map") || args[3].equals("reduce"))){
       System.out.println("Usage: <job pattern to target> <map|reduce> <tasks to kill>");
       System.exit(0);
     }
 
-    String jobsToTarget = args[0];
-    Boolean killMap = args[1].equals("map");
-    Integer toKill = Integer.parseInt(args[2]);
+    String jobTracker = args[0];
+    Integer port = Integer.parseInt(args[1]);
+    String jobsToTarget = args[2];
+    Boolean killMap = args[3].equals("map");
+    Integer toKill = Integer.parseInt(args[4]);
 
     System.out.println();
     System.out.println("Target jobs named: "+jobsToTarget);
-    System.out.println("Kill tasks of type: "+args[1]);
+    System.out.println("Job tracker host: "+jobsToTarget);
+    System.out.println("Job tracker port: "+port);
+    System.out.println("Kill tasks of type: "+args[3]);
     System.out.println("Number of tasks to kill: "+toKill);
     System.out.println("---------------------------- WARNING ---------------------------");
     System.out.println("Killing running tasks comes at a serious performance penalty for targeted jobs.");
@@ -38,7 +42,7 @@ public class KillTaskAttempts {
 
     new Scanner(System.in).nextLine();
 
-    JobClient jobClient = new JobClient(new InetSocketAddress("ds-jt.rapleaf.com", 7277), new Configuration());
+    JobClient jobClient = new JobClient(new InetSocketAddress(jobTracker, port), new Configuration());
 
     Map<TaskAttemptID, Float> taskAttemptToProgress = Maps.newHashMap();
 
