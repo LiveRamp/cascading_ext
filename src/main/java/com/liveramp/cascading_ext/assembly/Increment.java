@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.operator;
+package com.liveramp.cascading_ext.assembly;
 
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;

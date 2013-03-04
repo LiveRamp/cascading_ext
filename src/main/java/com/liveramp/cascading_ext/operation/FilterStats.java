@@ -22,6 +22,7 @@ import cascading.operation.FilterCall;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFilter;
 
 public class FilterStats<Context> extends ForwardingFilter<Context> {
+
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String ACCEPTED_RECORDS_COUNTER_NAME = "Accepted records";
   public static final String REJECTED_RECORDS_COUNTER_NAME = "Rejected records";
