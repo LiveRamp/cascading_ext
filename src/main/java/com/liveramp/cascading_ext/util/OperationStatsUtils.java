@@ -99,11 +99,11 @@ public class OperationStatsUtils {
     }
   }
 
-  protected static String getCounterNamePrefix(Object object) {
+  public static String getCounterNamePrefix(Object object) {
     return object.getClass().getSimpleName() + " - ";
   }
 
-  protected static String getCounterNamePrefix(Object object, String name) {
+  public static String getCounterNamePrefix(Object object, String name) {
     return name + " - " + object.getClass().getSimpleName() + " - ";
   }
 
