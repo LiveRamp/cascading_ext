@@ -36,18 +36,14 @@ public class BufferStats extends ForwardingBuffer {
   private final String prefixOutputRecords;
 
   public BufferStats(Buffer buffer) {
-    this(OperationStatsUtils.getCounterNamePrefix(buffer), buffer);
-  }
-
-  public BufferStats(Buffer buffer, String name) {
-    this(OperationStatsUtils.getCounterNamePrefix(buffer, name), buffer);
+    this(OperationStatsUtils.getStackPosition(1) + " - " + buffer.getClass().getSimpleName(), buffer);
   }
 
   @SuppressWarnings("unchecked")
-  protected BufferStats(String prefix, Buffer buffer) {
+  public BufferStats(String name, Buffer buffer) {
     super(buffer);
-    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixOutputRecords = prefix + OUTPUT_RECORDS_COUNTER_NAME;
+    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixOutputRecords = name + " - " + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")

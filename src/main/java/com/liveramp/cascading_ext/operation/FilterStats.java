@@ -34,19 +34,15 @@ public class FilterStats extends ForwardingFilter {
   private final String prefixRemovedRecords;
 
   public FilterStats(Filter filter) {
-    this(OperationStatsUtils.getCounterNamePrefix(filter), filter);
-  }
-
-  public FilterStats(Filter filter, String name) {
-    this(OperationStatsUtils.getCounterNamePrefix(filter, name), filter);
+    this(OperationStatsUtils.getStackPosition(1) + " - " + filter.getClass().getSimpleName(), filter);
   }
 
   @SuppressWarnings("unchecked")
-  protected FilterStats(String prefix, Filter filter) {
+  public FilterStats(String name, Filter filter) {
     super(filter);
-    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixKeptRecords = prefix + KEPT_RECORDS_COUNTER_NAME;
-    this.prefixRemovedRecords = prefix + REMOVED_RECORDS_COUNTER_NAME;
+    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixKeptRecords = name + " - " + KEPT_RECORDS_COUNTER_NAME;
+    this.prefixRemovedRecords = name + " - " + REMOVED_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")

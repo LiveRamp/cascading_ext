@@ -99,14 +99,6 @@ public class OperationStatsUtils {
     }
   }
 
-  public static String getCounterNamePrefix(Object object) {
-    return object.getClass().getSimpleName() + " - ";
-  }
-
-  public static String getCounterNamePrefix(Object object, String name) {
-    return name + " - " + object.getClass().getSimpleName() + " - ";
-  }
-
   public static String getStackPosition(int depth) {
     StackTraceElement[] stackTrace = new Throwable().getStackTrace();
     StackTraceElement element = stackTrace[depth + 1];

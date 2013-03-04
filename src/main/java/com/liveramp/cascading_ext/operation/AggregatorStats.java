@@ -39,18 +39,14 @@ public class AggregatorStats extends ForwardingAggregator {
   private final String prefixTotalOutputRecords;
 
   public AggregatorStats(Aggregator aggregator) {
-    this(OperationStatsUtils.getCounterNamePrefix(aggregator), aggregator);
-  }
-
-  public AggregatorStats(Aggregator aggregator, String name) {
-    this(OperationStatsUtils.getCounterNamePrefix(aggregator, name), aggregator);
+    this(OperationStatsUtils.getStackPosition(1) + " - " + aggregator.getClass().getSimpleName(), aggregator);
   }
 
   @SuppressWarnings("unchecked")
-  protected AggregatorStats(String prefix, Aggregator aggregator) {
+  public AggregatorStats(String name, Aggregator aggregator) {
     super(aggregator);
-    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixTotalOutputRecords = prefix + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
+    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixTotalOutputRecords = name + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")

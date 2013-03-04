@@ -33,18 +33,14 @@ public class FunctionStats extends ForwardingFunction {
   private final String prefixOutputRecords;
 
   public FunctionStats(Function function) {
-    this(OperationStatsUtils.getCounterNamePrefix(function), function);
-  }
-
-  public FunctionStats(Function function, String name) {
-    this(OperationStatsUtils.getCounterNamePrefix(function, name), function);
+    this(OperationStatsUtils.getStackPosition(1) + " - " + function.getClass().getSimpleName(), function);
   }
 
   @SuppressWarnings("unchecked")
-  protected FunctionStats(String prefix, Function function) {
+  public FunctionStats(String name, Function function) {
     super(function);
-    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixOutputRecords = prefix + OUTPUT_RECORDS_COUNTER_NAME;
+    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixOutputRecords = name + " - " + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")

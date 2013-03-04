@@ -60,8 +60,8 @@ public class TestBufferStats extends BaseTestCase {
     f.complete();
     FlowStats stats = f.getFlowStats();
 
-    Assert.assertEquals(2l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "MyBuffer - Output records").longValue());
-    Assert.assertEquals(2l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "MyBuffer - Input groups").longValue());
+    Assert.assertEquals(2l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "TestBufferStats.java:run:57 - MyBuffer - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(stats, OperationStatsUtils.COUNTER_CATEGORY, "TestBufferStats.java:run:57 - MyBuffer - Input groups").longValue());
   }
 
   public static class MyBuffer extends BaseOperation<NoContext> implements Buffer<NoContext> {

@@ -12,10 +12,12 @@ import com.liveramp.cascading_ext.util.OperationStatsUtils;
 public class EachStats extends SubAssembly {
 
   public EachStats(String s, Function function) {
-    setTails(new Each(s, new FunctionStats(function, OperationStatsUtils.getStackPosition(1))));
+    setTails(new Each(s, new FunctionStats(OperationStatsUtils.getStackPosition(1)
+        + " - " + function.getClass().getSimpleName(), function)));
   }
 
   public EachStats(Pipe pipe, Filter filter) {
-    setTails(new Each(pipe, new FilterStats(filter, OperationStatsUtils.getStackPosition(1))));
+    setTails(new Each(pipe, new FilterStats(OperationStatsUtils.getStackPosition(1)
+        + " - " + filter.getClass().getSimpleName(), filter)));
   }
 }
