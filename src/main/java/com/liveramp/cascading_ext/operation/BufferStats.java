@@ -21,6 +21,7 @@ import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingBuffer;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 
 import java.util.Iterator;
 

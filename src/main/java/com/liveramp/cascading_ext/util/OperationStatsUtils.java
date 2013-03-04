@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.liveramp.cascading_ext.operation;
+package com.liveramp.cascading_ext.util;
 
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
@@ -48,20 +48,24 @@ public class OperationStatsUtils {
       tupleEntryCollector.add(tupleEntry.getTuple());
     }
 
+    @Override
     public void setFields(cascading.tuple.Fields declared) {
       tupleEntryCollector.setFields(declared);
     }
 
+    @Override
     public void add(cascading.tuple.TupleEntry tupleEntry) {
       count++;
       tupleEntryCollector.add(tupleEntry);
     }
 
+    @Override
     public void add(cascading.tuple.Tuple tuple) {
       count++;
       tupleEntryCollector.add(tuple);
     }
 
+    @Override
     public void close() {
       tupleEntryCollector.close();
     }
@@ -101,5 +105,11 @@ public class OperationStatsUtils {
 
   protected static String getCounterNamePrefix(Object object, String name) {
     return name + " - " + object.getClass().getSimpleName() + " - ";
+  }
+
+  public static String getStackPosition(int depth) {
+    StackTraceElement[] stackTrace = new Throwable().getStackTrace();
+    StackTraceElement element = stackTrace[depth + 1];
+    return element.getFileName() + ":" + element.getMethodName() + ":" + element.getLineNumber();
   }
 }

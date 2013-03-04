@@ -21,6 +21,7 @@ import cascading.operation.Aggregator;
 import cascading.operation.AggregatorCall;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingAggregator;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 
 /**
  * An AggregatorStats instance decorates an Aggregator instance and

@@ -21,6 +21,7 @@ import cascading.operation.Function;
 import cascading.operation.FunctionCall;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFunction;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 
 public class FunctionStats extends ForwardingFunction {
 

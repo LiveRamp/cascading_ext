@@ -10,7 +10,7 @@ import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_ext.operation.OperationStatsUtils;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.liveramp.cascading_ext.tap.NullTap;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;

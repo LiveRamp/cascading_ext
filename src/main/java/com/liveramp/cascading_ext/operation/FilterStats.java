@@ -20,6 +20,7 @@ import cascading.flow.FlowProcess;
 import cascading.operation.Filter;
 import cascading.operation.FilterCall;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFilter;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 
 public class FilterStats extends ForwardingFilter {
 
