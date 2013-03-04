@@ -35,7 +35,8 @@ public class AggregatorStats extends ForwardingAggregator {
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String TOTAL_OUTPUT_RECORDS_COUNTER_NAME = "Total output records";
 
-  private final String prefix;
+  private final String prefixInputRecords;
+  private final String prefixTotalOutputRecords;
 
   public AggregatorStats(Aggregator aggregator) {
     this(OperationStatsUtils.getCounterNamePrefix(aggregator), aggregator);
@@ -48,7 +49,8 @@ public class AggregatorStats extends ForwardingAggregator {
   @SuppressWarnings("unchecked")
   protected AggregatorStats(String prefix, Aggregator aggregator) {
     super(aggregator);
-    this.prefix = prefix;
+    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixTotalOutputRecords = prefix + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
@@ -61,7 +63,7 @@ public class AggregatorStats extends ForwardingAggregator {
   @Override
   public void aggregate(FlowProcess process, AggregatorCall call) {
     super.aggregate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
   }
 
   @SuppressWarnings("unchecked")
@@ -71,7 +73,7 @@ public class AggregatorStats extends ForwardingAggregator {
     super.complete(process, wrapper);
     int output = wrapper.getOutputCollector().getCount();
     if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + TOTAL_OUTPUT_RECORDS_COUNTER_NAME, output);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixTotalOutputRecords, output);
     }
   }
 

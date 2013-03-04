@@ -26,10 +26,12 @@ public class FilterStats extends ForwardingFilter {
 
   // Note: counter names are such that they make sense when sorted alphabetically
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
-  public static final String ACCEPTED_RECORDS_COUNTER_NAME = "Kept records";
-  public static final String REJECTED_RECORDS_COUNTER_NAME = "Removed records";
+  public static final String KEPT_RECORDS_COUNTER_NAME = "Kept records";
+  public static final String REMOVED_RECORDS_COUNTER_NAME = "Removed records";
 
-  private final String prefix;
+  private final String prefixInputRecords;
+  private final String prefixKeptRecords;
+  private final String prefixRemovedRecords;
 
   public FilterStats(Filter filter) {
     this(OperationStatsUtils.getCounterNamePrefix(filter), filter);
@@ -42,18 +44,20 @@ public class FilterStats extends ForwardingFilter {
   @SuppressWarnings("unchecked")
   protected FilterStats(String prefix, Filter filter) {
     super(filter);
-    this.prefix = prefix;
+    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixKeptRecords = prefix + KEPT_RECORDS_COUNTER_NAME;
+    this.prefixRemovedRecords = prefix + REMOVED_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public boolean isRemove(FlowProcess process, FilterCall call) {
     boolean isRemove = super.isRemove(process, call);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
     if (isRemove) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + REJECTED_RECORDS_COUNTER_NAME, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixRemovedRecords, 1);
     } else {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + ACCEPTED_RECORDS_COUNTER_NAME, 1);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixKeptRecords, 1);
     }
     return isRemove;
   }

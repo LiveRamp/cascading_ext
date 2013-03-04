@@ -32,7 +32,8 @@ public class BufferStats extends ForwardingBuffer {
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input groups";
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
-  private final String prefix;
+  private final String prefixInputRecords;
+  private final String prefixOutputRecords;
 
   public BufferStats(Buffer buffer) {
     this(OperationStatsUtils.getCounterNamePrefix(buffer), buffer);
@@ -45,7 +46,8 @@ public class BufferStats extends ForwardingBuffer {
   @SuppressWarnings("unchecked")
   protected BufferStats(String prefix, Buffer buffer) {
     super(buffer);
-    this.prefix = prefix;
+    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixOutputRecords = prefix + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
@@ -53,10 +55,10 @@ public class BufferStats extends ForwardingBuffer {
   public void operate(FlowProcess process, BufferCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
     int output = wrapper.getOutputCollector().getCount();
     if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + OUTPUT_RECORDS_COUNTER_NAME, output);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
     }
   }
 

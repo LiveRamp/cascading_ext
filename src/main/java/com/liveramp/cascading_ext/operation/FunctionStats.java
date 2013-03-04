@@ -29,7 +29,8 @@ public class FunctionStats extends ForwardingFunction {
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
   private final ForwardingFunctionCall wrapper = new ForwardingFunctionCall();
-  private final String prefix;
+  private final String prefixInputRecords;
+  private final String prefixOutputRecords;
 
   public FunctionStats(Function function) {
     this(OperationStatsUtils.getCounterNamePrefix(function), function);
@@ -42,7 +43,8 @@ public class FunctionStats extends ForwardingFunction {
   @SuppressWarnings("unchecked")
   protected FunctionStats(String prefix, Function function) {
     super(function);
-    this.prefix = prefix;
+    this.prefixInputRecords = prefix + INPUT_RECORDS_COUNTER_NAME;
+    this.prefixOutputRecords = prefix + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
@@ -50,10 +52,10 @@ public class FunctionStats extends ForwardingFunction {
   public void operate(FlowProcess process, FunctionCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + INPUT_RECORDS_COUNTER_NAME, 1);
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
     int output = wrapper.getOutputCollector().getCount();
     if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefix + OUTPUT_RECORDS_COUNTER_NAME, output);
+      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
     }
   }
 
