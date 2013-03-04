@@ -30,9 +30,9 @@ public class KillTaskAttempts {
     Integer toKill = Integer.parseInt(args[4]);
 
     System.out.println();
-    System.out.println("Target jobs named: "+jobsToTarget);
-    System.out.println("Job tracker host: "+jobsToTarget);
+    System.out.println("Job tracker host: "+jobTracker);
     System.out.println("Job tracker port: "+port);
+    System.out.println("Target jobs named: "+jobsToTarget);
     System.out.println("Kill tasks of type: "+args[3]);
     System.out.println("Number of tasks to kill: "+toKill);
     System.out.println("---------------------------- WARNING ---------------------------");
