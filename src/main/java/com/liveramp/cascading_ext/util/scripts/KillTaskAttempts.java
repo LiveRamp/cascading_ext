@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.util;
+package com.liveramp.cascading_ext.util.scripts;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
