@@ -53,7 +53,7 @@ public class TestAggregatorStats extends BaseTestCase {
 
     Pipe input = new Pipe("input");
     input = new GroupBy(input, new Fields("field1"));
-    input = new Every(input, new AggregatorStats<MyAggregator.Context>(new MyAggregator()));
+    input = new Every(input, new AggregatorStats(new MyAggregator()));
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), input);
     f.complete();

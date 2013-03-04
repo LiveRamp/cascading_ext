@@ -54,7 +54,7 @@ public class TestBufferStats extends BaseTestCase {
 
     Pipe input = new Pipe("input");
     input = new GroupBy(input, new Fields("field1"));
-    input = new Every(input, new BufferStats<NoContext>(new MyBuffer()));
+    input = new Every(input, new BufferStats(new MyBuffer()));
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), input);
     f.complete();

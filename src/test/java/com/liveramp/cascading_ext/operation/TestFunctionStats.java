@@ -47,7 +47,7 @@ public class TestFunctionStats extends BaseTestCase {
         new Fields("field1", "field2"));
 
     Pipe pipe = new Pipe("pipe");
-    pipe = new Each(pipe, new FunctionStats<NoContext>(new MyFunction()));
+    pipe = new Each(pipe, new FunctionStats(new MyFunction()));
     pipe = new Each(pipe, new MyFilter());
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);

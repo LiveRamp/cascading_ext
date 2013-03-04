@@ -49,7 +49,7 @@ public class TestFilterStats extends BaseTestCase {
         new Fields("field1", "field2"));
 
     Pipe pipe = new Pipe("pipe");
-    pipe = new Each(pipe, new FilterStats<NoContext>(new MyFilter()));
+    pipe = new Each(pipe, new FilterStats(new MyFilter()));
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
