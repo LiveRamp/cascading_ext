@@ -36,11 +36,11 @@ public class AggregatorStats<Context> extends ForwardingAggregator<Context> {
   private final String prefix;
 
   public AggregatorStats(Aggregator<Context> aggregator) {
-    this(aggregator.getClass().getSimpleName() + " - ", aggregator);
+    this(OperationStatsUtils.getCounterNamePrefix(aggregator), aggregator);
   }
 
   public AggregatorStats(Aggregator<Context> aggregator, String name) {
-    this(aggregator.getClass().getSimpleName() + " - " + name + " - ", aggregator);
+    this(OperationStatsUtils.getCounterNamePrefix(aggregator, name), aggregator);
   }
 
   protected AggregatorStats(String prefix, Aggregator<Context> aggregator) {

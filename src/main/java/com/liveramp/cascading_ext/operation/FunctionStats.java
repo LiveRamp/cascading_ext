@@ -19,7 +19,6 @@ package com.liveramp.cascading_ext.operation;
 import cascading.flow.FlowProcess;
 import cascading.operation.Function;
 import cascading.operation.FunctionCall;
-
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingFunction;
 
@@ -31,11 +30,11 @@ public class FunctionStats<Context> extends ForwardingFunction<Context> {
   private final String prefix;
 
   public FunctionStats(Function<Context> function) {
-    this(function.getClass().getSimpleName() + " - ", function);
+    this(OperationStatsUtils.getCounterNamePrefix(function), function);
   }
 
   public FunctionStats(Function<Context> function, String name) {
-    this(function.getClass().getSimpleName() + " - " + name + " - ", function);
+    this(OperationStatsUtils.getCounterNamePrefix(function, name), function);
   }
 
   protected FunctionStats(String prefix, Function<Context> function) {

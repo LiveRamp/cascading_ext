@@ -56,8 +56,8 @@ public class TestFilterStats extends BaseTestCase {
     FlowStats fs = f.getFlowStats();
 
     Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFilter - Input records").longValue());
-    Assert.assertEquals(1l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFilter - Accepted records").longValue());
-    Assert.assertEquals(1l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFilter - Rejected records").longValue());
+    Assert.assertEquals(1l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFilter - Kept records").longValue());
+    Assert.assertEquals(1l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "MyFilter - Removed records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {

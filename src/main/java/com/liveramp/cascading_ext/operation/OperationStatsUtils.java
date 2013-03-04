@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 public class OperationStatsUtils {
+
   // The counter category used by the Operation stats decorators
   static public final String COUNTER_CATEGORY = "Stats";
 
@@ -92,5 +93,13 @@ public class OperationStatsUtils {
     public TupleEntryCollectorCounter getOutputCollector() {
       return collector;
     }
+  }
+
+  protected static String getCounterNamePrefix(Object object) {
+    return object.getClass().getSimpleName() + " - ";
+  }
+
+  protected static String getCounterNamePrefix(Object object, String name) {
+    return name + " - " + object.getClass().getSimpleName() + " - ";
   }
 }

@@ -17,7 +17,8 @@
 package com.liveramp.cascading_ext.operation;
 
 import cascading.flow.FlowProcess;
-import cascading.operation.*;
+import cascading.operation.Buffer;
+import cascading.operation.BufferCall;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingBuffer;
 
@@ -32,11 +33,11 @@ public class BufferStats<Context> extends ForwardingBuffer<Context> {
   private final String prefix;
 
   public BufferStats(Buffer<Context> buffer) {
-    this(buffer.getClass().getSimpleName() + " - ", buffer);
+    this(OperationStatsUtils.getCounterNamePrefix(buffer), buffer);
   }
 
   public BufferStats(Buffer<Context> buffer, String name) {
-    this(buffer.getClass().getSimpleName() + " - " + name + " - ", buffer);
+    this(OperationStatsUtils.getCounterNamePrefix(buffer, name), buffer);
   }
 
   protected BufferStats(String prefix, Buffer<Context> buffer) {

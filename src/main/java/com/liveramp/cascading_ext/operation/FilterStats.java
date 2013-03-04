@@ -23,18 +23,19 @@ import com.liveramp.cascading_ext.operation.forwarding.ForwardingFilter;
 
 public class FilterStats<Context> extends ForwardingFilter<Context> {
 
+  // Note: counter names are such that they make sense when sorted alphabetically
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
-  public static final String ACCEPTED_RECORDS_COUNTER_NAME = "Accepted records";
-  public static final String REJECTED_RECORDS_COUNTER_NAME = "Rejected records";
+  public static final String ACCEPTED_RECORDS_COUNTER_NAME = "Kept records";
+  public static final String REJECTED_RECORDS_COUNTER_NAME = "Removed records";
 
   private final String prefix;
 
   public FilterStats(Filter<Context> filter) {
-    this(filter.getClass().getSimpleName() + " - ", filter);
+    this(OperationStatsUtils.getCounterNamePrefix(filter), filter);
   }
 
   public FilterStats(Filter<Context> filter, String name) {
-    this(filter.getClass().getSimpleName() + " - " + name + " - ", filter);
+    this(OperationStatsUtils.getCounterNamePrefix(filter, name), filter);
   }
 
   protected FilterStats(String prefix, Filter<Context> filter) {
