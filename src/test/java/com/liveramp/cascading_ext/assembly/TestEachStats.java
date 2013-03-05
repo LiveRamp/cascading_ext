@@ -10,8 +10,8 @@ import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.liveramp.cascading_ext.tap.NullTap;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,8 +35,6 @@ public class TestEachStats extends BaseTestCase {
     f.complete();
 
     FlowStats fs = f.getFlowStats();
-
-    System.out.println(Counters.getCounters(f));
 
     Assert.assertEquals(3l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEachStats.java:run:32 - FilterNull - Input records").longValue());
     Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEachStats.java:run:32 - FilterNull - Kept records").longValue());
