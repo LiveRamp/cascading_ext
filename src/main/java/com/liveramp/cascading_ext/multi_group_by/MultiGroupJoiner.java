@@ -19,6 +19,7 @@ package com.liveramp.cascading_ext.multi_group_by;
 import cascading.flow.hadoop.HadoopGroupByClosure;
 import cascading.pipe.joiner.Joiner;
 import cascading.pipe.joiner.JoinerClosure;
+import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 
 import java.util.Iterator;
@@ -30,6 +31,10 @@ public class MultiGroupJoiner implements Joiner {
   public MultiGroupJoiner(int groupSize, MultiBuffer buffer) {
     this.buffer = buffer;
     this.groupSize = groupSize;
+  }
+
+  public Fields getResultFields(){
+    return buffer.getResultFields();
   }
 
   @Override
