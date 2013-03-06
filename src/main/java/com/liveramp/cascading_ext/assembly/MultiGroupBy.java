@@ -87,7 +87,8 @@ public class MultiGroupBy extends SubAssembly {
     Fields[] groupCopy = new Fields[groupFields.length];
     Arrays.fill(groupCopy, groupTmp);
 
-    Pipe result = new CoGroup(pipes, groupCopy, resultFields, new MultiGroupJoiner(inputsSum, operation));
+    Pipe result = new CoGroup(pipes, groupCopy, resultFields,
+        new MultiGroupJoiner(resultFields.size()-operation.getResultFields().size(), operation));
     result = new Each(result, resultFields, new Identity());
     result = new RenameInPlace(result, resultFields, groupTmp, groupingRename);
     setTails(result);
