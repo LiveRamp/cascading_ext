@@ -26,6 +26,7 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryIterator;
+import com.google.common.collect.Lists;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.multi_group_by.MultiBuffer;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -164,8 +166,11 @@ public class TestMultiGroupBy extends BaseTestCase {
   }
 
   protected static class CustomBuffer extends MultiBuffer {
+
+    private final int toEmit;
     public CustomBuffer(Fields output) {
       super(output);
+      toEmit = output.size();
     }
 
     @Override
@@ -187,8 +192,11 @@ public class TestMultiGroupBy extends BaseTestCase {
         result += t.getInteger(2);
       }
 
-      System.out.println("RESULT: "+result);
-      emit(new Tuple(result, result, result, result, result, result));
+      List<Object> results = Lists.newArrayList();
+      for(int i = 0; i < toEmit; i++){
+        results.add(result);
+      }
+      emit(new Tuple(results.toArray(new Object[results.size()])));
     }
 
   }
