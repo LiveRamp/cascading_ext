@@ -16,6 +16,7 @@
 
 package com.liveramp.cascading_ext.tap;
 
+import cascading.flow.FlowProcess;
 import cascading.tap.Tap;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
@@ -31,7 +32,11 @@ import java.util.List;
 public class TapHelper {
 
   public static void writeToTap(Tap<JobConf, ?, ?> t, Tuple... tuples) throws IOException {
-    TupleEntryCollector collector = t.openForWrite(CascadingUtil.get().getFlowProcess());
+    writeToTap(t, CascadingUtil.get().getFlowProcess(), tuples);
+  }
+
+  public static void writeToTap(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf, Tuple... tuples) throws IOException {
+    TupleEntryCollector collector = t.openForWrite(conf);
     for (Tuple tuple : tuples) {
       collector.add(tuple);
     }
