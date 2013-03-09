@@ -27,6 +27,7 @@ import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -78,11 +79,13 @@ public class CascadingUtil {
   }
 
   public void addSerializationToken(int token, Class<?> klass) {
-    if (token < 128)
+    if (token < 128) {
       throw new IllegalArgumentException("Serialization tokens must be >= 128 (lower numbers are reserved by Cascading)");
+    }
 
-    if (serializationTokens.containsKey(token) && !serializationTokens.get(token).equals(klass))
+    if (serializationTokens.containsKey(token) && !serializationTokens.get(token).equals(klass)) {
       throw new IllegalArgumentException("Token " + token + " is already assigned to class " + serializationTokens.get(token));
+    }
 
     serializationTokens.put(token, klass);
   }
@@ -92,8 +95,9 @@ public class CascadingUtil {
     List<String> strings = new ArrayList<String>();
 
     String existing = new JobConf().get("io.serializations");
-    if (existing != null)
+    if (existing != null) {
       strings.add(existing);
+    }
 
     // Append our custom serializations
     for (Class<? extends Serialization> klass : serializations) {
@@ -155,7 +159,9 @@ public class CascadingUtil {
       combinedStrategies.add(flowStepStrategyFactory.getFlowStepStrategy());
     }
 
-    return new LoggingFlowConnector(combinedProperties, new MultiFlowStepStrategy(combinedStrategies));
+    return new LoggingFlowConnector(combinedProperties,
+        new MultiFlowStepStrategy(combinedStrategies),
+        OperationStatsUtils.getStackPosition(1));
   }
 
   public FlowProcess<JobConf> getFlowProcess() {
