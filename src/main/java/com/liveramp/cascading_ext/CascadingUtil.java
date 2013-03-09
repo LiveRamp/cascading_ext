@@ -137,18 +137,28 @@ public class CascadingUtil {
   }
 
   public FlowConnector getFlowConnector() {
-    return getFlowConnector(Collections.<Object, Object>emptyMap());
+    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+        Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties) {
-    return getFlowConnector(properties, Collections.<FlowStepStrategy<JobConf>>emptyList());
+    return realGetFlowConnector(properties,
+        Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    return getFlowConnector(Collections.<Object, Object>emptyMap(), flowStepStrategies);
+    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+        flowStepStrategies);
   }
 
-  public FlowConnector getFlowConnector(Map<Object, Object> properties, List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+  public FlowConnector getFlowConnector(Map<Object, Object> properties,
+                                        List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+    return realGetFlowConnector(properties, flowStepStrategies);
+  }
+
+  // We extract this method so that the default name based on the stack position makes sense
+  private FlowConnector realGetFlowConnector(Map<Object, Object> properties,
+                                             List<FlowStepStrategy<JobConf>> flowStepStrategies) {
     //Add in default properties
     Map<Object, Object> combinedProperties = getDefaultProperties();
     combinedProperties.putAll(properties);
@@ -161,7 +171,7 @@ public class CascadingUtil {
 
     return new LoggingFlowConnector(combinedProperties,
         new MultiFlowStepStrategy(combinedStrategies),
-        OperationStatsUtils.getStackPosition(1));
+        OperationStatsUtils.getStackPosition(2));
   }
 
   public FlowProcess<JobConf> getFlowProcess() {
