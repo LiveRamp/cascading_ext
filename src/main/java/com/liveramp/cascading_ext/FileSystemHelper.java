@@ -129,6 +129,11 @@ public class FileSystemHelper {
     safeRename(fs, src, dst, DEFAULT_FS_OP_NUM_TRIES, DEFAULT_FS_OP_DELAY_BETWEEN_TRIES);
   }
 
+  public static void safeRename(Path src, Path dst) throws IOException {
+    safeRename(getFS(), src, dst, DEFAULT_FS_OP_NUM_TRIES, DEFAULT_FS_OP_DELAY_BETWEEN_TRIES);
+  }
+
+
   /**
    * Safely mkdirs a directory by retrying the operation <code>numTries</code> times and sleeping <code>delayBetweenTries</code> milliseconds between each
    * try. If it still fails, it throws an IOException.
