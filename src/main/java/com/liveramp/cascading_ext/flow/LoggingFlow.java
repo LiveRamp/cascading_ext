@@ -17,6 +17,7 @@
 package com.liveramp.cascading_ext.flow;
 
 import cascading.flow.*;
+import cascading.flow.planner.PlatformInfo;
 import cascading.management.UnitOfWorkSpawnStrategy;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
@@ -258,6 +259,16 @@ public class LoggingFlow implements Flow<JobConf> {
   @Override
   public String getCascadeID() {
     return internalFlow.getCascadeID();
+  }
+
+  @Override
+  public String getRunID() {
+    return internalFlow.getRunID();
+  }
+
+  @Override
+  public PlatformInfo getPlatformInfo() {
+    return internalFlow.getPlatformInfo();
   }
 
   @Override
