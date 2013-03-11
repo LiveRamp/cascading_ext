@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class LoggingFlowConnector extends HadoopFlowConnector {
 
-  private static final Pattern CHECKPOINT_SAFE_NAME = Pattern.compile("[a-zA-Z0-9\\-_ ]+");
+  private static final Pattern CHECKPOINT_SAFE_NAME = Pattern.compile("[a-zA-Z0-9\\-_]+");
 
   private final FlowStepStrategy<JobConf> flowStepStrategy;
   private final String defaultFlowName;
