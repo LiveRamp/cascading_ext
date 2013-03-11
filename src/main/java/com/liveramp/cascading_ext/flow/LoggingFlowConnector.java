@@ -26,8 +26,11 @@ import com.liveramp.cascading_ext.CascadingUtil;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class LoggingFlowConnector extends HadoopFlowConnector {
+
+  private static final Pattern CHECKPOINT_SAFE_NAME = Pattern.compile("[a-zA-Z0-9\\-_ ]+");
 
   private final FlowStepStrategy<JobConf> flowStepStrategy;
   private final String defaultFlowName;
@@ -50,14 +53,21 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
     LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy, getProperties());
     planner.initialize(this);
 
+    String flowName = name != null ? name : defaultFlowName;
     FlowDef definition = new FlowDef()
-        .setName(name != null ? name : defaultFlowName)
+        .setName(flowName)
         .addTails(tails)
         .addSources(sources)
         .addSinks(sinks)
         .addTraps(traps);
 
     if(getProperties().containsKey(CascadingUtil.CASCADING_RUN_ID)){
+
+      //  cascading checkpointing fails if the job is named creatively with special chars.  Be safe for now and only allow path-friendly chars
+      if(!CHECKPOINT_SAFE_NAME.matcher(flowName).matches()){
+        throw new RuntimeException("Flow name "+flowName+" not compatible with checkpointing! Remove special characters from name.");
+      }
+
       definition.setRunID((String) getProperties().get(CascadingUtil.CASCADING_RUN_ID));
     }
 
