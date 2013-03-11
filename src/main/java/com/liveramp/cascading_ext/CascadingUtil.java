@@ -27,6 +27,7 @@ import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
+import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -81,11 +82,13 @@ public class CascadingUtil {
   }
 
   public void addSerializationToken(int token, Class<?> klass) {
-    if (token < 128)
+    if (token < 128) {
       throw new IllegalArgumentException("Serialization tokens must be >= 128 (lower numbers are reserved by Cascading)");
+    }
 
-    if (serializationTokens.containsKey(token) && !serializationTokens.get(token).equals(klass))
+    if (serializationTokens.containsKey(token) && !serializationTokens.get(token).equals(klass)) {
       throw new IllegalArgumentException("Token " + token + " is already assigned to class " + serializationTokens.get(token));
+    }
 
     serializationTokens.put(token, klass);
   }
@@ -95,8 +98,9 @@ public class CascadingUtil {
     List<String> strings = new ArrayList<String>();
 
     String existing = new JobConf().get("io.serializations");
-    if (existing != null)
+    if (existing != null) {
       strings.add(existing);
+    }
 
     // Append our custom serializations
     for (Class<? extends Serialization> klass : serializations) {
@@ -136,18 +140,28 @@ public class CascadingUtil {
   }
 
   public FlowConnector getFlowConnector() {
-    return getFlowConnector(Collections.<Object, Object>emptyMap());
+    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+        Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties) {
-    return getFlowConnector(properties, Collections.<FlowStepStrategy<JobConf>>emptyList());
+    return realGetFlowConnector(properties,
+        Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    return getFlowConnector(Collections.<Object, Object>emptyMap(), flowStepStrategies);
+    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+        flowStepStrategies);
   }
 
-  public FlowConnector getFlowConnector(Map<Object, Object> properties, List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+  public FlowConnector getFlowConnector(Map<Object, Object> properties,
+                                        List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+    return realGetFlowConnector(properties, flowStepStrategies);
+  }
+
+  // We extract this method so that the default name based on the stack position makes sense
+  private FlowConnector realGetFlowConnector(Map<Object, Object> properties,
+                                             List<FlowStepStrategy<JobConf>> flowStepStrategies) {
     //Add in default properties
     Map<Object, Object> combinedProperties = getDefaultProperties();
     combinedProperties.putAll(properties);
@@ -158,7 +172,9 @@ public class CascadingUtil {
       combinedStrategies.add(flowStepStrategyFactory.getFlowStepStrategy());
     }
 
-    return new LoggingFlowConnector(combinedProperties, new MultiFlowStepStrategy(combinedStrategies));
+    return new LoggingFlowConnector(combinedProperties,
+        new MultiFlowStepStrategy(combinedStrategies),
+        OperationStatsUtils.getStackPosition(2));
   }
 
   public FlowProcess<JobConf> getFlowProcess() {

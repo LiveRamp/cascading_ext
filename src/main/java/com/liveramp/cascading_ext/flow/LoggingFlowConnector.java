@@ -28,11 +28,21 @@ import org.apache.hadoop.mapred.JobConf;
 import java.util.Map;
 
 public class LoggingFlowConnector extends HadoopFlowConnector {
-  private final FlowStepStrategy<JobConf> flowStepStrategy;
 
-  public LoggingFlowConnector(Map<Object, Object> properties, FlowStepStrategy<JobConf> flowStepStrategy) {
+  private final FlowStepStrategy<JobConf> flowStepStrategy;
+  private final String defaultFlowName;
+
+  public LoggingFlowConnector(Map<Object, Object> properties,
+                              FlowStepStrategy<JobConf> flowStepStrategy) {
+    this(properties, flowStepStrategy, null);
+  }
+
+  public LoggingFlowConnector(Map<Object, Object> properties,
+                              FlowStepStrategy<JobConf> flowStepStrategy,
+                              String defaultFlowName) {
     super(properties);
     this.flowStepStrategy = flowStepStrategy;
+    this.defaultFlowName = defaultFlowName;
   }
 
   @Override
@@ -41,7 +51,7 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
     planner.initialize(this);
 
     FlowDef definition = new FlowDef()
-        .setName(name)
+        .setName(name != null ? name : defaultFlowName)
         .addTails(tails)
         .addSources(sources)
         .addSinks(sinks)
