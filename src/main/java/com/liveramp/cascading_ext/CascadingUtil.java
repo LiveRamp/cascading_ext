@@ -35,6 +35,9 @@ import org.apache.hadoop.mapred.JobConf;
 import java.util.*;
 
 public class CascadingUtil {
+
+  public static final String CASCADING_RUN_ID = "cascading_ext.cascading.run.id";
+
   private static final CascadingUtil INSTANCE = new CascadingUtil();
 
   public static CascadingUtil get() {

@@ -22,6 +22,7 @@ import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
+import com.liveramp.cascading_ext.CascadingUtil;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.util.Map;
@@ -39,12 +40,17 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
     LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy, getProperties());
     planner.initialize(this);
 
-    return planner
-        .buildFlow(new FlowDef()
-            .setName(name)
-            .addTails(tails)
-            .addSources(sources)
-            .addSinks(sinks)
-            .addTraps(traps));
+    FlowDef definition = new FlowDef()
+        .setName(name)
+        .addTails(tails)
+        .addSources(sources)
+        .addSinks(sinks)
+        .addTraps(traps);
+
+    if(getProperties().containsKey(CascadingUtil.CASCADING_RUN_ID)){
+      definition.setRunID((String) getProperties().get(CascadingUtil.CASCADING_RUN_ID));
+    }
+
+    return planner.buildFlow(definition);
   }
 }
