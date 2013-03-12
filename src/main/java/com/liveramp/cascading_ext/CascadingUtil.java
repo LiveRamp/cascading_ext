@@ -174,7 +174,7 @@ public class CascadingUtil {
 
     return new LoggingFlowConnector(combinedProperties,
         new MultiFlowStepStrategy(combinedStrategies),
-        OperationStatsUtils.getStackPosition(2));
+        OperationStatsUtils.formatStackPosition(OperationStatsUtils.getStackPosition(2)));
   }
 
   public FlowProcess<JobConf> getFlowProcess() {

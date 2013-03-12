@@ -15,7 +15,6 @@ import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.tap.NullTap;
-import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,8 +42,8 @@ public class TestEveryStats extends BaseTestCase {
 
     System.out.println(Counters.getCounters(f));
 
-    Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEveryStats.java:run:37 - MyBuffer - Input groups").longValue());
-    Assert.assertEquals(4l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEveryStats.java:run:37 - MyBuffer - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(fs, "TestEveryStats.java", "36 - MyBuffer - Input groups").longValue());
+    Assert.assertEquals(4l, Counters.get(fs, "TestEveryStats.java", "36 - MyBuffer - Output records").longValue());
   }
 
   private static class MyBuffer extends BaseOperation implements Buffer {

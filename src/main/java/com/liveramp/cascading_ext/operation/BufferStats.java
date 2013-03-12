@@ -32,18 +32,28 @@ public class BufferStats extends ForwardingBuffer {
   public static final String INPUT_GROUPS_COUNTER_NAME = "Input groups";
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
-  private final String prefixInputGroups;
-  private final String prefixOutputRecords;
+  private final String counterGroup;
+  private final String inputGroupsCounterName;
+  private final String outputRecordsCounterName;
 
   public BufferStats(Buffer buffer) {
-    this(OperationStatsUtils.getStackPosition(1) + " - " + buffer.getClass().getSimpleName(), buffer);
+    this(OperationStatsUtils.getStackPosition(1), buffer);
+  }
+
+  public BufferStats(StackTraceElement stackPosition, Buffer buffer) {
+    this(stackPosition.getFileName(), stackPosition.getLineNumber() + " - " + buffer.getClass().getSimpleName(), buffer);
+  }
+
+  public BufferStats(String counterName, Buffer buffer) {
+    this(OperationStatsUtils.DEFAULT_COUNTER_CATEGORY, counterName, buffer);
   }
 
   @SuppressWarnings("unchecked")
-  public BufferStats(String name, Buffer buffer) {
+  public BufferStats(String counterGroup, String counterName, Buffer buffer) {
     super(buffer);
-    this.prefixInputGroups = name + " - " + INPUT_GROUPS_COUNTER_NAME;
-    this.prefixOutputRecords = name + " - " + OUTPUT_RECORDS_COUNTER_NAME;
+    this.counterGroup = counterGroup;
+    this.inputGroupsCounterName = counterName + " - " + INPUT_GROUPS_COUNTER_NAME;
+    this.outputRecordsCounterName = counterName + " - " + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
@@ -51,9 +61,9 @@ public class BufferStats extends ForwardingBuffer {
   public void operate(FlowProcess process, BufferCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputGroups, 1);
+    process.increment(counterGroup, inputGroupsCounterName, 1);
     int output = wrapper.getOutputCollector().getCount();
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
+    process.increment(counterGroup, outputRecordsCounterName, output);
   }
 
   private static class ForwardingBufferCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, BufferCall<Context>> implements BufferCall<Context> {

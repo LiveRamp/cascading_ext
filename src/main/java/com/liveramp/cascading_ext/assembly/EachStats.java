@@ -13,13 +13,11 @@ import com.liveramp.cascading_ext.util.OperationStatsUtils;
 public class EachStats extends SubAssembly {
 
   private static Function decorateFunction(Function function) {
-    return new FunctionStats(OperationStatsUtils.getStackPosition(2)
-        + " - " + function.getClass().getSimpleName(), function);
+    return new FunctionStats(OperationStatsUtils.getStackPosition(2), function);
   }
 
   private static Filter decorateFilter(Filter filter) {
-    return new FilterStats(OperationStatsUtils.getStackPosition(2)
-        + " - " + filter.getClass().getSimpleName(), filter);
+    return new FilterStats(OperationStatsUtils.getStackPosition(2), filter);
   }
 
   public EachStats(String s, Function function) {

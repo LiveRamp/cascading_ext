@@ -29,31 +29,41 @@ public class FilterStats extends ForwardingFilter {
   public static final String KEPT_RECORDS_COUNTER_NAME = "Kept records";
   public static final String REMOVED_RECORDS_COUNTER_NAME = "Removed records";
 
-  private final String prefixInputRecords;
-  private final String prefixKeptRecords;
-  private final String prefixRemovedRecords;
+  private final String counterGroup;
+  private final String inputRecordsCounterName;
+  private final String keptRecordsCounterName;
+  private final String removedRecordsCounterName;
 
   public FilterStats(Filter filter) {
-    this(OperationStatsUtils.getStackPosition(1) + " - " + filter.getClass().getSimpleName(), filter);
+    this(OperationStatsUtils.getStackPosition(1), filter);
+  }
+
+  public FilterStats(StackTraceElement stackPosition, Filter filter) {
+    this(stackPosition.getFileName(), stackPosition.getLineNumber() + " - " + filter.getClass().getSimpleName(), filter);
+  }
+
+  public FilterStats(String counterName, Filter filter) {
+    this(OperationStatsUtils.DEFAULT_COUNTER_CATEGORY, counterName, filter);
   }
 
   @SuppressWarnings("unchecked")
-  public FilterStats(String name, Filter filter) {
+  public FilterStats(String counterGroup, String counterName, Filter filter) {
     super(filter);
-    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixKeptRecords = name + " - " + KEPT_RECORDS_COUNTER_NAME;
-    this.prefixRemovedRecords = name + " - " + REMOVED_RECORDS_COUNTER_NAME;
+    this.counterGroup = counterGroup;
+    this.inputRecordsCounterName = counterName + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.keptRecordsCounterName = counterName + " - " + KEPT_RECORDS_COUNTER_NAME;
+    this.removedRecordsCounterName = counterName + " - " + REMOVED_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public boolean isRemove(FlowProcess process, FilterCall call) {
     boolean isRemove = super.isRemove(process, call);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
+    process.increment(counterGroup, inputRecordsCounterName, 1);
     if (isRemove) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixRemovedRecords, 1);
+      process.increment(counterGroup, removedRecordsCounterName, 1);
     } else {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixKeptRecords, 1);
+      process.increment(counterGroup, keptRecordsCounterName, 1);
     }
     return isRemove;
   }

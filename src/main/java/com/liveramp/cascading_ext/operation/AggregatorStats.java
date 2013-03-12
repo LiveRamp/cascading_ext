@@ -35,18 +35,28 @@ public class AggregatorStats extends ForwardingAggregator {
   public static final String INPUT_RECORDS_COUNTER_NAME = "Input records";
   public static final String TOTAL_OUTPUT_RECORDS_COUNTER_NAME = "Total output records";
 
-  private final String prefixInputRecords;
-  private final String prefixTotalOutputRecords;
+  private final String counterGroup;
+  private final String inputRecordsCounterName;
+  private final String totalOutputRecordsCounterName;
 
   public AggregatorStats(Aggregator aggregator) {
-    this(OperationStatsUtils.getStackPosition(1) + " - " + aggregator.getClass().getSimpleName(), aggregator);
+    this(OperationStatsUtils.getStackPosition(1), aggregator);
+  }
+
+  public AggregatorStats(String counterName, Aggregator aggregator) {
+    this(OperationStatsUtils.DEFAULT_COUNTER_CATEGORY, counterName, aggregator);
   }
 
   @SuppressWarnings("unchecked")
-  public AggregatorStats(String name, Aggregator aggregator) {
+  public AggregatorStats(String counterGroup, String counterName, Aggregator aggregator) {
     super(aggregator);
-    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixTotalOutputRecords = name + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
+    this.counterGroup = counterGroup;
+    this.inputRecordsCounterName = counterName + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.totalOutputRecordsCounterName = counterName + " - " + TOTAL_OUTPUT_RECORDS_COUNTER_NAME;
+  }
+
+  public AggregatorStats(StackTraceElement stackPosition, Aggregator aggregator) {
+    this(stackPosition.getFileName(), stackPosition.getLineNumber() + " - " + aggregator.getClass().getSimpleName(), aggregator);
   }
 
   @SuppressWarnings("unchecked")
@@ -59,7 +69,7 @@ public class AggregatorStats extends ForwardingAggregator {
   @Override
   public void aggregate(FlowProcess process, AggregatorCall call) {
     super.aggregate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
+    process.increment(counterGroup, inputRecordsCounterName, 1);
   }
 
   @SuppressWarnings("unchecked")
@@ -68,7 +78,7 @@ public class AggregatorStats extends ForwardingAggregator {
     wrapper.setDelegate(call);
     super.complete(process, wrapper);
     int output = wrapper.getOutputCollector().getCount();
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixTotalOutputRecords, output);
+    process.increment(counterGroup, totalOutputRecordsCounterName, output);
   }
 
   private static class ForwardingAggregatorCall<Context>

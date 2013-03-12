@@ -13,13 +13,11 @@ import com.liveramp.cascading_ext.util.OperationStatsUtils;
 public class EveryStats extends SubAssembly {
 
   private static Buffer decorateBuffer(Buffer buffer) {
-    return new BufferStats(OperationStatsUtils.getStackPosition(2)
-        + " - " + buffer.getClass().getSimpleName(), buffer);
+    return new BufferStats(OperationStatsUtils.getStackPosition(2), buffer);
   }
 
   private static Aggregator decorateAggregator(Aggregator aggregator) {
-    return new AggregatorStats(OperationStatsUtils.getStackPosition(2)
-        + " - " + aggregator.getClass().getSimpleName(), aggregator);
+    return new AggregatorStats(OperationStatsUtils.getStackPosition(2), aggregator);
   }
 
   public EveryStats(Pipe pipe, Aggregator aggregator) {

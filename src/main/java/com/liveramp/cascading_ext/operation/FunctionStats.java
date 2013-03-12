@@ -29,18 +29,28 @@ public class FunctionStats extends ForwardingFunction {
   public static final String OUTPUT_RECORDS_COUNTER_NAME = "Output records";
 
   private final ForwardingFunctionCall wrapper = new ForwardingFunctionCall();
-  private final String prefixInputRecords;
-  private final String prefixOutputRecords;
+  private final String counterGroup;
+  private final String inputRecordsCounterName;
+  private final String outputRecordsCounterName;
 
   public FunctionStats(Function function) {
-    this(OperationStatsUtils.getStackPosition(1) + " - " + function.getClass().getSimpleName(), function);
+    this(OperationStatsUtils.getStackPosition(1), function);
+  }
+
+  public FunctionStats(StackTraceElement stackPosition, Function function) {
+    this(stackPosition.getFileName(), stackPosition.getLineNumber() + " - " + function.getClass().getSimpleName(), function);
+  }
+
+  public FunctionStats(String counterName, Function function) {
+    this(OperationStatsUtils.DEFAULT_COUNTER_CATEGORY, counterName, function);
   }
 
   @SuppressWarnings("unchecked")
-  public FunctionStats(String name, Function function) {
+  public FunctionStats(String counterGroup, String counterName, Function function) {
     super(function);
-    this.prefixInputRecords = name + " - " + INPUT_RECORDS_COUNTER_NAME;
-    this.prefixOutputRecords = name + " - " + OUTPUT_RECORDS_COUNTER_NAME;
+    this.counterGroup = counterGroup;
+    this.inputRecordsCounterName = counterName + " - " + INPUT_RECORDS_COUNTER_NAME;
+    this.outputRecordsCounterName = counterName + " - " + OUTPUT_RECORDS_COUNTER_NAME;
   }
 
   @SuppressWarnings("unchecked")
@@ -48,9 +58,9 @@ public class FunctionStats extends ForwardingFunction {
   public void operate(FlowProcess process, FunctionCall call) {
     wrapper.setDelegate(call);
     super.operate(process, wrapper);
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
+    process.increment(counterGroup, inputRecordsCounterName, 1);
     int output = wrapper.getOutputCollector().getCount();
-    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
+    process.increment(counterGroup, outputRecordsCounterName, output);
   }
 
   public static class ForwardingFunctionCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, FunctionCall<Context>>

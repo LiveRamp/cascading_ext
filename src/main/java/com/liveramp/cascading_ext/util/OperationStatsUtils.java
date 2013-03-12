@@ -27,7 +27,7 @@ import java.io.Serializable;
 public class OperationStatsUtils {
 
   // The counter category used by the Operation stats decorators
-  static public final String COUNTER_CATEGORY = "Stats";
+  static public final String DEFAULT_COUNTER_CATEGORY = "Stats";
 
   public static final class TupleEntryCollectorCounter extends TupleEntryCollector implements Serializable {
 
@@ -99,9 +99,14 @@ public class OperationStatsUtils {
     }
   }
 
-  public static String getStackPosition(int depth) {
+  public static StackTraceElement getStackPosition(int depth) {
     StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-    StackTraceElement element = stackTrace[depth + 1];
-    return element.getFileName() + ":" + element.getMethodName() + ":" + element.getLineNumber();
+    return stackTrace[depth + 1];
+  }
+
+  public static String formatStackPosition(StackTraceElement stackTraceElement) {
+    return stackTraceElement.getFileName() + ":"
+        + stackTraceElement.getMethodName() + ":"
+        + stackTraceElement.getLineNumber();
   }
 }

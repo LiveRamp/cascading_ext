@@ -29,7 +29,6 @@ import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.tap.NullTap;
-import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,8 +54,10 @@ public class TestFunctionStats extends BaseTestCase {
 
     FlowStats fs = f.getFlowStats();
 
-    Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestFunctionStats.java:run:50 - MyFunction - Input records").longValue());
-    Assert.assertEquals(4l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestFunctionStats.java:run:50 - MyFunction - Output records").longValue());
+    System.out.println(Counters.getCounters(fs));
+
+    Assert.assertEquals(2l, Counters.get(fs, "TestFunctionStats.java", "49 - MyFunction - Input records").longValue());
+    Assert.assertEquals(4l, Counters.get(fs, "TestFunctionStats.java", "49 - MyFunction - Output records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {

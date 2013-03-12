@@ -11,7 +11,6 @@ import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.tap.NullTap;
-import com.liveramp.cascading_ext.util.OperationStatsUtils;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,8 +35,8 @@ public class TestEachStats extends BaseTestCase {
 
     FlowStats fs = f.getFlowStats();
 
-    Assert.assertEquals(3l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEachStats.java:run:32 - FilterNull - Input records").longValue());
-    Assert.assertEquals(2l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEachStats.java:run:32 - FilterNull - Kept records").longValue());
-    Assert.assertEquals(1l, Counters.get(fs, OperationStatsUtils.COUNTER_CATEGORY, "TestEachStats.java:run:32 - FilterNull - Removed records").longValue());
+    Assert.assertEquals(3l, Counters.get(fs, "TestEachStats.java", "31 - FilterNull - Input records").longValue());
+    Assert.assertEquals(2l, Counters.get(fs, "TestEachStats.java", "31 - FilterNull - Kept records").longValue());
+    Assert.assertEquals(1l, Counters.get(fs, "TestEachStats.java", "31 - FilterNull - Removed records").longValue());
   }
 }
