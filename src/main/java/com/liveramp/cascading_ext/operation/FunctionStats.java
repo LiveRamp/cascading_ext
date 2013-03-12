@@ -50,9 +50,7 @@ public class FunctionStats extends ForwardingFunction {
     super.operate(process, wrapper);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputRecords, 1);
     int output = wrapper.getOutputCollector().getCount();
-    if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
-    }
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
   }
 
   public static class ForwardingFunctionCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, FunctionCall<Context>>
