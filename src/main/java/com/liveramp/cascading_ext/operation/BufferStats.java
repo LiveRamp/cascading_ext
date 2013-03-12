@@ -53,9 +53,7 @@ public class BufferStats extends ForwardingBuffer {
     super.operate(process, wrapper);
     process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixInputGroups, 1);
     int output = wrapper.getOutputCollector().getCount();
-    if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
-    }
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixOutputRecords, output);
   }
 
   private static class ForwardingBufferCall<Context> extends OperationStatsUtils.ForwardingOperationCall<Context, BufferCall<Context>> implements BufferCall<Context> {

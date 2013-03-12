@@ -68,9 +68,7 @@ public class AggregatorStats extends ForwardingAggregator {
     wrapper.setDelegate(call);
     super.complete(process, wrapper);
     int output = wrapper.getOutputCollector().getCount();
-    if (output > 0) {
-      process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixTotalOutputRecords, output);
-    }
+    process.increment(OperationStatsUtils.COUNTER_CATEGORY, prefixTotalOutputRecords, output);
   }
 
   private static class ForwardingAggregatorCall<Context>
