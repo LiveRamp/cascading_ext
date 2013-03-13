@@ -7,6 +7,8 @@ import cascading.operation.FilterCall;
 import cascading.tuple.Fields;
 import cascading.tuple.TupleEntry;
 
+import java.util.List;
+
 
 public class IncrementCounterForFieldValues extends BaseOperation implements Filter {
 
@@ -14,9 +16,9 @@ public class IncrementCounterForFieldValues extends BaseOperation implements Fil
   private final String counterName;
   private final Enum counterEnum;
   private final Fields fields;
-  private final Object[] values;
+  private final List<?> values;
 
-  public IncrementCounterForFieldValues(String counterName, Fields fields, Object... values) {
+  public IncrementCounterForFieldValues(String counterName, Fields fields, List<?> values) {
     this.fields = fields;
     this.values = values;
     this.counterGroup = "";
@@ -24,7 +26,7 @@ public class IncrementCounterForFieldValues extends BaseOperation implements Fil
     this.counterEnum = null;
   }
 
-  public IncrementCounterForFieldValues(String counterGroup, String counterName, Fields fields, Object... values) {
+  public IncrementCounterForFieldValues(String counterGroup, String counterName, Fields fields, List<?> values) {
     this.counterGroup = counterGroup;
     this.counterName = counterName;
     this.fields = fields;
@@ -32,7 +34,7 @@ public class IncrementCounterForFieldValues extends BaseOperation implements Fil
     this.counterEnum = null;
   }
 
-  public IncrementCounterForFieldValues(Enum counter, Fields fields, Object... values) {
+  public IncrementCounterForFieldValues(Enum counter, Fields fields, List<?> values) {
     this.fields = fields;
     this.values = values;
     this.counterGroup = null;
@@ -47,7 +49,7 @@ public class IncrementCounterForFieldValues extends BaseOperation implements Fil
     TupleEntry arguments = filterCall.getArguments();
     for (int index = 0; index < fields.size(); index++) {
       Object object = arguments.getObject(fields.get(index));
-      Object value = values[index];
+      Object value = values.get(index);
       if (!equalOrBothNull(object, value)) {
         fieldsEqualValues = false;
         break;
