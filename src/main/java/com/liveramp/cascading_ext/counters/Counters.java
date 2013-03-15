@@ -25,7 +25,6 @@ import cascading.tap.Tap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
 
-import java.io.IOException;
 import java.util.*;
 
 public class Counters {
@@ -35,10 +34,6 @@ public class Counters {
    * counter we get a NPE which kills the process.  At this point the counter is gone
    * so we might as well keep going.
    */
-  public static Long safeGetWithDefault(FlowStats flowStats, String group, String name, Long defaultVal) {
-    Long val = safeGet(flowStats, group, name);
-    return val == null ? defaultVal : val;
-  }
 
   public static Long safeGet(CascadingStats flowStats, String group, String name) {
     try {
@@ -148,7 +143,6 @@ public class Counters {
 
   public static Long getHadoopCounterValue(FlowStats stats, String group, String value){
     try{
-
       long total = 0;
       for(FlowStepStats step: stats.getFlowStepStats()){
         if(!(step instanceof HadoopStepStats)){
@@ -165,7 +159,7 @@ public class Counters {
       }
       return total;
     } catch(Exception e){
-      return 0l;
+      return null;
     }
   }
 
