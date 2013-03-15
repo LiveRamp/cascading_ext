@@ -57,10 +57,9 @@ public class TestBufferStats extends BaseTestCase {
 
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), input);
     f.complete();
-    FlowStats stats = f.getFlowStats();
 
-    Assert.assertEquals(2l, Counters.get(stats, "TestBufferStats.java", "56 - MyBuffer - Output records").longValue());
-    Assert.assertEquals(2l, Counters.get(stats, "TestBufferStats.java", "56 - MyBuffer - Input groups").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "56 - MyBuffer - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "56 - MyBuffer - Input groups").longValue());
   }
 
   public static class MyBuffer extends BaseOperation<NoContext> implements Buffer<NoContext> {
