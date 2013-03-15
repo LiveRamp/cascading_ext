@@ -146,6 +146,29 @@ public class Counters {
     return counters;
   }
 
+  public static Long getHadoopCounterValue(FlowStats stats, String group, String value){
+    try{
+
+      long total = 0;
+      for(FlowStepStats step: stats.getFlowStepStats()){
+        if(!(step instanceof HadoopStepStats)){
+          throw new RuntimeException("Step "+step+" not a hadoop step!");
+        }
+
+        HadoopStepStats hadoopStats = (HadoopStepStats) step;
+        RunningJob job = hadoopStats.getRunningJob();
+        org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
+        org.apache.hadoop.mapred.Counters.Group counterGroup = allCounters.getGroup(group);
+        if(counterGroup != null){
+          total += counterGroup.getCounter(value);
+        }
+      }
+      return total;
+    }catch(Exception e){
+      return 0l;
+    }
+  }
+
   private static List<Counter> getStatsFromHadoopStep(HadoopStepStats hadoopStep, String groupToSearch) {
     try{
       RunningJob job = hadoopStep.getRunningJob();
