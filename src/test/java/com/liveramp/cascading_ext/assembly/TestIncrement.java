@@ -40,9 +40,7 @@ public class TestIncrement extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
 
-    FlowStats fs = f.getFlowStats();
-
-    Assert.assertEquals(3l, Counters.get(fs, "Group", "CounterA").longValue());
-    Assert.assertEquals(2l, Counters.get(fs, Counter.B).longValue());
+    Assert.assertEquals(3l, Counters.get(f, "Group", "CounterA").longValue());
+    Assert.assertEquals(2l, Counters.get(f, Counter.B).longValue());
   }
 }
