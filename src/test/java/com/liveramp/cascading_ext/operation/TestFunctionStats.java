@@ -52,12 +52,10 @@ public class TestFunctionStats extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
 
-    FlowStats fs = f.getFlowStats();
+    System.out.println(Counters.getCounters(f));
 
-    System.out.println(Counters.getCounters(fs));
-
-    Assert.assertEquals(2l, Counters.get(fs, "TestFunctionStats.java", "49 - MyFunction - Input records").longValue());
-    Assert.assertEquals(4l, Counters.get(fs, "TestFunctionStats.java", "49 - MyFunction - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Input records").longValue());
+    Assert.assertEquals(4l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Output records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {
