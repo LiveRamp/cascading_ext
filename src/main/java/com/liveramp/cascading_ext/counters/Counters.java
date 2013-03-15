@@ -183,6 +183,25 @@ public class Counters {
     }
   }
 
+  public static Long getHadoopCounterValue(FlowStats stats, Enum counter){
+    try{
+
+      long total = 0;
+      for(FlowStepStats step: stats.getFlowStepStats()){
+        if(!(step instanceof HadoopStepStats)){
+          throw new RuntimeException("Step "+step+" not a hadoop step!");
+        }
+        HadoopStepStats hadoopStats = (HadoopStepStats) step;
+        RunningJob job = hadoopStats.getRunningJob();
+        org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
+        total += allCounters.getCounter(counter);
+      }
+      return total;
+    }catch(Exception e){
+      return 0l;
+    }
+  }
+
   private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup){
     Iterator<org.apache.hadoop.mapred.Counters.Counter> counterIterator = counterGroup.iterator();
     List<Counter> counters = new ArrayList<Counter>();
