@@ -21,6 +21,7 @@ import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
 
@@ -48,7 +49,7 @@ public class Counters {
 
     for (FlowStepStats statsForStep : flowStats.getFlowStepStats()) {
       if (!counters.containsKey(statsForStep)) {
-        counters.put(statsForStep, new ArrayList<Counter>());
+        counters.put(statsForStep, Lists.<Counter>newArrayList());
       }
       counters.get(statsForStep).addAll(getStatsFromStep(statsForStep, null));
     }
@@ -84,11 +85,7 @@ public class Counters {
     try{
       long total = 0;
       for(FlowStepStats step: stats.getFlowStepStats()){
-        if(step instanceof HadoopStepStats){
-          total += getHadoopCounterValue((HadoopStepStats) step, value);
-        }else{
-          total += getGenericCounterValue(step, value);
-        }
+        total += get(step, value);
       }
       return total;
     } catch(Exception e){
@@ -105,6 +102,22 @@ public class Counters {
 
   public static List<Counter> getCountersForGroup(Flow flow, String group) {
     return getCountersForGroup(flow.getFlowStats(), group);
+  }
+
+  public static Long get(FlowStepStats step, String group, String value) throws IOException {
+    if(step instanceof HadoopStepStats){
+      return getHadoopCounterValue((HadoopStepStats) step, group, value);
+    }else{
+      return getGenericCounterValue(step, group, value);
+    }
+  }
+
+  public static Long get(FlowStepStats step, Enum value) throws IOException {
+    if(step instanceof HadoopStepStats){
+      return getHadoopCounterValue((HadoopStepStats) step, value);
+    }else{
+      return getGenericCounterValue(step, value);
+    }
   }
 
   public static void printCounters(Flow flow) {
@@ -188,14 +201,6 @@ public class Counters {
     }
     Collections.sort(counters);
     return counters;
-  }
-
-  private static Long get(FlowStepStats step, String group, String value) throws IOException {
-    if(step instanceof HadoopStepStats){
-      return getHadoopCounterValue((HadoopStepStats) step, group, value);
-    }else{
-      return getGenericCounterValue(step, group, value);
-    }
   }
 
   private static Long getGenericCounterValue(FlowStepStats flowStep, String group, String value) {
