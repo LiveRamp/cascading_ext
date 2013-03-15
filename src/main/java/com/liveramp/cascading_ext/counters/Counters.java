@@ -60,6 +60,10 @@ public class Counters {
     return counters;
   }
 
+  public static Long get(Flow flow, String group, String value){
+    return get(flow.getFlowStats(), group, value);
+  }
+
   public static Long get(FlowStats stats, String group, String value){
     try{
       long total = 0;
@@ -70,6 +74,10 @@ public class Counters {
     } catch(Exception e){
       return null;
     }
+  }
+
+  public static Long get(Flow flow, Enum value){
+    return get(flow.getFlowStats(), value);
   }
 
   public static Long get(FlowStats stats, Enum value){
@@ -86,6 +94,9 @@ public class Counters {
     } catch(Exception e){
       return null;
     }
+  }
+  public static List<Counter> getCounters(Flow flow) {
+    return getCounters(flow.getFlowStats());
   }
 
   public static List<Counter> getCounters(FlowStats flowStats) {
@@ -191,6 +202,7 @@ public class Counters {
     return flowStep.getCounterValue(group, value);
   }
 
+  //  get the un-cached version of the counters
   private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, String group, String value) throws IOException {
     org.apache.hadoop.mapred.Counters.Group counterGroup = hadoopStep.getRunningJob().getCounters().getGroup(group);
     if(counterGroup != null){
