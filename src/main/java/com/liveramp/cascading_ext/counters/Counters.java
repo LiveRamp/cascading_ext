@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
 
-import java.io.IOException;
 import java.util.*;
 
 public class Counters {
@@ -104,7 +103,7 @@ public class Counters {
     return getCountersForGroup(flow.getFlowStats(), group);
   }
 
-  public static Long get(FlowStepStats step, String group, String value) throws IOException {
+  public static Long get(FlowStepStats step, String group, String value) {
     if(step instanceof HadoopStepStats){
       return getHadoopCounterValue((HadoopStepStats) step, group, value);
     }else{
@@ -112,7 +111,7 @@ public class Counters {
     }
   }
 
-  public static Long get(FlowStepStats step, Enum value) throws IOException {
+  public static Long get(FlowStepStats step, Enum value)  {
     if(step instanceof HadoopStepStats){
       return getHadoopCounterValue((HadoopStepStats) step, value);
     }else{
@@ -204,17 +203,25 @@ public class Counters {
   }
 
   //  get the un-cached version of the counters
-  private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, String group, String value) throws IOException {
-    org.apache.hadoop.mapred.Counters.Group counterGroup = hadoopStep.getRunningJob().getCounters().getGroup(group);
-    if(counterGroup != null){
-      return counterGroup.getCounter(value);
+  private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, String group, String value) {
+    try{
+      org.apache.hadoop.mapred.Counters.Group counterGroup = hadoopStep.getRunningJob().getCounters().getGroup(group);
+      if(counterGroup != null){
+        return counterGroup.getCounter(value);
+      }
+      return 0l;
+    }catch(Exception e){
+      return 0l;
     }
-    return 0l;
   }
 
   //  get the un-cached version of the counters
-  private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, Enum counter) throws IOException {
-    return hadoopStep.getRunningJob().getCounters().getCounter(counter);
+  private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, Enum counter) {
+    try{
+      return hadoopStep.getRunningJob().getCounters().getCounter(counter);
+    }catch(Exception e){
+      return 0l;
+    }
   }
 
   private static List<Counter> getStatsFromHadoopStep(HadoopStepStats hadoopStep, String groupToSearch) {
