@@ -22,6 +22,7 @@ import cascading.flow.FlowStepStrategy;
 import cascading.flow.planner.BaseFlowStep;
 import cascading.stats.FlowStepStats;
 import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
+import com.liveramp.cascading_ext.counters.Counters;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
@@ -81,9 +82,9 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
           FlowStepStats stats = ((BaseFlowStep) step).getFlowStepStats();
 
           // Collect some of the stats gathered. This will help configure the bloom filter
-          long numSampled = stats.getCounterValue(CreateBloomFilter.StatsCounters.TOTAL_SAMPLED_TUPLES);
-          long keySizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.KEY_SIZE_SUM);
-          long matchSizeSum = stats.getCounterValue(CreateBloomFilter.StatsCounters.TUPLE_SIZE_SUM);
+          long numSampled = Counters.get(stats, CreateBloomFilter.StatsCounters.TOTAL_SAMPLED_TUPLES);
+          long keySizeSum = Counters.get(stats, CreateBloomFilter.StatsCounters.KEY_SIZE_SUM);
+          long matchSizeSum = Counters.get(stats, CreateBloomFilter.StatsCounters.TUPLE_SIZE_SUM);
 
           int avgKeySize = 0;
           int avgMatchSize = 0;

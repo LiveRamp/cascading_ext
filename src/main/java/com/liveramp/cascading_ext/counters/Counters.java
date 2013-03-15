@@ -108,7 +108,7 @@ public class Counters {
     if(step instanceof HadoopStepStats){
       return getHadoopCounterValue((HadoopStepStats) step, group, value);
     }else{
-      return getGenericCounterValue(step, group, value);
+      return step.getCounterValue(group, value);
     }
   }
 
@@ -116,7 +116,7 @@ public class Counters {
     if(step instanceof HadoopStepStats){
       return getHadoopCounterValue((HadoopStepStats) step, value);
     }else{
-      return getGenericCounterValue(step, value);
+      return step.getCounterValue(value);
     }
   }
 
@@ -203,10 +203,6 @@ public class Counters {
     return counters;
   }
 
-  private static Long getGenericCounterValue(FlowStepStats flowStep, String group, String value) {
-    return flowStep.getCounterValue(group, value);
-  }
-
   //  get the un-cached version of the counters
   private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, String group, String value) throws IOException {
     org.apache.hadoop.mapred.Counters.Group counterGroup = hadoopStep.getRunningJob().getCounters().getGroup(group);
@@ -214,10 +210,6 @@ public class Counters {
       return counterGroup.getCounter(value);
     }
     return 0l;
-  }
-
-  private static Long getGenericCounterValue(FlowStepStats flowStep, Enum counter) {
-    return flowStep.getCounterValue(counter);
   }
 
   //  get the un-cached version of the counters
