@@ -164,7 +164,7 @@ public class Counters {
         }
       }
       return total;
-    }catch(Exception e){
+    } catch(Exception e){
       return 0l;
     }
   }
