@@ -40,8 +40,6 @@ public class TestEveryStats extends BaseTestCase {
 
     FlowStats fs = f.getFlowStats();
 
-    System.out.println(Counters.getCounters(f));
-
     Assert.assertEquals(2l, Counters.get(fs, "TestEveryStats.java", "36 - MyBuffer - Input groups").longValue());
     Assert.assertEquals(4l, Counters.get(fs, "TestEveryStats.java", "36 - MyBuffer - Output records").longValue());
   }
