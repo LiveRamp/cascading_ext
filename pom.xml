@@ -21,22 +21,14 @@
             <url>http://conjars.org/repo</url>
         </repository>
         <repository>
-            <id>liveramp-ext-release</id>
-            <name>Liveramp Public Ext Release</name>
-            <url>http://repository.liveramp.com/artifactory/ext-release-local</url>
-        </repository>
-        <repository>
-            <id>liveramp-ext-snapshot</id>
-            <name>Liveramp Public Ext Snapshot</name>
-            <url>http://repository.liveramp.com/artifactory/ext-snapshot-local</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-        <repository>
             <id>cdh.repo</id>
             <name>Cloudera</name>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+        <repository>
+            <id>liveramp-repositories</id>
+            <name>Liveramp Repositories</name>
+            <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
         </repository>
     </repositories>
 
