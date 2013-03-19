@@ -26,7 +26,7 @@ import java.util.Comparator;
 
 /**
  * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer. Some
- * byte[] methods to Guava's UnsignedBytes
+ * byte[] methods delegate to Guava's UnsignedBytes
  */
 public class Bytes {
   private static final Comparator<byte[]> BYTES_COMPARATOR = UnsignedBytes.lexicographicalComparator();
