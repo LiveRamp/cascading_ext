@@ -20,14 +20,13 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.google.common.primitives.UnsignedBytes;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.thrift.TBaseHelper;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 
 /**
- * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer.  Some ByteBuffer
- * related methods delegate to TBaseHelper, some byte[] methods to Guava's UnsignedBytes
+ * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer. Some
+ * byte[] methods to Guava's UnsignedBytes
  */
 public class Bytes {
   private static final Comparator<byte[]> BYTES_COMPARATOR = UnsignedBytes.lexicographicalComparator();
@@ -40,11 +39,29 @@ public class Bytes {
    * @param byteBuffer
    */
   public static byte[] byteBufferToByteArray(ByteBuffer byteBuffer) {
-    return TBaseHelper.byteBufferToByteArray(byteBuffer);
+    if (wrapsFullArray(byteBuffer)) {
+      return byteBuffer.array();
+    }
+    byte[] target = new byte[byteBuffer.remaining()];
+    byteBufferToByteArray(byteBuffer, target, 0);
+    return target;
+  }
+
+  public static int byteBufferToByteArray(ByteBuffer byteBuffer, byte[] target, int offset) {
+    int remaining = byteBuffer.remaining();
+    System.arraycopy(byteBuffer.array(),
+        byteBuffer.arrayOffset() + byteBuffer.position(),
+        target,
+        offset,
+        remaining);
+    return remaining;
   }
 
   public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
-    return TBaseHelper.wrapsFullArray(byteBuffer);
+    return byteBuffer.hasArray()
+        && byteBuffer.position() == 0
+        && byteBuffer.arrayOffset() == 0
+        && byteBuffer.remaining() == byteBuffer.capacity();
   }
 
   /**
@@ -56,7 +73,7 @@ public class Bytes {
    */
   public static byte[] byteBufferDeepCopy(ByteBuffer byteBuffer) {
     byte[] target = new byte[byteBuffer.remaining()];
-    TBaseHelper.byteBufferToByteArray(byteBuffer, target, 0);
+    byteBufferToByteArray(byteBuffer, target, 0);
     return target;
   }
 
@@ -67,10 +84,9 @@ public class Bytes {
   public static byte[] getBytes(BytesWritable bw) {
     if (bw.getCapacity() == bw.getLength()) {
       return bw.getBytes();
+    } else {
+      return copyBytes(bw);
     }
-    byte[] ret = new byte[bw.getLength()];
-    System.arraycopy(bw.getBytes(), 0, ret, 0, bw.getLength());
-    return ret;
   }
 
   public static byte[] copyBytes(BytesWritable bw) {
