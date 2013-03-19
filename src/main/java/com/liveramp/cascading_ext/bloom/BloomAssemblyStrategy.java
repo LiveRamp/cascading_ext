@@ -30,9 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Does the following:
- * 1) Gives jobs pretty names (Cascading 2's default names are ugly random IDs)
- * 2) Does any configuration necessary for a job that involves stuff from BloomAssembly
+ * Does any configuration necessary for a job that involves stuff from BloomAssembly
  */
 public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
