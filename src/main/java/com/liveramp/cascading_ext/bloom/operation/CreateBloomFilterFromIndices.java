@@ -28,6 +28,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
+import com.google.common.collect.Maps;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.BloomUtil;
@@ -35,16 +36,21 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilterFromIndices.Context> implements Aggregator<CreateBloomFilterFromIndices.Context> {
-  private TupleEntryCollector[] collectors;
+  private Map<Integer, TupleEntryCollector> numHashesToCollector = Maps.newHashMap();
+
+  int minHashes;
+  int maxHashes;
 
   public CreateBloomFilterFromIndices() {
     super(Fields.NONE);
   }
 
   public static class Context {
-    FixedSizeBitSet[] bitSet;
+    Map<Integer, FixedSizeBitSet> numHashesToBitSet = Maps.newHashMap();
   }
 
   @Override
@@ -52,12 +58,12 @@ public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilte
     try {
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
       String partsRoot = BloomProps.getBloomFilterPartsDir(conf);
-      Integer maxHashes = BloomProps.getMaxBloomHashes(conf);
+      maxHashes = BloomProps.getMaxBloomHashes(conf);
+      minHashes = BloomProps.getMinBloomHashes(conf);
 
-      collectors = new TupleEntryCollector[maxHashes];
-      for (int i = 0; i < maxHashes; i++) {
+      for (int i = minHashes; i <= maxHashes; i++) {
         Hfs tap = new Hfs(new SequenceFile(new Fields("split", "filter")), partsRoot + "/" + i + "/");
-        collectors[i] = tap.openForWrite(new HadoopFlowProcess(conf));
+        numHashesToCollector.put(i, tap.openForWrite(new HadoopFlowProcess(conf)));
       }
 
     } catch (IOException e) {
@@ -72,8 +78,8 @@ public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilte
     long bit = (Long) call.getArguments().getObject(0);
     int hashNum = (Integer) call.getArguments().getObject(1);
 
-    for (int i = c.bitSet.length - 1; i > hashNum - 1; i--) {
-      c.bitSet[i].set(bit);
+    for(int i = maxHashes; i > hashNum - 1 && i >= minHashes; i--){
+      c.numHashesToBitSet.get(i).set(bit);
     }
   }
 
@@ -81,14 +87,16 @@ public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilte
   public void complete(FlowProcess flow, AggregatorCall<CreateBloomFilterFromIndices.Context> call) {
     Context c = call.getContext();
     TupleEntry group = call.getGroup();
-    for (int i = 0; i < collectors.length; i++) {
-      collectors[i].add(new Tuple(group.getObject("split"), new BytesWritable(c.bitSet[i].getRaw())));
+
+    for(int i = minHashes; i <= maxHashes; i++){
+      numHashesToCollector.get(i).add(new Tuple(group.getObject("split"), new BytesWritable(c.numHashesToBitSet.get(i).getRaw())));
     }
+
   }
 
   @Override
   public void cleanup(FlowProcess flowProcess, OperationCall<CreateBloomFilterFromIndices.Context> operationCall) {
-    for (TupleEntryCollector collector : collectors) {
+    for (TupleEntryCollector collector : numHashesToCollector.values()) {
       collector.close();
     }
   }
@@ -102,10 +110,11 @@ public class CreateBloomFilterFromIndices extends BaseOperation<CreateBloomFilte
     long splitSize = BloomUtil.getSplitSize(numBits, numSplits);
 
     Context c = new Context();
-    c.bitSet = new FixedSizeBitSet[collectors.length];
-    for (int i = 0; i < c.bitSet.length; i++) {
-      c.bitSet[i] = new FixedSizeBitSet(splitSize, new byte[FixedSizeBitSet.getNumBytesToStore(splitSize)]);
+
+    for(int i = minHashes; i <= maxHashes; i++){
+      c.numHashesToBitSet.put(i, new FixedSizeBitSet(splitSize, new byte[FixedSizeBitSet.getNumBytesToStore(splitSize)]));
     }
+
     call.setContext(c);
   }
 }

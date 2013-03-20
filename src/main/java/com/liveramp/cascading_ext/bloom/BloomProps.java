@@ -33,6 +33,7 @@ public class BloomProps {
   //  configurable parameters
   public static final String NUM_BLOOM_BITS = "cascading_ext.bloom.num.bits";
   public static final String MAX_BLOOM_HASHES = "cascading_ext.bloom.max.hashes";
+  public static final String MIN_BLOOM_HASHES = "cascading_ext.bloom.min.hashes";
   public static final String NUM_SPLITS = "cascading_ext.bloom.num.splits";
   public static final String BUFFER_SIZE = "cascading_ext.bloom.buffer.size";
   public static final String IO_SORT_PERCENT = "cascading_ext.bloom.io.sort.percent";
@@ -52,6 +53,7 @@ public class BloomProps {
   //  default values for configurable params
   public static final long DEFAULT_NUM_BLOOM_BITS = 300L * 1024 * 1024 * 8;
   public static final int DEFAULT_MAX_BLOOM_FILTER_HASHES = 4;
+  public static final int DEFAULT_MIN_BLOOM_FILTER_HASHES = 1;
   public static final int DEFAULT_BUFFER_SIZE = 300;
   public static final double DEFAULT_HLL_ERR = 0.01;
   public static double DEFAULT_KEY_SAMPLE_RATE = 0.01;
@@ -61,6 +63,7 @@ public class BloomProps {
     Map<Object, Object> properties = new HashMap<Object, Object>();
     properties.put(NUM_BLOOM_BITS, Long.toString(DEFAULT_NUM_BLOOM_BITS));
     properties.put(MAX_BLOOM_HASHES, Integer.toString(DEFAULT_MAX_BLOOM_FILTER_HASHES));
+    properties.put(MIN_BLOOM_HASHES, Integer.toString(DEFAULT_MIN_BLOOM_FILTER_HASHES));
     properties.put(NUM_SPLITS, 100);
     properties.put(BUFFER_SIZE, DEFAULT_BUFFER_SIZE);
     properties.put(HLL_ERR, DEFAULT_HLL_ERR);
@@ -75,6 +78,10 @@ public class BloomProps {
 
   public static int getMaxBloomHashes(JobConf conf) {
     return Integer.parseInt(conf.get(MAX_BLOOM_HASHES));
+  }
+
+  public static int getMinBloomHashes(JobConf conf){
+    return Integer.parseInt(conf.get(MIN_BLOOM_HASHES));
   }
 
   public static int getNumSplits(JobConf conf) {

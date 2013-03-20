@@ -45,23 +45,21 @@ public class BloomUtil {
 
   private final static Object BF_LOAD_LOCK = new Object();
 
-  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems, int maxHashes) {
-    double falsePositiveRate = getFalsePositiveRate(maxHashes, numBloomBits, numElems);
-    int numBloomHashes = 1;
-    for (int i = maxHashes - 1; i > 0; i--) {
+  public static Pair<Double, Integer> getOptimalFalsePositiveRateAndNumHashes(long numBloomBits, long numElems, int minHashes, int maxHashes) {
+    if(maxHashes < minHashes){
+      throw new IllegalArgumentException("Cannot have max # hashes smaller than min # hashes! "+maxHashes +" vs "+minHashes);
+    }
+
+    double bestFPRate = getFalsePositiveRate(maxHashes, numBloomBits, numElems);
+    int bestBloomHashes = maxHashes;
+    for (int i = maxHashes - 1; i >= minHashes; i--) {
       double newFalsePositiveRate = getFalsePositiveRate(i, numBloomBits, numElems);
-      // Break out if you see an increase in false positive rate while decreasing the number of hashes.
-      // Since this function has only one critical point, we know that if we see an increase
-      // then the one we saw first was the minimum.
-      // If we never see an increase then we know that one hash has the lowest false positive rate.
-      if (falsePositiveRate > newFalsePositiveRate) {
-        falsePositiveRate = newFalsePositiveRate;
-      } else {
-        numBloomHashes = i + 1;
-        break;
+      if(newFalsePositiveRate < bestFPRate){
+        bestFPRate = newFalsePositiveRate;
+        bestBloomHashes = i;
       }
     }
-    return new Pair<Double, Integer>(falsePositiveRate, numBloomHashes);
+    return new Pair<Double, Integer>(bestFPRate, bestBloomHashes);
   }
 
   public static double getFalsePositiveRate(int numHashes, long vectorSize, long numElements) {
@@ -120,6 +118,7 @@ public class BloomUtil {
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
     int maxHashes = BloomProps.getMaxBloomHashes(stepConf);
+    int minHashes = BloomProps.getMinBloomHashes(stepConf);
     long bloomFilterBits = BloomProps.getNumBloomBits(stepConf);
     int numSplits = BloomProps.getNumSplits(stepConf);
 
@@ -128,7 +127,7 @@ public class BloomUtil {
 
     long prevJobTuples = getApproxDistinctKeysCount(stepConf, stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR));
 
-    Pair<Double, Integer> optimal = getOptimalFalsePositiveRateAndNumHashes(bloomFilterBits, prevJobTuples, maxHashes);
+    Pair<Double, Integer> optimal = getOptimalFalsePositiveRateAndNumHashes(bloomFilterBits, prevJobTuples, minHashes, maxHashes);
     LOG.info("Counted about " + prevJobTuples + " distinct keys");
     LOG.info("Using " + bloomFilterBits + " bits in the bloom filter");
     LOG.info("Found a false positive rate of: " + optimal.getLhs());
@@ -139,7 +138,7 @@ public class BloomUtil {
 
     synchronized (BF_LOAD_LOCK) {
       // Load bloom filter parts and merge them.
-      String path = bloomPartsDir + "/" + (numBloomHashes - 1);
+      String path = bloomPartsDir + "/" + numBloomHashes;
       BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
 
       // Write merged bloom filter to HDFS
