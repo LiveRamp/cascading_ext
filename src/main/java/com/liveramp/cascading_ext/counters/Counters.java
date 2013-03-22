@@ -22,6 +22,7 @@ import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
 
@@ -91,6 +92,7 @@ public class Counters {
       return null;
     }
   }
+  
   public static List<Counter> getCounters(Flow flow) {
     return getCounters(flow.getFlowStats());
   }
@@ -121,6 +123,27 @@ public class Counters {
 
   public static void printCounters(Flow flow) {
     System.out.println(prettyCountersString(flow));
+  }
+  
+  public static List<Counter> getCounters(RunningJob job){
+    return getStatsFromRunningJob(job, null);
+  }
+
+  public static void printCounters(RunningJob job){
+    System.out.println(prettyCountersString(job));
+  }
+
+  public static String prettyCountersString(RunningJob job) {
+    StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
+    builder.append("Counters for job ").append(job.getJobName()).append("\n");
+
+    for (Counter counter : getStatsFromRunningJob(job, null)) {
+      if (counter.getValue() != null && counter.getValue() > 0) {
+        builder.append("    ").append(counter).append("\n");
+      }
+    }
+    builder.append(StringUtils.repeat("=", 90)).append("\n");
+    return builder.toString();
   }
 
   public static String prettyCountersString(Flow flow) {
@@ -166,7 +189,7 @@ public class Counters {
 
   private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group){
     if(statsForStep instanceof HadoopStepStats){
-      return getStatsFromHadoopStep((HadoopStepStats)statsForStep, group);
+      return getStatsFromRunningJob(((HadoopStepStats) statsForStep).getRunningJob(), group);
     }else{
       return getStatsFromGenericStep(statsForStep, group);
     }
@@ -224,9 +247,8 @@ public class Counters {
     }
   }
 
-  private static List<Counter> getStatsFromHadoopStep(HadoopStepStats hadoopStep, String groupToSearch) {
+  private static List<Counter> getStatsFromRunningJob(RunningJob job, String groupToSearch) {
     try{
-      RunningJob job = hadoopStep.getRunningJob();
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
       Collection<String> groupNames = allCounters.getGroupNames();
 
