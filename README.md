@@ -33,6 +33,8 @@ CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, jo
 
 see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/BloomJoinExample.java), [BloomJoinExampleWithoutCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/BloomJoinExampleWithoutCascadingUtil.java)
 
+For more details on how BloomJoin works, check out our [blog post](http://blog.liveramp.com/2013/04/03/bloomjoin-bloomfilter-cogroup/).
+
 <b>BloomFilter</b>
 
 [BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem):
