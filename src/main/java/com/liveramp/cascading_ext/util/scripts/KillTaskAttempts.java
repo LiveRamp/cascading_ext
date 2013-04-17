@@ -48,7 +48,8 @@ public class KillTaskAttempts {
 
     for(JobStatus status: jobClient.getAllJobs()){
       if(status.getRunState() == JobStatus.RUNNING){
-        if(jobClient.getJob(status.getJobID()).getJobName().contains(jobsToTarget)){
+        RunningJob job = jobClient.getJob(status.getJobID());
+        if(job.getJobName().contains(jobsToTarget) || job.getID().toString().contains(jobsToTarget)){
           JobID jobid = status.getJobID();
 
           TaskReport[] reports;
