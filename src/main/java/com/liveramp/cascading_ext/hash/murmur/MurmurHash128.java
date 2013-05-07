@@ -16,12 +16,22 @@
 
 package com.liveramp.cascading_ext.hash.murmur;
 
+import com.google.common.hash.Hashing;
 import com.liveramp.cascading_ext.hash.HashFunction;
-import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 
-public class MurmurHash64Factory extends HashFunctionFactory {
+public class MurmurHash128 extends HashFunction {
+
+  protected MurmurHash128(long maxValue, int numHashes) {
+    super(maxValue, numHashes);
+  }
+
   @Override
-  public HashFunction getFunction(long maxValue, int numHashes) {
-    return new MurmurHash64(maxValue, numHashes);
+  public long hash(byte[] data, int length, int seed) {
+    return Hashing.murmur3_128(seed).hashBytes(data).asLong();
+  }
+
+  @Override
+  public String getHashID() {
+    return "murmur128";
   }
 }
