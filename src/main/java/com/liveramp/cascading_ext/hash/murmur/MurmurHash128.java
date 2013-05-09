@@ -14,13 +14,27 @@
  *  limitations under the License.
  */
 
-package com.liveramp.cascading_ext.hash;
-import com.liveramp.cascading_ext.hash.murmur.MurmurHash128Factory;
+package com.liveramp.cascading_ext.hash.murmur;
 
-import java.io.Serializable;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
+import com.liveramp.cascading_ext.hash.HashFunction;
 
-public abstract class HashFunctionFactory implements Serializable {
-  public static final HashFunctionFactory DEFAULT_HASH_FACTORY = new MurmurHash128Factory();
+public class MurmurHash128 extends HashFunction {
 
-  public abstract HashFunction getFunction(long maxValue, int numHashes);
+  private Hasher hasher = Hashing.murmur3_128().newHasher();
+
+  protected MurmurHash128(long maxValue, int numHashes) {
+    super(maxValue, numHashes);
+  }
+
+  @Override
+  public long hash(byte[] data, int length, int seed) {
+    return hasher.putBytes(data, 0, length).hash().asLong();
+  }
+
+  @Override
+  public String getHashID() {
+    return "murmur128";
+  }
 }
