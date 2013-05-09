@@ -16,10 +16,13 @@
 
 package com.liveramp.cascading_ext.hash.murmur;
 
+import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.liveramp.cascading_ext.hash.HashFunction;
 
 public class MurmurHash128 extends HashFunction {
+
+  private Hasher hasher = Hashing.murmur3_128().newHasher();
 
   protected MurmurHash128(long maxValue, int numHashes) {
     super(maxValue, numHashes);
@@ -27,7 +30,7 @@ public class MurmurHash128 extends HashFunction {
 
   @Override
   public long hash(byte[] data, int length, int seed) {
-    return Hashing.murmur3_128(seed).hashBytes(data).asLong();
+    return hasher.putBytes(data, 0, length).hash().asLong();
   }
 
   @Override
