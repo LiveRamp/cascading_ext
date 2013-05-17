@@ -67,14 +67,6 @@ public abstract class BloomAssembly extends SubAssembly {
                           Joiner joiner, CoGroupOrder coGroupOrder) {
 
     try {
-
-      String bloomJobID = UUID.randomUUID().toString();
-      Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
-
-      String bloomPartsDir = bloomTempDir + "/parts";
-      String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
-      String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
-
       //  If it's a filter, we care about nothing except the join keys on the RHS -- remove the rest
       if (operationType != Mode.JOIN) {
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
@@ -82,28 +74,18 @@ public abstract class BloomAssembly extends SubAssembly {
 
       Pipe filterPipe;
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
+
       if (shouldNotApplyBloomFilter(operationType, joiner, coGroupOrder)) {
+        // Fall back to a regular CoGroup. TODO: We could try to optimize this case by splitting the large
+        // side into relevant/not-relevant using the bloom filter, applying CoGroup only to the relevant part,
+        // and then merging the not-relevant part back in to honor the joiner.
         filterPipe = largePipe;
         if (coGroupOrder == CoGroupOrder.LARGE_RHS) {
           rhsOrig = largePipe;
           filterPipe = smallPipe;
         }
       } else {
-        smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-        smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
-
-        // This is a bit of a hack to:
-        //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
-        //  2) Bind RHS to the flow, which wouldn't happen otherwise.
-        // Note that RHS has no output, so there shouldn't be any danger in doing this.
-        filterPipe = new NaiveMerge(largePipe.getName(), largePipe, smallPipe);
-
-        // Load the bloom filter into memory and apply it to the LHS.
-        filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
-
-        ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
-        config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
-        config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
+        filterPipe = getBloomFilterPipe(largePipe, largeJoinFields, smallPipe, smallJoinFields);
       }
 
       if (operationType == Mode.FILTER_EXACT) {
@@ -126,6 +108,32 @@ public abstract class BloomAssembly extends SubAssembly {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private Pipe getBloomFilterPipe(Pipe largePipe, Fields largeJoinFields, Pipe smallPipe, Fields smallJoinFields) throws IOException {
+    String bloomJobID = UUID.randomUUID().toString();
+    Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
+    String bloomPartsDir = bloomTempDir + "/parts";
+    String bloomFinalFilter = bloomTempDir + "/filter.bloomfilter";
+    String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
+
+    Pipe filterPipe;
+    smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
+    smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
+
+    // This is a bit of a hack to:
+    //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
+    //  2) Bind RHS to the flow, which wouldn't happen otherwise.
+    // Note that RHS has no output, so there shouldn't be any danger in doing this.
+    filterPipe = new NaiveMerge(largePipe.getName(), largePipe, smallPipe);
+
+    // Load the bloom filter into memory and apply it to the LHS.
+    filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
+
+    ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
+    config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
+    config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
+    return filterPipe;
   }
 
   private boolean shouldNotApplyBloomFilter(Mode operationType, Joiner joiner, CoGroupOrder coGroupOrder) {
