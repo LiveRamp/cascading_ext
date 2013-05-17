@@ -75,7 +75,9 @@ public abstract class BloomAssembly extends SubAssembly {
       Pipe filterPipe;
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
 
-      if (shouldNotApplyBloomFilter(operationType, joiner, coGroupOrder)) {
+      if (shouldApplyBloomFilter(operationType, joiner, coGroupOrder)) {
+        filterPipe = getBloomFilterPipe(largePipe, largeJoinFields, smallPipe, smallJoinFields);
+      } else {
         // Fall back to a regular CoGroup. TODO: We could try to optimize this case by splitting the large
         // side into relevant/not-relevant using the bloom filter, applying CoGroup only to the relevant part,
         // and then merging the not-relevant part back in to honor the joiner.
@@ -84,8 +86,6 @@ public abstract class BloomAssembly extends SubAssembly {
           rhsOrig = largePipe;
           filterPipe = smallPipe;
         }
-      } else {
-        filterPipe = getBloomFilterPipe(largePipe, largeJoinFields, smallPipe, smallJoinFields);
       }
 
       if (operationType == Mode.FILTER_EXACT) {
@@ -136,10 +136,11 @@ public abstract class BloomAssembly extends SubAssembly {
     return filterPipe;
   }
 
-  private boolean shouldNotApplyBloomFilter(Mode operationType, Joiner joiner, CoGroupOrder coGroupOrder) {
-    return operationType == Mode.JOIN && (
-        (joiner instanceof LeftJoin && coGroupOrder == CoGroupOrder.LARGE_LHS) ||
-            (joiner instanceof RightJoin && coGroupOrder == CoGroupOrder.LARGE_RHS));
+  private boolean shouldApplyBloomFilter(Mode operationType, Joiner joiner, CoGroupOrder coGroupOrder) {
+    return operationType != Mode.JOIN || (operationType == Mode.JOIN && (
+            joiner == null || joiner instanceof InnerJoin ||
+            (joiner instanceof LeftJoin && coGroupOrder == CoGroupOrder.LARGE_RHS) ||
+            (joiner instanceof RightJoin && coGroupOrder == CoGroupOrder.LARGE_LHS)));
   }
 
   private Pipe getCoGroup(Pipe filtered, Fields largeJoinFields,
