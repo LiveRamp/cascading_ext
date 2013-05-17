@@ -30,6 +30,9 @@ import cascading.tuple.Fields;
  * Note: if this SubAssembly is used without CascadingUtil, the flow will need certain properties set.
  * See BloomJoinExampleWithoutCascadingUtil for details.
  * <p/>
+ * Note: In the current implementation, using a LeftJoin joiner with LARGE_LHS or a RightJoin joiner with LARGE_RHS
+ * will fall back to a regular CoGroup.
+ * <p/>
  * <b>IMPORTANT:</b> one important behavior difference between BloomJoin and CoGroup is that RHS and LHS keys which are expected
  * to match in the join MUST serialize identically as well (the bloom filter is built by serializing key fields.)  If
  * normal java/hadoop types are used this should not be a problem, but comparing key types which extend each other WILL
