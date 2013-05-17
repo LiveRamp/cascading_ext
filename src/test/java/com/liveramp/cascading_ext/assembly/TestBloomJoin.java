@@ -16,25 +16,32 @@
 
 package com.liveramp.cascading_ext.assembly;
 
-import cascading.operation.Identity;
-import cascading.pipe.Each;
-import cascading.pipe.Pipe;
-import cascading.scheme.hadoop.SequenceFile;
-import cascading.tap.Tap;
-import cascading.tap.hadoop.Hfs;
-import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.tap.TapHelper;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.tap.TapHelper;
+
+import cascading.operation.Identity;
+import cascading.pipe.CoGroup;
+import cascading.pipe.Each;
+import cascading.pipe.Pipe;
+import cascading.pipe.joiner.LeftJoin;
+import cascading.pipe.joiner.RightJoin;
+import cascading.scheme.hadoop.SequenceFile;
+import cascading.scheme.hadoop.TextLine;
+import cascading.tap.Tap;
+import cascading.tap.hadoop.Hfs;
+import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestBloomJoin extends BloomAssemblyTestCase {
 
@@ -146,5 +153,43 @@ public class TestBloomJoin extends BloomAssemblyTestCase {
     assertTrue(tuples3.contains(new Tuple(bytes("2"), bytes("12"), "x-lhs2", bytes("2"), bytes("12"), "c-rhs")));
 
     assertEquals(3, tuples3.size());
+  }
+
+  @Test
+  public void testLeftJoinLargeLHS() throws Exception {
+    Map<String, Tap> sources = new HashMap<String, Tap>();
+    sources.put("lhs", this.lhsStore);
+    sources.put("rhs", this.rhsStore);
+
+    Tap sink = new Hfs(new TextLine(), getTestRoot() + "/output");
+
+    Pipe lhsPipe = new Pipe("lhs");
+    Pipe rhsPipe = new Pipe("rhs");
+
+    Pipe joined = new BloomJoin(lhsPipe, new Fields("key"), rhsPipe, new Fields("key"), new Fields("key", "key2", "lhs-value", "key-copy", "key2-copy", "rhs-value"), new LeftJoin());
+
+    CascadingUtil.get().getFlowConnector().connect(sources, sink, joined).complete();
+
+    List<Tuple> results = TapHelper.getAllTuples(sink);
+    assertEquals("All tuples from the left side should be kept", 21, results.size());
+  }
+
+  @Test
+  public void testRightJoinLargeRHS() throws Exception {
+    Map<String, Tap> sources = new HashMap<String, Tap>();
+    sources.put("lhs", this.lhsStore);
+    sources.put("rhs", this.rhsStore);
+
+    Tap sink = new Hfs(new TextLine(), getTestRoot() + "/output");
+
+    Pipe lhsPipe = new Pipe("lhs");
+    Pipe rhsPipe = new Pipe("rhs");
+
+    Pipe joined = new BloomJoin(rhsPipe, new Fields("key"), lhsPipe, new Fields("key"), new Fields("key", "key2", "lhs-value", "key-copy", "key2-copy", "rhs-value"), new RightJoin(), BloomAssembly.CoGroupOrder.LARGE_RHS);
+
+    CascadingUtil.get().getFlowConnector().connect(sources, sink, joined).complete();
+
+    List<Tuple> results = TapHelper.getAllTuples(sink);
+    assertEquals("All tuples from the right side should be kept", 21, results.size());
   }
 }

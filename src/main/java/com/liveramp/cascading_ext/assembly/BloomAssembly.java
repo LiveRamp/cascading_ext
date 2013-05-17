@@ -23,6 +23,8 @@ import cascading.pipe.*;
 import cascading.pipe.assembly.Discard;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
+import cascading.pipe.joiner.LeftJoin;
+import cascading.pipe.joiner.RightJoin;
 import cascading.property.ConfigDef;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
@@ -77,23 +79,32 @@ public abstract class BloomAssembly extends SubAssembly {
       if (operationType != Mode.JOIN) {
         smallPipe = new Each(smallPipe, smallJoinFields, new Identity());
       }
+
+      Pipe filterPipe;
       Pipe rhsOrig = new Pipe("smallPipe-orig", smallPipe);
+      if (shouldNotApplyBloomFilter(operationType, joiner, coGroupOrder)) {
+        filterPipe = largePipe;
+        if (coGroupOrder == CoGroupOrder.LARGE_RHS) {
+          rhsOrig = largePipe;
+          filterPipe = smallPipe;
+        }
+      } else {
+        smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
+        smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
 
-      smallPipe = new Each(smallPipe, smallJoinFields, new GetSerializedTuple());
-      smallPipe = new CreateBloomFilter(smallPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
+        // This is a bit of a hack to:
+        //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
+        //  2) Bind RHS to the flow, which wouldn't happen otherwise.
+        // Note that RHS has no output, so there shouldn't be any danger in doing this.
+        filterPipe = new NaiveMerge(largePipe.getName(), largePipe, smallPipe);
 
-      // This is a bit of a hack to:
-      //  1) Force a dependency on the operations performed on RHS above (can't continue until they're done)
-      //  2) Bind RHS to the flow, which wouldn't happen otherwise.
-      // Note that RHS has no output, so there shouldn't be any danger in doing this.
-      Pipe filterPipe = new NaiveMerge(largePipe.getName(), largePipe, smallPipe);
+        // Load the bloom filter into memory and apply it to the LHS.
+        filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
 
-      // Load the bloom filter into memory and apply it to the LHS.
-      filterPipe = new Each(filterPipe, largeJoinFields, new BloomJoinFilter(bloomJobID, false));
-
-      ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
-      config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
-      config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
+        ConfigDef config = filterPipe.getStepConfigDef();  // tell BloomAssemblyStrategy which bloom filter to expect
+        config.setProperty(BloomProps.SOURCE_BLOOM_FILTER_ID, bloomJobID);
+        config.setProperty(BloomProps.REQUIRED_BLOOM_FILTER_PATH, bloomFinalFilter);
+      }
 
       if (operationType == Mode.FILTER_EXACT) {
         // We don't actually care about the fields on the RHS (the user just expects the LHS fields), so we can
@@ -115,6 +126,12 @@ public abstract class BloomAssembly extends SubAssembly {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private boolean shouldNotApplyBloomFilter(Mode operationType, Joiner joiner, CoGroupOrder coGroupOrder) {
+    return operationType == Mode.JOIN && (
+        (joiner instanceof LeftJoin && coGroupOrder == CoGroupOrder.LARGE_LHS) ||
+            (joiner instanceof RightJoin && coGroupOrder == CoGroupOrder.LARGE_RHS));
   }
 
   private Pipe getCoGroup(Pipe filtered, Fields largeJoinFields,
