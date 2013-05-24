@@ -53,7 +53,11 @@ public class TapHelper {
   }
 
   public static List<Tuple> getAllTuples(Tap<JobConf, ?, ?> t) throws IOException {
-    TupleEntryIterator iter = t.openForRead(CascadingUtil.get().getFlowProcess());
+    return getAllTuples(t, CascadingUtil.get().getFlowProcess());
+  }
+
+  public static List<Tuple> getAllTuples(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf) throws IOException {
+    TupleEntryIterator iter = t.openForRead(conf);
     List<Tuple> tuples = new ArrayList<Tuple>();
     while (iter.hasNext()) {
       tuples.add(iter.next().getTupleCopy());
