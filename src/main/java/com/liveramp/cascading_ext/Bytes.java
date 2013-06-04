@@ -19,6 +19,7 @@ package com.liveramp.cascading_ext;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.google.common.primitives.UnsignedBytes;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.io.BytesWritable;
 
 import java.nio.ByteBuffer;
@@ -129,5 +130,9 @@ public class Bytes {
    */
   public static byte[] getBytes(Tuple tuple, int fieldIndex) {
     return getBytes((BytesWritable) tuple.getObject(fieldIndex));
+  }
+
+  public static String encodeHex(byte[] bytes) {
+    return String.valueOf(Hex.encodeHex(bytes));
   }
 }
