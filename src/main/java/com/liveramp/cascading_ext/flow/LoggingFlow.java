@@ -1,12 +1,12 @@
 /**
  * Copyright 2012 LiveRamp
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,37 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import cascading.flow.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.JobID;
+import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.mapred.TaskAttemptID;
+import org.apache.hadoop.mapred.TaskCompletionEvent;
+import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
+import org.apache.log4j.Logger;
+
+import cascading.flow.Flow;
+import cascading.flow.FlowException;
+import cascading.flow.FlowListener;
+import cascading.flow.FlowProcess;
+import cascading.flow.FlowSkipStrategy;
+import cascading.flow.FlowStep;
+import cascading.flow.FlowStepStrategy;
 import cascading.flow.planner.PlatformInfo;
 import cascading.management.UnitOfWorkSpawnStrategy;
 import cascading.stats.FlowStats;
@@ -25,20 +55,8 @@ import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-import com.liveramp.cascading_ext.counters.Counters;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
-import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.liveramp.cascading_ext.counters.Counters;
 
 /**
  * Delegates actual flow operations to a flow that gets passed in, but performs some additional logging when the job
@@ -63,8 +81,8 @@ public class LoggingFlow implements Flow<JobConf> {
       logCounters();
     } catch (FlowException e) {
       logJobIDs();
-      logJobErrors();
-      throw e;
+      String jobErrors = logJobErrors();
+      throw new RuntimeException(jobErrors, e);
     }
   }
 
@@ -111,7 +129,7 @@ public class LoggingFlow implements Flow<JobConf> {
       for (FlowStepStats stat : stepStats) {
 
         try {
-          JobID jobid = ((HadoopStepStats) stat).getRunningJob().getID();
+          JobID jobid = ((HadoopStepStats)stat).getRunningJob().getID();
           String jtID = jobid.getJtIdentifier();
           String jobID = Integer.toString(jobid.getId());
           jobIDs.add(jtID + "_" + jobID);
@@ -131,14 +149,15 @@ public class LoggingFlow implements Flow<JobConf> {
     }
   }
 
-  private void logJobErrors() {
+  private String logJobErrors() {
     boolean exceptions = false;
+    StringBuilder jobErrors = new StringBuilder();
     try {
       List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
       Set<String> jobFailures = new HashSet<String>();
       for (FlowStepStats stat : stepStats) {
         try {
-          RunningJob job = ((HadoopStepStats) stat).getRunningJob();
+          RunningJob job = ((HadoopStepStats)stat).getRunningJob();
           TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
           ArrayList<TaskCompletionEvent> failures = new ArrayList<TaskCompletionEvent>();
           for (TaskCompletionEvent event : events) {
@@ -149,7 +168,7 @@ public class LoggingFlow implements Flow<JobConf> {
           // We limit the number of potential logs being pulled to spare the jobtracker
           if (failures.size() > 0) {
             Collections.shuffle(failures);
-            for (int i = 0; i < FAILURES_TO_QUERY; i++ ) {
+            for (int i = 0; i < FAILURES_TO_QUERY; i++) {
               jobFailures.add(getFailureLog(failures.get(i)));
             }
           }
@@ -158,15 +177,21 @@ public class LoggingFlow implements Flow<JobConf> {
         }
       }
       if (exceptions) {
-        LOG.info("unable to retrieve failures from all completed steps!");
-        LOG.info("successfully retrieved job failures: " + StringUtils.join(jobFailures, ", "));
+        logAndAppend(jobErrors, "unable to retrieve failures from all completed steps!");
+        logAndAppend(jobErrors, "successfully retrieved job failures: " + StringUtils.join(jobFailures, ", "));
       } else {
-        LOG.info("step attempt failures: " + StringUtils.join(jobFailures, ", "));
+        logAndAppend(jobErrors, "step attempt failures: " + StringUtils.join(jobFailures, ", "));
       }
     } catch (Exception e) {
-      LOG.info("unable to retrieve any failures from steps");
-      LOG.info(e);
+      logAndAppend(jobErrors, "unable to retrieve any failures from steps");
+      logAndAppend(jobErrors, e.toString());
     }
+    return jobErrors.toString();
+  }
+
+  private static void logAndAppend(StringBuilder sb, String str) {
+    LOG.info(str);
+    sb.append(str);
   }
 
   private static String getFailureLog(TaskCompletionEvent event) {
