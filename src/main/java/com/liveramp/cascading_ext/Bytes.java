@@ -58,6 +58,14 @@ public class Bytes {
     return remaining;
   }
 
+  public static BytesWritable byteBufferToBytesWritable(ByteBuffer buffer){
+    return new BytesWritable(byteBufferToByteArray(buffer));
+  }
+
+  public static ByteBuffer bytesWriteableToByteBuffer(BytesWritable writable){
+    return ByteBuffer.wrap(getBytes(writable));
+  }
+
   public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
     return byteBuffer.hasArray()
         && byteBuffer.position() == 0
