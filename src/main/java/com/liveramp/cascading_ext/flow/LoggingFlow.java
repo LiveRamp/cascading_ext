@@ -82,7 +82,12 @@ public class LoggingFlow implements Flow<JobConf> {
     } catch (FlowException e) {
       logJobIDs();
       String jobErrors = logJobErrors();
-      throw new RuntimeException(jobErrors, e);
+      if (e.getCause() instanceof ClusterException) {
+        throw e;
+      } else {
+        throw new ClusterException(jobErrors, e);
+      }
+
     }
   }
 
@@ -152,6 +157,8 @@ public class LoggingFlow implements Flow<JobConf> {
   private String logJobErrors() {
     boolean exceptions = false;
     StringBuilder jobErrors = new StringBuilder();
+    final String divider = StringUtils.repeat("-", 80);
+    logAndAppend(jobErrors, divider);
     try {
       List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
       Set<String> jobFailures = new HashSet<String>();
@@ -186,12 +193,13 @@ public class LoggingFlow implements Flow<JobConf> {
       logAndAppend(jobErrors, "unable to retrieve any failures from steps");
       logAndAppend(jobErrors, e.toString());
     }
+    logAndAppend(jobErrors, divider);
     return jobErrors.toString();
   }
 
   private static void logAndAppend(StringBuilder sb, String str) {
     LOG.info(str);
-    sb.append(str);
+    sb.append(str + "\n");
   }
 
   private static String getFailureLog(TaskCompletionEvent event) {
