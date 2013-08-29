@@ -17,6 +17,7 @@
 package com.liveramp.cascading_ext;
 
 import com.liveramp.cascading_ext.bloom.BloomProps;
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Level;
@@ -46,7 +47,8 @@ public abstract class BaseTestCase {
     CascadingUtil.get().setDefaultProperty(BloomProps.NUM_BLOOM_BITS, 10);
     CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 5);
 
-    fs.delete(new Path(TEST_ROOT), true);
+    TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(TEST_ROOT));
+
     System.err.println("------ test start ------");
     System.out.println("------ test start ------");
   }

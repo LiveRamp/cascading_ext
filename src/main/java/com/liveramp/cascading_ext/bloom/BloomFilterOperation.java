@@ -21,6 +21,7 @@ import cascading.operation.BaseOperation;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import com.liveramp.cascading_ext.FileSystemHelper;
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -83,7 +84,7 @@ public abstract class BloomFilterOperation extends BaseOperation {
     if (cleanUpFilter) {
       try {
         String bloomFilter = getBloomFilterFile((JobConf) process.getConfigCopy());
-        FileSystemHelper.getFS().delete(new Path(bloomFilter), true);
+        TrashHelper.deleteUsingTrashIfEnabled(FileSystemHelper.getFS(), new Path(bloomFilter));
       } catch (IOException e) {
         LOG.info("Error deleting bloom filter!");
       }

@@ -26,6 +26,7 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -75,7 +76,7 @@ public class NullTap extends Hfs implements FlowListener {
       FileSystem fs = FileSystem.get((JobConf) flow.getConfig());
       if (fs.exists(getPath())) {
         LOG.info("Deleting NullTap path: " + getPath());
-        fs.delete(getPath(), true);
+        TrashHelper.deleteUsingTrashIfEnabled(fs, getPath());
       }
     } catch (IOException e) {
       throw new TapException(e);
