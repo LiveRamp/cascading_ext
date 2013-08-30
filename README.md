@@ -105,7 +105,7 @@ You can either build cascading_ext from source as described below, or pull the l
 </repository>
 ```
 
-Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot version (0.2) is built against CDH4.1.2.  Both are available via Maven:
+Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot version (1.6) is built against CDH4.1.2.  Both are available via Maven:
 
 ```xml
 
@@ -118,7 +118,7 @@ Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot v
 <dependency>
     <groupId>com.liveramp</groupId>
     <artifactId>cascading_ext</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>1.6-SNAPSHOT</version>
 </dependency>
 ```
 
