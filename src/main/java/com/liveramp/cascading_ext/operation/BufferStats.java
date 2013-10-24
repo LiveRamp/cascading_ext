@@ -19,6 +19,7 @@ package com.liveramp.cascading_ext.operation;
 import cascading.flow.FlowProcess;
 import cascading.operation.Buffer;
 import cascading.operation.BufferCall;
+import cascading.tuple.Fields;
 import cascading.tuple.TupleEntry;
 import com.liveramp.cascading_ext.operation.forwarding.ForwardingBuffer;
 import com.liveramp.cascading_ext.util.OperationStatsUtils;
@@ -76,6 +77,21 @@ public class BufferStats extends ForwardingBuffer {
     @Override
     public Iterator<TupleEntry> getArgumentsIterator() {
       return delegate.getArgumentsIterator();
+    }
+
+    @Override
+    public Fields getDeclaredFields() {
+      return delegate.getDeclaredFields();
+    }
+
+    @Override
+    public void setRetainValues(boolean retainValues) {
+      delegate.setRetainValues(retainValues);
+    }
+
+    @Override
+    public boolean isRetainValues() {
+      return delegate.isRetainValues();
     }
 
     @Override
