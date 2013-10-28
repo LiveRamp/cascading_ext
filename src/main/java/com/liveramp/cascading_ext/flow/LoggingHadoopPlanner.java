@@ -16,13 +16,18 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import cascading.flow.*;
+import cascading.flow.FlowConnector;
+import cascading.flow.FlowDef;
+import cascading.flow.FlowElement;
+import cascading.flow.FlowStepStrategy;
+import cascading.flow.hadoop.HadoopFlow;
 import cascading.flow.hadoop.planner.HadoopPlanner;
 import cascading.flow.hadoop.util.HadoopUtil;
 import cascading.flow.hadoop.util.ObjectSerializer;
 import cascading.flow.planner.ElementGraph;
 import cascading.operation.Operation;
 import cascading.pipe.Operator;
+import cascading.pipe.Pipe;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
@@ -47,15 +52,15 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
   }
 
   @Override
-  public Flow buildFlow(FlowDef flowDef) {
-    Flow<JobConf> internalFlow = super.buildFlow(flowDef);
-    internalFlow.setFlowStepStrategy(flowStepStrategy);
-    return new LoggingFlow(internalFlow);
+  protected HadoopFlow createFlow( FlowDef flowDef ){
+    LoggingFlow flow = new LoggingFlow( getPlatformInfo(), getProperties(), getConfig(), flowDef );
+    flow.setFlowStepStrategy(flowStepStrategy);
+    return flow;
   }
 
   @Override
-  protected ElementGraph createElementGraph(FlowDef flowDef) {
-    final ElementGraph elementGraph = super.createElementGraph(flowDef);
+  protected ElementGraph createElementGraph(FlowDef flowDef, Pipe[] pipes) {
+    final ElementGraph elementGraph = super.createElementGraph(flowDef, pipes);
 
     verifyAllOperationsAreSerializable(elementGraph);
 

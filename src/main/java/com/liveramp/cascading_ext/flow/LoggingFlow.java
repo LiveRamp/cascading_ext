@@ -16,21 +16,14 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import cascading.flow.Flow;
+import cascading.flow.FlowDef;
+import cascading.flow.FlowException;
+import cascading.flow.hadoop.HadoopFlow;
+import cascading.flow.planner.PlatformInfo;
+import cascading.stats.FlowStepStats;
+import cascading.stats.hadoop.HadoopStepStats;
+import com.liveramp.cascading_ext.counters.Counters;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
@@ -40,43 +33,36 @@ import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
 import org.apache.log4j.Logger;
 
-import cascading.flow.Flow;
-import cascading.flow.FlowException;
-import cascading.flow.FlowListener;
-import cascading.flow.FlowProcess;
-import cascading.flow.FlowSkipStrategy;
-import cascading.flow.FlowStep;
-import cascading.flow.FlowStepStrategy;
-import cascading.flow.planner.PlatformInfo;
-import cascading.management.UnitOfWorkSpawnStrategy;
-import cascading.stats.FlowStats;
-import cascading.stats.FlowStepStats;
-import cascading.stats.hadoop.HadoopStepStats;
-import cascading.tap.Tap;
-import cascading.tuple.TupleEntryCollector;
-import cascading.tuple.TupleEntryIterator;
-
-import com.liveramp.cascading_ext.counters.Counters;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Delegates actual flow operations to a flow that gets passed in, but performs some additional logging when the job
  * completes or fails.
  */
-public class LoggingFlow implements Flow<JobConf> {
+public class LoggingFlow extends HadoopFlow {
   private static final Pattern LOG_ERROR_PATTERN = Pattern.compile("Caused by.*?\\d\\d\\d\\d-\\d\\d-\\d\\d", Pattern.DOTALL);
   private static Logger LOG = Logger.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
 
-  private final Flow<JobConf> internalFlow;
-
-  public LoggingFlow(Flow<JobConf> internalFlow) {
-    this.internalFlow = internalFlow;
+  public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object,Object> properties, JobConf jobConf, FlowDef flowDef) {
+    super(platformInfo, properties, jobConf, flowDef);
   }
 
   @Override
   public void complete() {
     try {
-      internalFlow.complete();
+      super.complete();
       logJobIDs();
       logCounters();
     } catch (FlowException e) {
@@ -86,45 +72,10 @@ public class LoggingFlow implements Flow<JobConf> {
     }
   }
 
-  @Override
-  public void cleanup() {
-    internalFlow.cleanup();
-  }
-
-  @Override
-  public TupleEntryIterator openSource() throws IOException {
-    return internalFlow.openSource();
-  }
-
-  @Override
-  public TupleEntryIterator openSource(String name) throws IOException {
-    return internalFlow.openSource(name);
-  }
-
-  @Override
-  public TupleEntryIterator openSink() throws IOException {
-    return internalFlow.openSink();
-  }
-
-  @Override
-  public TupleEntryIterator openSink(String name) throws IOException {
-    return internalFlow.openSink(name);
-  }
-
-  @Override
-  public TupleEntryIterator openTrap() throws IOException {
-    return internalFlow.openTrap();
-  }
-
-  @Override
-  public TupleEntryIterator openTrap(String name) throws IOException {
-    return internalFlow.openTrap(name);
-  }
-
   private void logJobIDs() {
     boolean exceptions = false;
     try {
-      List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
+      List<FlowStepStats> stepStats = getFlowStats().getFlowStepStats();
       List<String> jobIDs = new ArrayList<String>();
       for (FlowStepStats stat : stepStats) {
 
@@ -155,7 +106,7 @@ public class LoggingFlow implements Flow<JobConf> {
     final String divider = StringUtils.repeat("-", 80);
     logAndAppend(jobErrors, divider);
     try {
-      List<FlowStepStats> stepStats = internalFlow.getFlowStats().getFlowStepStats();
+      List<FlowStepStats> stepStats = getFlowStats().getFlowStepStats();
       Set<String> jobFailures = new HashSet<String>();
       for (FlowStepStats stat : stepStats) {
         try {
@@ -264,258 +215,4 @@ public class LoggingFlow implements Flow<JobConf> {
     LOG.info(Counters.prettyCountersString(this));
   }
 
-  @Override
-  public String getID() {
-    return internalFlow == null ? "NA" : internalFlow.getID();
-  }
-
-  @Override
-  public String getTags() {
-    return internalFlow.getTags();
-  }
-
-  @Override
-  public int getSubmitPriority() {
-    return internalFlow.getSubmitPriority();
-  }
-
-  @Override
-  public void setSubmitPriority(int submitPriority) {
-    internalFlow.setSubmitPriority(submitPriority);
-  }
-
-  @Override
-  public String getCascadeID() {
-    return internalFlow.getCascadeID();
-  }
-
-  @Override
-  public String getRunID() {
-    return internalFlow.getRunID();
-  }
-
-  @Override
-  public PlatformInfo getPlatformInfo() {
-    return internalFlow.getPlatformInfo();
-  }
-
-  @Override
-  public void setSpawnStrategy(UnitOfWorkSpawnStrategy spawnStrategy) {
-    internalFlow.setSpawnStrategy(spawnStrategy);
-  }
-
-  @Override
-  public UnitOfWorkSpawnStrategy getSpawnStrategy() {
-    return internalFlow.getSpawnStrategy();
-  }
-
-  @Override
-  public boolean stepsAreLocal() {
-    return internalFlow.stepsAreLocal();
-  }
-
-  @Override
-  public boolean resourceExists(Tap tap) throws IOException {
-    return internalFlow.resourceExists(tap);
-  }
-
-  @Override
-  public TupleEntryIterator openTapForRead(Tap tap) throws IOException {
-    return internalFlow.openTapForRead(tap);
-  }
-
-  @Override
-  public TupleEntryCollector openTapForWrite(Tap tap) throws IOException {
-    return internalFlow.openTapForWrite(tap);
-  }
-
-  @Override
-  public String toString() {
-    return internalFlow.toString();
-  }
-
-  @Override
-  public void writeDOT(String filename) {
-    internalFlow.writeDOT(filename);
-  }
-
-  @Override
-  public void writeStepsDOT(String filename) {
-    internalFlow.writeStepsDOT(filename);
-  }
-
-  @Override
-  public JobConf getConfig() {
-    return internalFlow.getConfig();
-  }
-
-  @Override
-  public JobConf getConfigCopy() {
-    return internalFlow.getConfigCopy();
-  }
-
-  @Override
-  public Map<Object, Object> getConfigAsProperties() {
-    return internalFlow.getConfigAsProperties();
-  }
-
-  @Override
-  public String getProperty(String key) {
-    return internalFlow.getProperty(key);
-  }
-
-  @Override
-  public FlowProcess<JobConf> getFlowProcess() {
-    return internalFlow.getFlowProcess();
-  }
-
-  @Override
-  public String getName() {
-    return internalFlow.getName();
-  }
-
-  @Override
-  public FlowStats getFlowStats() {
-    return internalFlow.getFlowStats();
-  }
-
-  @Override
-  public FlowStats getStats() {
-    return internalFlow.getStats();
-  }
-
-  @Override
-  public boolean hasListeners() {
-    return internalFlow.hasListeners();
-  }
-
-  @Override
-  public void addListener(FlowListener flowListener) {
-    internalFlow.addListener(flowListener);
-  }
-
-  @Override
-  public boolean removeListener(FlowListener flowListener) {
-    return internalFlow.removeListener(flowListener);
-  }
-
-  @Override
-  public Map<String, Tap> getSources() {
-    return internalFlow.getSources();
-  }
-
-  @Override
-  public Tap getSource(String name) {
-    return internalFlow.getSource(name);
-  }
-
-  @Override
-  public Collection<Tap> getSourcesCollection() {
-    return internalFlow.getSourcesCollection();
-  }
-
-  @Override
-  public Map<String, Tap> getSinks() {
-    return internalFlow.getSinks();
-  }
-
-  @Override
-  public Tap getSink(String name) {
-    return internalFlow.getSink(name);
-  }
-
-  @Override
-  public Collection<Tap> getSinksCollection() {
-    return internalFlow.getSinksCollection();
-  }
-
-  @Override
-  public Tap getSink() {
-    return internalFlow.getSink();
-  }
-
-  @Override
-  public Map<String, Tap> getTraps() {
-    return internalFlow.getTraps();
-  }
-
-  @Override
-  public Collection<Tap> getTrapsCollection() {
-    return internalFlow.getTrapsCollection();
-  }
-
-  @Override
-  public Map<String, Tap> getCheckpoints() {
-    return internalFlow.getCheckpoints();
-  }
-
-  @Override
-  public Collection<Tap> getCheckpointsCollection() {
-    return internalFlow.getCheckpointsCollection();
-  }
-
-  @Override
-  public boolean isStopJobsOnExit() {
-    return internalFlow.isStopJobsOnExit();
-  }
-
-  @Override
-  public FlowSkipStrategy getFlowSkipStrategy() {
-    return internalFlow.getFlowSkipStrategy();
-  }
-
-  @Override
-  public FlowSkipStrategy setFlowSkipStrategy(FlowSkipStrategy flowSkipStrategy) {
-    return internalFlow.setFlowSkipStrategy(flowSkipStrategy);
-  }
-
-  @Override
-  public boolean isSkipFlow() throws IOException {
-    return internalFlow.isSkipFlow();
-  }
-
-  @Override
-  public boolean areSinksStale() throws IOException {
-    return internalFlow.areSinksStale();
-  }
-
-  @Override
-  public boolean areSourcesNewer(long sinkModified) throws IOException {
-    return internalFlow.areSourcesNewer(sinkModified);
-  }
-
-  @Override
-  public long getSinkModified() throws IOException {
-    return internalFlow.getSinkModified();
-  }
-
-  @Override
-  public FlowStepStrategy getFlowStepStrategy() {
-    return internalFlow.getFlowStepStrategy();
-  }
-
-  @Override
-  public void setFlowStepStrategy(FlowStepStrategy flowStepStrategy) {
-    internalFlow.setFlowStepStrategy(flowStepStrategy);
-  }
-
-  @Override
-  public List<FlowStep<JobConf>> getFlowSteps() {
-    return internalFlow.getFlowSteps();
-  }
-
-  @Override
-  public void prepare() {
-    internalFlow.prepare();
-  }
-
-  @Override
-  public void start() {
-    internalFlow.start();
-  }
-
-  @Override
-  public void stop() {
-    internalFlow.stop();
-  }
 }
