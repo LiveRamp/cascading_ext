@@ -17,6 +17,24 @@
     <tag>HEAD</tag>
   </scm>
 
+  <repositories>
+    <repository>
+      <id>conjars.org</id>
+      <name>Conjars</name>
+      <url>http://conjars.org/repo</url>
+    </repository>
+    <repository>
+      <id>cdh.repo</id>
+      <name>Cloudera</name>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    </repository>
+    <repository>
+      <id>liveramp-repositories</id>
+      <name>Liveramp Repositories</name>
+      <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <dependency>
