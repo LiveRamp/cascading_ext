@@ -32,6 +32,10 @@
       <id>liveramp-repositories</id>
       <name>Liveramp Repositories</name>
       <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
     </repository>
   </repositories>
 
