@@ -206,6 +206,14 @@ public abstract class BloomAssembly extends SubAssembly {
       }
       return new Scope(super.outgoingScopeFor(Collections.singleton(toUse)));
     }
+
+    /**
+     * Scope mangling will cause NPE when trying to printInternal -- override with simple name
+     */
+    @Override
+    protected void printInternal( StringBuffer buffer, Scope scope ) {
+      buffer.append( getClass().getSimpleName() ).append( "('" ).append( getName() ).append( "')" );
+    }
   }
 
   private static class GetSerializedTuple extends BaseOperation implements Function {
