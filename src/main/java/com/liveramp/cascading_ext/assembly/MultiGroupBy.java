@@ -16,13 +16,19 @@
 
 package com.liveramp.cascading_ext.assembly;
 
-import cascading.operation.*;
-import cascading.pipe.*;
+import cascading.operation.Filter;
+import cascading.pipe.CoGroup;
+import cascading.pipe.Each;
+import cascading.pipe.Every;
+import cascading.pipe.Operator;
+import cascading.pipe.Pipe;
+import cascading.pipe.Splice;
+import cascading.pipe.SubAssembly;
 import cascading.pipe.assembly.Retain;
+import cascading.pipe.joiner.BufferJoin;
 import cascading.tuple.Fields;
 import com.liveramp.cascading_ext.multi_group_by.MultiBuffer;
-import com.liveramp.cascading_ext.multi_group_by.MultiGroupJoiner;
-import com.liveramp.cascading_ext.operation.AppendOperation;
+import com.liveramp.cascading_ext.multi_group_by.MultiBufferOperation;
 
 import java.util.Arrays;
 
@@ -56,42 +62,51 @@ public class MultiGroupBy extends SubAssembly {
 
   protected void init(Pipe[] pipes, Fields[] allFields, Fields[] groupFields, Fields groupingRename, MultiBuffer operation) {
 
-    Fields groupTmp = makePad("__GROUP_TMP", groupingRename.size());
-    Fields resultFields = Fields.join(groupTmp, operation.getResultFields());
+    Pipe grouped = new CoGroup(pipes, groupFields, groupingRename, new BufferJoin());
 
-    int inputsSum = 0;
-    for(Fields field: allFields){
-      inputsSum+=field.size();
-    }
+    grouped = new Every(grouped,
+      new MultiBufferOperation(operation)
+    );
 
-    //  rename pipe tails to be the same
-    for(int i = 0; i < pipes.length; i++){
-      pipes[i] = new RenameInPlace(pipes[i], allFields[i], groupFields[i], groupTmp);
-    }
+    setTails(grouped);
 
-    //  pad output or input with more fields to make numbers add up
-    int extraOutput = resultFields.size() - inputsSum;
 
-    //  pad output with null fields
-    if(extraOutput < 0){
-      resultFields = resultFields.append(makePad("__MGB_TMP", -extraOutput));
-    }
+//    Fields groupTmp = makePad("__GROUP_TMP", groupingRename.size());
+//    Fields resultFields = Fields.join(groupTmp, operation.getResultFields());
+//
+//    int inputsSum = 0;
+//    for(Fields field: allFields){
+//      inputsSum+=field.size();
+//    }
+//
+//    //  rename pipe tails to be the same
+//    for(int i = 0; i < pipes.length; i++){
+//      pipes[i] = new RenameInPlace(pipes[i], allFields[i], groupFields[i], groupTmp);
+//    }
+//
+//    //  pad output or input with more fields to make numbers add up
+//    int extraOutput = resultFields.size() - inputsSum;
+//
+//    //  pad output with null fields
+//    if(extraOutput < 0){
+//      resultFields = resultFields.append(makePad("__MGB_TMP", -extraOutput));
+//    }
+//
+//    //  need to pad one of the inputs with extra fields to allow the buffer to output the extra fields
+//    else if(extraOutput > 0){
+//      pipes[0] = new Each(pipes[0],
+//          new AppendOperation(makePad("__MGB_TMP", extraOutput)),
+//          Fields.ALL);
+//    }
+//
+//    Fields[] groupCopy = new Fields[groupFields.length];
+//    Arrays.fill(groupCopy, groupTmp);
+//
+//    Pipe result = new CoGroup(pipes, groupCopy, resultFields,
+//        new MultiGroupJoiner(resultFields.size()-operation.getResultFields().size(), operation));
+//    result = new Each(result, resultFields, new Identity());
+//    result = new RenameInPlace(result, resultFields, groupTmp, groupingRename);
 
-    //  need to pad one of the inputs with extra fields to allow the buffer to output the extra fields
-    else if(extraOutput > 0){
-      pipes[0] = new Each(pipes[0],
-          new AppendOperation(makePad("__MGB_TMP", extraOutput)),
-          Fields.ALL);
-    }
-
-    Fields[] groupCopy = new Fields[groupFields.length];
-    Arrays.fill(groupCopy, groupTmp);
-
-    Pipe result = new CoGroup(pipes, groupCopy, resultFields,
-        new MultiGroupJoiner(resultFields.size()-operation.getResultFields().size(), operation));
-    result = new Each(result, resultFields, new Identity());
-    result = new RenameInPlace(result, resultFields, groupTmp, groupingRename);
-    setTails(result);
   }
 
   private static Fields[] findTailFields(Pipe[] pipes){
