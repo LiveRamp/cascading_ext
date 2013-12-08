@@ -64,19 +64,17 @@ public class MultiGroupBy extends SubAssembly {
 
   protected void init(Pipe[] pipes, Fields[] groupFields, Fields groupRename, MultiBuffer operation) {
 
-    LOG.info("new-mgb");
+    Fields outputFields = groupRename.append(operation.getResultFields());
 
     Pipe grouped = new CoGroup(pipes, groupFields, null, null, new BufferJoin());
 
-    Fields resultFields = groupRename.append(operation.getResultFields());
-
     grouped = new Every(grouped,
         new MultiBufferOperation(groupRename, operation),
-        resultFields
+        outputFields
     );
 
     grouped = new Retain(grouped,
-        resultFields
+        outputFields
     );
 
     setTails(grouped);
