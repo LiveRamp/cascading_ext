@@ -49,7 +49,7 @@ public abstract class MultiBuffer implements Serializable {
   public abstract void operate();
 
   protected void emit(Tuple result) {
-    call.getOutputCollector().add(result);
+    call.getOutputCollector().add(closure.getGrouping().append(result));
   }
 
   protected Iterator<Tuple> getArgumentsIterator(int pos) {

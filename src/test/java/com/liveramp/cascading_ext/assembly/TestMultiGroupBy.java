@@ -40,7 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class TestMultiGroupBy extends BaseTestCase {
 
@@ -84,7 +85,6 @@ public class TestMultiGroupBy extends BaseTestCase {
     Pipe s2 = new Pipe("s2");
 
     Pipe results = new MultiGroupBy(new Pipe[]{s1, s2},
-        new Fields[]{new Fields("key", "num"), new Fields("key", "num1", "num2")},
         new Fields[]{new Fields("key"), new Fields("key")},
         new Fields("key"),
         new CustomBuffer(new Fields("result", " result1", "result2", "result3", "result4", "result5")));
@@ -152,7 +152,6 @@ public class TestMultiGroupBy extends BaseTestCase {
 
     Pipe results = new MultiGroupBy(s1, new Fields("key"), s2, new Fields("key"),
         new Fields("key-rename"), new CustomBuffer(new Fields("result")));
-
     CascadingUtil.get().getFlowConnector().connect(sources, sink, results).complete();
 
     TupleEntryIterator iter = sink.openForRead(CascadingUtil.get().getFlowProcess());
