@@ -152,7 +152,7 @@ public class TestMultiGroupBy extends BaseTestCase {
 
     Pipe results = new MultiGroupBy(s1, new Fields("key"), s2, new Fields("key"),
         new Fields("key-rename"), new CustomBuffer(new Fields("result")));
-    
+
     CascadingUtil.get().getFlowConnector().connect(sources, sink, results).complete();
 
     TupleEntryIterator iter = sink.openForRead(CascadingUtil.get().getFlowProcess());
