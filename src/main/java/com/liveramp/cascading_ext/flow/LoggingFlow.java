@@ -68,7 +68,8 @@ public class LoggingFlow extends HadoopFlow {
     } catch (FlowException e) {
       logJobIDs();
       String jobErrors = logJobErrors();
-      throw new RuntimeException(jobErrors, e);
+      // jobErrors starts with a line delimiter, so prepend it with a newline so that it aligns correctly when printing exceptions
+      throw new RuntimeException("\n" + jobErrors, e);
     }
   }
 
