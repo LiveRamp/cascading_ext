@@ -59,6 +59,14 @@ public class Counter implements Comparable<Counter> {
         && ((Counter) other).value.equals(value);
   }
 
+  @Override
+  public int hashCode() {
+    int result = group != null ? group.hashCode() : 0;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (value != null ? value.hashCode() : 0);
+    return result;
+  }
+
   private String prettyValue() {
     if (value == null) {
       return "null";
