@@ -142,7 +142,7 @@ public class CascadingUtil {
     return new JobConf(conf);
   }
 
-  public void addFlowListener(FlowListener flowListener) {
+  public void addDefaultFlowListener(FlowListener flowListener) {
     defaultFlowListeners.add(flowListener);
   }
 
