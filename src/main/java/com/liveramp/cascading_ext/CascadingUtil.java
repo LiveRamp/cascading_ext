@@ -17,9 +17,11 @@
 package com.liveramp.cascading_ext;
 
 import cascading.flow.FlowConnector;
+import cascading.flow.FlowListener;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import com.google.common.collect.ImmutableList;
 import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
@@ -56,6 +58,7 @@ public class CascadingUtil {
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
+  private final Collection<FlowListener> defaultFlowListeners = new ArrayList<FlowListener>();
 
   private transient JobConf conf = null;
 
@@ -139,6 +142,10 @@ public class CascadingUtil {
     return new JobConf(conf);
   }
 
+  public void addDefaultFlowListener(FlowListener flowListener) {
+    defaultFlowListeners.add(flowListener);
+  }
+
   public FlowConnector getFlowConnector() {
     return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
         Collections.<FlowStepStrategy<JobConf>>emptyList());
@@ -174,6 +181,7 @@ public class CascadingUtil {
 
     return new LoggingFlowConnector(combinedProperties,
         new MultiFlowStepStrategy(combinedStrategies),
+        ImmutableList.copyOf(defaultFlowListeners),
         OperationStatsUtils.formatStackPosition(OperationStatsUtils.getStackPosition(2)));
   }
 

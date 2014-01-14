@@ -18,13 +18,17 @@ package com.liveramp.cascading_ext.flow;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowDef;
+import cascading.flow.FlowListener;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
+import com.google.common.collect.ImmutableList;
 import com.liveramp.cascading_ext.CascadingUtil;
 import org.apache.hadoop.mapred.JobConf;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -34,6 +38,7 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
 
   private final FlowStepStrategy<JobConf> flowStepStrategy;
   private final String defaultFlowName;
+  private final Collection<FlowListener> defaultFlowListeners;
 
   public LoggingFlowConnector(Map<Object, Object> properties,
                               FlowStepStrategy<JobConf> flowStepStrategy) {
@@ -43,8 +48,16 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
   public LoggingFlowConnector(Map<Object, Object> properties,
                               FlowStepStrategy<JobConf> flowStepStrategy,
                               String defaultFlowName) {
+    this(properties, flowStepStrategy, Collections.<FlowListener>emptyList(), defaultFlowName);
+  }
+
+  public LoggingFlowConnector(Map<Object, Object> properties,
+                              FlowStepStrategy<JobConf> flowStepStrategy,
+                              Collection<FlowListener> defaultFlowListeners,
+                              String defaultFlowName) {
     super(properties);
     this.flowStepStrategy = flowStepStrategy;
+    this.defaultFlowListeners = ImmutableList.copyOf(defaultFlowListeners);
     this.defaultFlowName = defaultFlowName;
   }
 
@@ -61,16 +74,21 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
         .addSinks(sinks)
         .addTraps(traps);
 
-    if(getProperties().containsKey(CascadingUtil.CASCADING_RUN_ID)){
+    if (getProperties().containsKey(CascadingUtil.CASCADING_RUN_ID)) {
 
       //  cascading checkpointing fails if the job is named creatively with special chars.  Be safe for now and only allow path-friendly chars
-      if(!CHECKPOINT_SAFE_NAME.matcher(flowName).matches()){
-        throw new RuntimeException("Flow name "+flowName+" not compatible with checkpointing! Remove special characters from name.");
+      if (!CHECKPOINT_SAFE_NAME.matcher(flowName).matches()) {
+        throw new RuntimeException("Flow name " + flowName + " not compatible with checkpointing! Remove special characters from name.");
       }
 
       definition.setRunID((String) getProperties().get(CascadingUtil.CASCADING_RUN_ID));
     }
 
-    return planner.buildFlow(definition);
+    final Flow flow = planner.buildFlow(definition);
+
+    for (FlowListener flowListener : defaultFlowListeners) {
+      flow.addListener(flowListener);
+    }
+    return flow;
   }
 }
