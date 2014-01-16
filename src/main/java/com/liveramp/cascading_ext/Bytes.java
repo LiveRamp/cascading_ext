@@ -16,78 +16,25 @@
 
 package com.liveramp.cascading_ext;
 
-import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntry;
-import com.google.common.primitives.UnsignedBytes;
-import org.apache.commons.codec.binary.Hex;
+import java.nio.ByteBuffer;
+
 import org.apache.hadoop.io.BytesWritable;
 
-import java.nio.ByteBuffer;
-import java.util.Comparator;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntry;
 
+import com.liveramp.commons.util.BytesUtils;
 /**
  * Collection of methods for safely converting between byte[], BytesWritable and ByteBuffer. Some
  * byte[] methods delegate to Guava's UnsignedBytes
  */
 public class Bytes {
-  private static final Comparator<byte[]> BYTES_COMPARATOR = UnsignedBytes.lexicographicalComparator();
-
-  /**
-   * If the given ByteBuffer wraps completely its underlying byte array, return the underlying
-   * byte array (no copy). Otherwise, return a deep copy of the range represented by the given
-   * ByteBuffer.
-   *
-   * @param byteBuffer
-   */
-  public static byte[] byteBufferToByteArray(ByteBuffer byteBuffer) {
-    if (wrapsFullArray(byteBuffer)) {
-      return byteBuffer.array();
-    }
-    byte[] target = new byte[byteBuffer.remaining()];
-    byteBufferToByteArray(byteBuffer, target, 0);
-    return target;
-  }
-
-  public static int byteBufferToByteArray(ByteBuffer byteBuffer, byte[] target, int offset) {
-    int remaining = byteBuffer.remaining();
-    System.arraycopy(byteBuffer.array(),
-        byteBuffer.arrayOffset() + byteBuffer.position(),
-        target,
-        offset,
-        remaining);
-    return remaining;
-  }
-
   public static BytesWritable byteBufferToBytesWritable(ByteBuffer buffer){
-    return new BytesWritable(byteBufferToByteArray(buffer));
+    return new BytesWritable(BytesUtils.byteBufferToByteArray(buffer));
   }
 
   public static ByteBuffer bytesWriteableToByteBuffer(BytesWritable writable){
     return ByteBuffer.wrap(getBytes(writable));
-  }
-
-  public static boolean wrapsFullArray(ByteBuffer byteBuffer) {
-    return byteBuffer.hasArray()
-        && byteBuffer.position() == 0
-        && byteBuffer.arrayOffset() == 0
-        && byteBuffer.remaining() == byteBuffer.capacity();
-  }
-
-  /**
-   * Always return a byte array that is a deep copy of the range represented
-   * by the given ByteBuffer.
-   *
-   * @param byteBuffer
-   * @return
-   */
-  public static byte[] byteBufferDeepCopy(ByteBuffer byteBuffer) {
-    byte[] target = new byte[byteBuffer.remaining()];
-    byteBufferToByteArray(byteBuffer, target, 0);
-    return target;
-  }
-
-  public static int compareBytes(byte[] b1, byte[] b2) {
-    return BYTES_COMPARATOR.compare(b1, b2);
   }
 
   public static byte[] getBytes(BytesWritable bw) {
@@ -138,9 +85,5 @@ public class Bytes {
    */
   public static byte[] getBytes(Tuple tuple, int fieldIndex) {
     return getBytes((BytesWritable) tuple.getObject(fieldIndex));
-  }
-
-  public static String encodeHex(byte[] bytes) {
-    return String.valueOf(Hex.encodeHex(bytes));
   }
 }
