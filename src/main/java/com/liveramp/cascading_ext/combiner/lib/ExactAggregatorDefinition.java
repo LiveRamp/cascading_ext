@@ -1,9 +1,10 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import java.io.Serializable;
 
 import cascading.tuple.Fields;
 
+import com.liveramp.cascading_ext.combiner.ExactAggregator;
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class ExactAggregatorDefinition implements Serializable {

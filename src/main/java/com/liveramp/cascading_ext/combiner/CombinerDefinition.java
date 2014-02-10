@@ -23,7 +23,6 @@ public class CombinerDefinition<T> implements Serializable {
   private final boolean strict;
   private final Evictor<T> evictor;
   private final boolean keepNullGroups;
-  private final CombinerTupleCopier tupleCopier;
 
   protected CombinerDefinition(
       PartialAggregator<T> partialAggregator,
@@ -35,7 +34,7 @@ public class CombinerDefinition<T> implements Serializable {
       String name,
       int limit,
       long memoryLimit,
-      CombinerTupleCopier tupleCopier, MemoryUsageEstimator<Tuple> keySizeEstimator,
+      MemoryUsageEstimator<Tuple> keySizeEstimator,
       MemoryUsageEstimator<T> valueSizeEstimator,
       boolean strict,
       Evictor<T> evictor,
@@ -47,7 +46,6 @@ public class CombinerDefinition<T> implements Serializable {
     this.inputFields = inputFields;
     this.intermediateFields = intermediateFields;
     this.outputFields = outputFields;
-    this.tupleCopier = tupleCopier;
     this.name = name != null ? name : makeName();
     this.id = this.name.hashCode();
     this.keepNullGroups = keepNullGroups;
@@ -124,10 +122,6 @@ public class CombinerDefinition<T> implements Serializable {
 
   public Evictor<T> getEvictor() {
     return evictor;
-  }
-
-  public CombinerTupleCopier getTupleCopier() {
-    return tupleCopier;
   }
 
   public boolean shouldKeepNullGroups() {

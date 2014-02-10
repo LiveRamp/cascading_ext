@@ -1,7 +1,9 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import cascading.pipe.Pipe;
 import cascading.tuple.Fields;
+import com.liveramp.cascading_ext.combiner.Combiner;
+import com.liveramp.cascading_ext.combiner.ExactAggregator;
 
 public class StrictCombiner<T> extends Combiner<T> {
 

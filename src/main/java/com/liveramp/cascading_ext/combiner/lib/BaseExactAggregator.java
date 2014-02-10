@@ -1,6 +1,7 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import cascading.tuple.Tuple;
+import com.liveramp.cascading_ext.combiner.ExactAggregator;
 
 public abstract class BaseExactAggregator<T> implements ExactAggregator<T> {
 

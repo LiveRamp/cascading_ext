@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
+import com.liveramp.cascading_ext.combiner.CombinerUtils;
+import com.liveramp.cascading_ext.combiner.ExactAggregator;
+import com.liveramp.cascading_ext.combiner.lib.ExactAggregatorDefinition;
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class MultiExactAggregator implements ExactAggregator<ArrayList<Object>> {

@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
@@ -6,6 +6,7 @@ import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus;
 import com.clearspring.analytics.stream.cardinality.ICardinality;
 import com.liveramp.cascading_ext.Bytes;
+import com.liveramp.cascading_ext.combiner.ExactAggregator;
 import org.apache.hadoop.io.BytesWritable;
 
 import java.io.IOException;

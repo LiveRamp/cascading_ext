@@ -1,4 +1,4 @@
-package com.liveramp.cascading_ext.combiner;
+package com.liveramp.cascading_ext.combiner.lib;
 
 import cascading.pipe.Pipe;
 import cascading.tuple.Fields;

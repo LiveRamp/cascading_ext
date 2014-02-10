@@ -20,7 +20,6 @@ public class CombinerDefinitionBuilder<T> {
   private Evictor<T> evictor = new DontEvict<T>();
   private String name;
   private boolean keepNullGroups = true;
-  private CombinerTupleCopier copier;
 
   public CombinerDefinitionBuilder<T> setPartialAggregator(PartialAggregator<T> partialAggregator) {
     this.partialAggregator = partialAggregator;
@@ -98,11 +97,6 @@ public class CombinerDefinitionBuilder<T> {
     return this;
   }
 
-  public CombinerDefinitionBuilder<T> setTupleCopier(CombinerTupleCopier copier) {
-    this.copier = copier;
-    return this;
-  }
-
   public CombinerDefinition<T> get() {
     if (intermediateFields == null) {
       intermediateFields = outputFields;
@@ -117,7 +111,6 @@ public class CombinerDefinitionBuilder<T> {
         name,
         limit,
         memoryLimit,
-        copier,
         keySizeEstimator,
         valueSizeEstimator,
         strict,

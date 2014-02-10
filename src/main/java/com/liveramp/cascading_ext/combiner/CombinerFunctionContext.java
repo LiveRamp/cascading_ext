@@ -5,8 +5,11 @@ import cascading.operation.FunctionCall;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.google.common.collect.Lists;
+import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.commons.collections.MemoryBoundLruHashMap;
+import org.apache.hadoop.mapred.JobConf;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,6 +27,7 @@ public class CombinerFunctionContext<T> implements Serializable {
   private TupleEntry input;
   private ArrayList<Integer> keyFieldsPos;
   private ArrayList<Integer> inputFieldsPos;
+  private TupleSerializationUtil serializationUtil;
 
   public CombinerFunctionContext(CombinerDefinition<T> definition) {
     this.definition = definition;
@@ -57,7 +61,8 @@ public class CombinerFunctionContext<T> implements Serializable {
     CombinerUtils.setTupleEntry(input, inputFieldsPos, definition.getInputFields(), arguments);
   }
 
-  public List<Tuple> combineAndEvict(FlowProcess flow) {
+  public List<Tuple> combineAndEvict(FlowProcess<JobConf> flow) {
+    this.serializationUtil = new TupleSerializationUtil(flow.getConfigCopy());
     if (containsNonNullField(key) || definition.shouldKeepNullGroups()) {
       long bytesBefore = 0;
       if (cache.isMemoryBound()) {
@@ -103,7 +108,7 @@ public class CombinerFunctionContext<T> implements Serializable {
         if (newAggregate == null) {
           throw new RuntimeException(this.getClass().getSimpleName() + " is not designed to work with aggregate values that are null.");
         }
-        List<Map.Entry<Tuple, T>> evicted = cache.putAndEvict(definition.getTupleCopier().deepCopy(key.getTuple()), newAggregate);
+        List<Map.Entry<Tuple, T>> evicted = cache.putAndEvict(deepCopy(key.getTuple()), newAggregate);
         if (flow != null) {
           flow.increment("Combiner", "Num Items", 1);
         }
@@ -133,6 +138,14 @@ public class CombinerFunctionContext<T> implements Serializable {
       return evictedTuples;
     }
     return null;
+  }
+
+  private Tuple deepCopy(Tuple tuple) {
+    try {
+      return serializationUtil.deserialize(serializationUtil.serialize(tuple));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private boolean containsNonNullField(TupleEntry key) {
