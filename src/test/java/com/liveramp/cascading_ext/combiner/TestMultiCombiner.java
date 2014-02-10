@@ -26,19 +26,19 @@ import static org.junit.Assert.assertEquals;
 
 public class TestMultiCombiner extends BaseTestCase {
 
-  public static final String PARTNER_A = "PartnerA";
-  public static final String DESTINATION_1 = "Destination1";
+  public static final String USER_A = "PartnerA";
+  public static final String ATTRIBUTE_1 = "Destination1";
   public static final String DAY1 = "day1";
   public static final String DAY2 = "day2";
-  public static final String DESTINATION_2 = "Destination2";
-  public static final String PARTNER_B = "PartnerB";
-  public static final String PARTNER_C = "PartnerC";
+  public static final String ATTRIBUTE_2 = "Destination2";
+  public static final String USER_B = "PartnerB";
+  public static final String USER_C = "PartnerC";
   private MemorySourceTap source;
   private CombinerDefinition<Number[]> def1, def2, def3, def4, def5;
-  private ArrayList<Tuple> expectedTuplesPerPartnerDestination;
-  private ArrayList<Tuple> expectedTuplesPerDestination;
-  private ArrayList<Tuple> expectedTuplesPerCustomer;
-  private ArrayList<Tuple> expectedTupleForPartnerDestinationDay;
+  private ArrayList<Tuple> expectedTuplesPerUserAttribute;
+  private ArrayList<Tuple> expectedTuplesPerAttribute;
+  private ArrayList<Tuple> expectedTuplesPerUser;
+  private ArrayList<Tuple> expectedTupleForUserAttributeDay;
   private ArrayList<Tuple> expectedTuplesPerDay;
   private ArrayList<Tuple> allExpectedTuples;
 
@@ -46,17 +46,17 @@ public class TestMultiCombiner extends BaseTestCase {
   public void prepare() throws Exception {
     source = new MemorySourceTap(
         Lists.<Tuple>newArrayList(
-            new Tuple(PARTNER_A, DESTINATION_1, DAY1, 1),
-            new Tuple(PARTNER_A, DESTINATION_1, DAY1, 1),
-            new Tuple(PARTNER_A, DESTINATION_1, DAY1, 1),
-            new Tuple(PARTNER_A, DESTINATION_1, DAY2, 1),
-            new Tuple(PARTNER_A, DESTINATION_2, DAY2, 1),
-            new Tuple(PARTNER_A, DESTINATION_2, DAY2, 1),
-            new Tuple(PARTNER_A, DESTINATION_2, DAY1, 1),
-            new Tuple(PARTNER_B, DESTINATION_1, DAY1, 1),
-            new Tuple(PARTNER_B, DESTINATION_1, DAY2, 1),
-            new Tuple(PARTNER_B, DESTINATION_1, DAY2, 1),
-            new Tuple(PARTNER_C, DESTINATION_2, DAY2, 1)
+            new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),
+            new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),
+            new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),
+            new Tuple(USER_A, ATTRIBUTE_1, DAY2, 1),
+            new Tuple(USER_A, ATTRIBUTE_2, DAY2, 1),
+            new Tuple(USER_A, ATTRIBUTE_2, DAY2, 1),
+            new Tuple(USER_A, ATTRIBUTE_2, DAY1, 1),
+            new Tuple(USER_B, ATTRIBUTE_1, DAY1, 1),
+            new Tuple(USER_B, ATTRIBUTE_1, DAY2, 1),
+            new Tuple(USER_B, ATTRIBUTE_1, DAY2, 1),
+            new Tuple(USER_C, ATTRIBUTE_2, DAY2, 1)
         ),
         new Fields("partner", "destination", "date", "requests")
     );
@@ -100,38 +100,38 @@ public class TestMultiCombiner extends BaseTestCase {
         .setName("requests-by-destination")
         .get();
 
-    expectedTuplesPerPartnerDestination = Lists.newArrayList(
-        new Tuple(PARTNER_A, DESTINATION_1, 4l),
-        new Tuple(PARTNER_A, DESTINATION_2, 3l),
-        new Tuple(PARTNER_C, DESTINATION_2, 1l),
-        new Tuple(PARTNER_B, DESTINATION_1, 3l));
+    expectedTuplesPerUserAttribute = Lists.newArrayList(
+        new Tuple(USER_A, ATTRIBUTE_1, 4l),
+        new Tuple(USER_A, ATTRIBUTE_2, 3l),
+        new Tuple(USER_C, ATTRIBUTE_2, 1l),
+        new Tuple(USER_B, ATTRIBUTE_1, 3l));
 
-    expectedTuplesPerDestination = Lists.newArrayList(
-        new Tuple(DESTINATION_1, 7l),
-        new Tuple(DESTINATION_2, 4l));
+    expectedTuplesPerAttribute = Lists.newArrayList(
+        new Tuple(ATTRIBUTE_1, 7l),
+        new Tuple(ATTRIBUTE_2, 4l));
 
-    expectedTuplesPerCustomer = Lists.newArrayList(
-        new Tuple(PARTNER_A, 7l),
-        new Tuple(PARTNER_C, 1l),
-        new Tuple(PARTNER_B, 3l));
+    expectedTuplesPerUser = Lists.newArrayList(
+        new Tuple(USER_A, 7l),
+        new Tuple(USER_C, 1l),
+        new Tuple(USER_B, 3l));
 
-    expectedTupleForPartnerDestinationDay = Lists.newArrayList(new Tuple(PARTNER_A, DESTINATION_1, DAY1, 3l),
-        new Tuple(PARTNER_A, DESTINATION_1, DAY2, 1l),
-        new Tuple(PARTNER_A, DESTINATION_2, DAY1, 1l),
-        new Tuple(PARTNER_A, DESTINATION_2, DAY2, 2l),
-        new Tuple(PARTNER_C, DESTINATION_2, DAY2, 1l),
-        new Tuple(PARTNER_B, DESTINATION_1, DAY1, 1l),
-        new Tuple(PARTNER_B, DESTINATION_1, DAY2, 2l));
+    expectedTupleForUserAttributeDay = Lists.newArrayList(new Tuple(USER_A, ATTRIBUTE_1, DAY1, 3l),
+        new Tuple(USER_A, ATTRIBUTE_1, DAY2, 1l),
+        new Tuple(USER_A, ATTRIBUTE_2, DAY1, 1l),
+        new Tuple(USER_A, ATTRIBUTE_2, DAY2, 2l),
+        new Tuple(USER_C, ATTRIBUTE_2, DAY2, 1l),
+        new Tuple(USER_B, ATTRIBUTE_1, DAY1, 1l),
+        new Tuple(USER_B, ATTRIBUTE_1, DAY2, 2l));
 
     expectedTuplesPerDay = Lists.newArrayList(new Tuple(DAY1, 5l),
         new Tuple(DAY2, 6l));
 
     allExpectedTuples = Lists.newArrayList();
     allExpectedTuples.addAll(expectedTuplesPerDay);
-    allExpectedTuples.addAll(expectedTupleForPartnerDestinationDay);
-    allExpectedTuples.addAll(expectedTuplesPerCustomer);
-    allExpectedTuples.addAll(expectedTuplesPerDestination);
-    allExpectedTuples.addAll(expectedTuplesPerPartnerDestination);
+    allExpectedTuples.addAll(expectedTupleForUserAttributeDay);
+    allExpectedTuples.addAll(expectedTuplesPerUser);
+    allExpectedTuples.addAll(expectedTuplesPerAttribute);
+    allExpectedTuples.addAll(expectedTuplesPerUserAttribute);
   }
 
   @Test
@@ -151,11 +151,11 @@ public class TestMultiCombiner extends BaseTestCase {
     flow.complete();
     assertEquals(6, flow.getFlowStats().getStepsCount());
 
-    verifyRequestsPerCustomer(sinks.get(def1.getName()));
-    verifyRequestsPerCustomerAdn(sinks.get(def2.getName()));
-    verifyRequestsPerCustomerAdnDay(sinks.get(def3.getName()));
+    verifyRequestsPerUser(sinks.get(def1.getName()));
+    verifyRequestsPerUserAttribute(sinks.get(def2.getName()));
+    verifyRequestsPerUserAttributeDay(sinks.get(def3.getName()));
     verifyRequestsPerDay(sinks.get(def4.getName()));
-    verifyRequestsPerDestination(sinks.get(def5.getName()));
+    verifyRequestsPerAttribute(sinks.get(def5.getName()));
   }
 
   private Tap getTupleOutputTap(String testname, String name, Fields fields) {
@@ -201,24 +201,24 @@ public class TestMultiCombiner extends BaseTestCase {
     assertCollectionEquivalent(expectedTuplesPerDay, allTuples);
   }
 
-  private void verifyRequestsPerCustomerAdnDay(Tap tap) throws IOException {
+  private void verifyRequestsPerUserAttributeDay(Tap tap) throws IOException {
     List<Tuple> allTuples = getAllTuples(tap);
-    assertCollectionEquivalent(expectedTupleForPartnerDestinationDay, allTuples);
+    assertCollectionEquivalent(expectedTupleForUserAttributeDay, allTuples);
   }
 
-  private void verifyRequestsPerCustomerAdn(Tap tap) throws IOException {
+  private void verifyRequestsPerUserAttribute(Tap tap) throws IOException {
     List<Tuple> allTuples = getAllTuples(tap);
-    assertCollectionEquivalent(expectedTuplesPerPartnerDestination, allTuples);
+    assertCollectionEquivalent(expectedTuplesPerUserAttribute, allTuples);
   }
 
-  private void verifyRequestsPerCustomer(Tap tap) throws IOException {
+  private void verifyRequestsPerUser(Tap tap) throws IOException {
     List<Tuple> allTuples = getAllTuples(tap);
 
-    assertCollectionEquivalent(expectedTuplesPerCustomer, allTuples);
+    assertCollectionEquivalent(expectedTuplesPerUser, allTuples);
   }
 
-  private void verifyRequestsPerDestination(Tap tap) throws IOException {
+  private void verifyRequestsPerAttribute(Tap tap) throws IOException {
     List<Tuple> allTuples = getAllTuples(tap);
-    assertCollectionEquivalent(expectedTuplesPerDestination, allTuples);
+    assertCollectionEquivalent(expectedTuplesPerAttribute, allTuples);
   }
 }
