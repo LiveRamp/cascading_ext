@@ -21,6 +21,7 @@ import cascading.operation.FunctionCall;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.google.common.collect.Lists;
+import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 import org.apache.hadoop.mapred.JobConf;
@@ -78,7 +79,7 @@ public class CombinerFunctionContext<T> implements Serializable {
   }
 
   public List<Tuple> combineAndEvict(FlowProcess<JobConf> flow) {
-    this.serializationUtil = new TupleSerializationUtil(flow.getConfigCopy());
+    this.serializationUtil = getTupleSerializationUtil(flow);
     if (containsNonNullField(key) || definition.shouldKeepNullGroups()) {
       long bytesBefore = 0;
       if (cache.isMemoryBound()) {
@@ -154,6 +155,14 @@ public class CombinerFunctionContext<T> implements Serializable {
       return evictedTuples;
     }
     return null;
+  }
+
+  private TupleSerializationUtil getTupleSerializationUtil(FlowProcess<JobConf> flow) {
+    if (flow != null) {
+      return new TupleSerializationUtil(flow.getConfigCopy());
+    }else{
+      return new TupleSerializationUtil(CascadingUtil.get().getJobConf());
+    }
   }
 
   private Tuple deepCopy(Tuple tuple) {
