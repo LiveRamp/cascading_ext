@@ -30,9 +30,11 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MultiCombiner extends SubAssembly {
@@ -158,6 +160,14 @@ public class MultiCombiner extends SubAssembly {
       output.set(outputFields.get(i), resultTuple.getObject(index));
       index++;
     }
+  }
+
+  public Map<String, Pipe> getTailsByName(){
+    Map<String, Pipe> tails = Maps.newHashMap();
+    for (Pipe pipe : getTails()) {
+      tails.put(pipe.getName(), pipe);
+    }
+    return tails;
   }
 
   private static class MultiCombinerFilter extends BaseOperation implements Filter {
