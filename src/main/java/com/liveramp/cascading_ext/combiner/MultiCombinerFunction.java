@@ -51,7 +51,7 @@ public class MultiCombinerFunction
   public void prepare(FlowProcess flow, OperationCall<MultiCombinerFunctionContext> call) {
     MultiCombinerFunctionContext contextList = new MultiCombinerFunctionContext(contexts);
     for (CombinerFunctionContext context : contextList.contexts) {
-      context.prepare();
+      context.prepare(flow);
     }
     call.setContext(contextList);
   }

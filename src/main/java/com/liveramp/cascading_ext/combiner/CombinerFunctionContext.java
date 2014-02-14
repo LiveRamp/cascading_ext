@@ -51,7 +51,11 @@ public class CombinerFunctionContext<T> implements Serializable {
     this.counterGroupName = Combiner.COUNTER_GROUP_NAME + "-" + definition.getName();
   }
 
-  public void prepare() {
+  public void prepare(FlowProcess<JobConf> flow) {
+    this.prepare(flow.getConfigCopy());
+  }
+
+  public void prepare(JobConf conf) {
     cache = new MemoryBoundLruHashMap<Tuple, T>(definition.getLimit(),
         definition.getMemoryLimit(),
         definition.getKeySizeEstimator(),
@@ -60,6 +64,7 @@ public class CombinerFunctionContext<T> implements Serializable {
     input = new TupleEntry(definition.getInputFields(), Tuple.size(definition.getInputFields().size()));
     keyFieldsPos = Lists.newArrayList();
     inputFieldsPos = Lists.newArrayList();
+    this.serializationUtil = new TupleSerializationUtil(conf);
   }
 
   public void setGroupFields(FunctionCall call) {
@@ -78,8 +83,7 @@ public class CombinerFunctionContext<T> implements Serializable {
     CombinerUtils.setTupleEntry(input, inputFieldsPos, definition.getInputFields(), arguments);
   }
 
-  public List<Tuple> combineAndEvict(FlowProcess<JobConf> flow) {
-    this.serializationUtil = getTupleSerializationUtil(flow);
+  public List<Tuple> combineAndEvict(FlowProcess flow) {
     if (containsNonNullField(key) || definition.shouldKeepNullGroups()) {
       long bytesBefore = 0;
       if (cache.isMemoryBound()) {
@@ -160,7 +164,7 @@ public class CombinerFunctionContext<T> implements Serializable {
   private TupleSerializationUtil getTupleSerializationUtil(FlowProcess<JobConf> flow) {
     if (flow != null) {
       return new TupleSerializationUtil(flow.getConfigCopy());
-    }else{
+    } else {
       return new TupleSerializationUtil(CascadingUtil.get().getJobConf());
     }
   }

@@ -23,6 +23,7 @@ import cascading.operation.FunctionCall;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+import com.liveramp.cascading_ext.util.SimpleTupleMemoryUsageEstimator;
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 import java.util.Iterator;
@@ -116,7 +117,7 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
   @Override
   public void prepare(FlowProcess flow, OperationCall<CombinerFunctionContext<T>> call) {
     CombinerFunctionContext<T> context = new CombinerFunctionContext<T>(definition);
-    context.prepare();
+    context.prepare(flow);
     call.setContext(context);
   }
 
@@ -146,10 +147,14 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
       // Note: actively remove from the cache to save memory during cleanup
       iterator.remove();
     }
-
   }
 
   protected void emitTuple(Tuple tuple, FlowProcess flow, FunctionCall<CombinerFunctionContext<T>> call) {
+    MemoryUsageEstimator<Tuple> memoryUsageEstimator = new SimpleTupleMemoryUsageEstimator();
+    System.out.println(memoryUsageEstimator.estimateMemorySize(tuple));
+    if (true) {
+      throw new RuntimeException("fail");
+    }
     flow.increment(call.getContext().getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
     call.getOutputCollector().add(tuple);
   }
