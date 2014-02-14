@@ -150,11 +150,6 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
   }
 
   protected void emitTuple(Tuple tuple, FlowProcess flow, FunctionCall<CombinerFunctionContext<T>> call) {
-    MemoryUsageEstimator<Tuple> memoryUsageEstimator = new SimpleTupleMemoryUsageEstimator();
-    System.out.println(memoryUsageEstimator.estimateMemorySize(tuple));
-    if (true) {
-      throw new RuntimeException("fail");
-    }
     flow.increment(call.getContext().getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
     call.getOutputCollector().add(tuple);
   }
