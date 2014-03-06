@@ -72,7 +72,8 @@ see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src
 [CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see [SimpleFlowExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/SimpleFlowExample.java):
 
 ```java
-CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, pipe).complete();
+CascadingUtil.get().getFlowConnector()
+.connect("Example flow", sources, sink, pipe).complete();
 ```
 
 By default CascadingUtil will
@@ -114,11 +115,7 @@ Using the features built into Cascading, we might build the flow this way:
 ```java
 Pipe purchaseEvents = new Pipe("purchase_events");
 
-
-
 Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"), new Fields("item_amount"), new Fields("total_items_by_user"));
-
-
 
 Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"), new Fields("item_amount"), new Fields("total_items_by_item"));
 ```
@@ -128,16 +125,14 @@ Because each SumBy contains a GroupBy, this assembly will spawn 2 entirely separ
 ```java
 Pipe purchaseEvents = new Pipe("purchase_events");
 
-
-
- CombinerDefinition countByUserDef = new CombinerDefinitionBuilder()
+CombinerDefinition countByUserDef = new CombinerDefinitionBuilder()
         .setGroupFields(new Fields("user_id"))
         .setInputFields(new Fields("item_amount"))
         .setOutputFields(new Fields("total_items_by_user"))
         .setExactAggregator(new SumExactAggregator(1))
         .get();
         
- CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
+CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
         .setGroupFields(new Fields("item_id"))
         .setInputFields(new Fields("item_amount"))
         .setOutputFields(new Fields("total_items_by_item"))
