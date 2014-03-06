@@ -10,7 +10,7 @@ Some of the most interesting public classes in the project (so far).
 
 ### SubAssemblies ###
 
-<b>BloomJoin</b>
+##### BloomJoin
 
 [BloomJoin](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/BloomJoin.java) is designed to be a drop-in replacement for CoGroup which achieves significant performance improvements on certain datasets by filtering the LHS pipe against a [bloom filter](http://en.wikipedia.org/wiki/Bloom_filter) built from the keys on the RHS.  Using a BloomJoin can improve the performance of a job when:
 
@@ -35,7 +35,7 @@ see example usages: [BloomJoinExample](https://github.com/LiveRamp/cascading_ext
 
 For more details on how BloomJoin works, check out our [blog post](http://blog.liveramp.com/2013/04/03/bloomjoin-bloomfilter-cogroup/).
 
-<b>BloomFilter</b>
+##### BloomFilter
 
 [BloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/BloomFilter.java) is similar to BloomJoin, but can be used when no fields from the RHS are needed in the output.  This allows for simpler field algebra (duplicate field names are not a problem):
 
@@ -50,7 +50,7 @@ CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, jo
 
 Another feature of BloomFilter is the ability to perform an inexact filter, and entirely avoid reducing over the LHS.  When performing an inexact join, the LHS is filtered by the bloom filter from the RHS, but the final exact CoGroup is skipped, leaving both true and false positives in the output.   See [TestBloomFilter](https://github.com/LiveRamp/cascading_ext/blob/master/src/test/java/com/liveramp/cascading_ext/assembly/TestBloomFilter.java) for more examples.
 
-<b>MultiGroupBy</b> 
+##### MultiGroupBy
 
 [MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The [MultiBuffer](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/multi_group_by/MultiBuffer.java) interface gives a user-defined function access to all tuples sharing a common key, across all input pipes:  
 
@@ -68,12 +68,12 @@ see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src
 
 ### Tools ###
 
-<b>CascadingUtil</b> 
-
+##### CascadingUtil 
 [CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see [SimpleFlowExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/SimpleFlowExample.java):
 
 ```java
-CascadingUtil.get().getFlowConnector().connect("Example flow", sources, sink, pipe).complete();
+CascadingUtil.get().getFlowConnector()
+.connect("Example flow", sources, sink, pipe).complete();
 ```
 
 By default CascadingUtil will
@@ -88,9 +88,69 @@ See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob
   - add serialization tokens
   - add flow step strategies
 
-<b>FunctionStats, FilterStats, BufferStats, AggregatorStats</b>
+###### FunctionStats, FilterStats, BufferStats, AggregatorStats
 
 [FunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/operation/FunctionStats.java), [FilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/operation/FilterStats.java), [BufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/operation/BufferStats.java), and [AggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/operation/AggregatorStats.java) are wrapper classes which make it easier to debug a complex flow with many Filters / Functions / etc.  These wrapper classes add counters logging the number of tuples a given operation inputs or outputs.  See [TestAggregatorStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/test/java/com/liveramp/cascading_ext/operation/TestAggregatorStats.java), [TestFilterStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/test/java/com/liveramp/cascading_ext/operation/TestFilterStats.java), [TestFunctionStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/test/java/com/liveramp/cascading_ext/operation/TestFunctionStats.java), and [TestBufferStats](https://github.com/LiveRamp/cascading_ext/blob/master/src/test/java/com/liveramp/cascading_ext/operation/TestBufferStats.java) to see usage examples.
+
+##### MultiCombiner
+
+MultiCombiner is a tool for running arbitrarily many aggregation operations, each with their own distinct grouping fields, over a single stream of tuples using only a single reduce step. MultiCombiner uses combiners internally to ensure that these aggregation operations are done efficiently and without unnecessary I/O operations.
+
+Combiners are a useful tool for optimizing Hadoop jobs by reducing the number of records which need to be shuffled, decreasing sorting time, disk I/O, and network traffic on your cluster. Combiners work by partially reducing on records during the map phase which have the same key, and emitting the partial result rather than the original records, in essence doing some of the work of the reducer ahead of time. Combiners decrease the number of records generated by each map task, reducing the amount of data that needs to be shuffled and often providing a significant decrease in time spent on I/O. Because each combiner only has access to a subset of the records for each key in a random order, combiners are only useful for operations which are both commutative and associative, such as summing or counting. For a quick combiner tutorial check out [this combiner tutorial](http://www.philippeadjiman.com/blog/2010/01/14/hadoop-tutorial-series-issue-4-to-use-or-not-to-use-a-combiner/).
+
+Combiners are an integral part of Hadoop, and are supported by Cascading through AggregateBy and the Functor and Aggregator interfaces, which implement the combiner and reducer logic respectively. What Cascading's and Hadoop's implementations both lack is a way to run many combiner-backed aggregation operations over a single stream using different grouping fields in an efficient way. In both Hadoop and Cascading, such a computation would require a full read and shuffle of the data set for each of the different grouping fields. This can make it prohibitively expensive to add new stats or aggregates to a workflow. The MultiCombiner tool allows developers to define many entirely independent aggregation operations over the same data set and run them simultaneously, even if they use different grouping keys.
+
+<b> An Example Usage </b> 
+
+Suppose that it is your job to compute stats for a large retailer. The retailer stores records of purchase events in an HDFS file with the following format:
+    user_id , item_id, item_amount, timestamp
+You are required to compute
+
+1) The total number of items purchased by each user
+
+2) The total number of items of each kind sold
+
+Using the features built into Cascading, we might build the flow this way:
+
+```java
+Pipe purchaseEvents = new Pipe("purchase_events");
+
+Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"), 
+  new Fields("item_amount"), new Fields("total_items_by_user"));
+
+Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"), 
+  new Fields("item_amount"), new Fields("total_items_by_item"));
+```
+
+Because each SumBy contains a GroupBy, this assembly will spawn 2 entirely separate Hadoop jobs, each running over the same data set. While the combiners used will mitigate the damage somewhat, your task is still reading, shuffling, and writing the same data twice. Using MultiCombiner, we can combine these two aggregation operations into a single Hadoop job, significantly reducing the total amount of I/O we have to do.
+
+```java
+Pipe purchaseEvents = new Pipe("purchase_events");
+
+CombinerDefinition countByUserDef = new CombinerDefinitionBuilder()
+        .setGroupFields(new Fields("user_id"))
+        .setInputFields(new Fields("item_amount"))
+        .setOutputFields(new Fields("total_items_by_user"))
+        .setExactAggregator(new SumExactAggregator(1))
+        .get();
+        
+CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
+        .setGroupFields(new Fields("item_id"))
+        .setInputFields(new Fields("item_amount"))
+        .setOutputFields(new Fields("total_items_by_item"))
+        .setExactAggregator(new SumExactAggregator(1))
+        .get();
+
+MultiCombiner  combiner = MultiCombiner.assembly(purchaseEvents, 
+  countByItemDef, countByUserDef);
+
+Pipe countsByUser = combiner.getTailsByName().get(countByUserDef.getName())
+```
+
+The tails of the MultiCombiner assembly will give access to the results for each definition separately. The tail pipes have the same name as the definitions, so you can use the definition names as keys to the map provided by the getTailsByName method.  Alternatively, there’s MultiCombiner.singleTailedAssembly which will emit the results in a single stream.
+
+<b>Things to Watch Out For</b>
+<p>The ability to run arbitrary aggregators over a single stream is pretty useful, but there’s nothing magical going on in the background. Each aggregator used in a  MultiCombiner emits roughly the same number of tuples as if it were being used on its own. Because the sorting involved in the shuffle is an n*log(n) operation, shuffling the output of many aggregators all at once is less efficient than shuffling their outputs separately. This is usually not an issue because of the time saved reading the data set only once, but may matter if the number of tuples being shuffled is much larger than the data being read from disk. Additionally, each aggregator must keep its own map in memory for its combiner. Because of the additional memory pressure, combining for many aggregators can potentially be less efficient. All of that being said, we've seen significant performance increases for every set of aggregation operations we've merged using this tool.
 
 Download
 ====
