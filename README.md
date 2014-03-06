@@ -115,9 +115,11 @@ Using the features built into Cascading, we might build the flow this way:
 ```java
 Pipe purchaseEvents = new Pipe("purchase_events");
 
-Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"), new Fields("item_amount"), new Fields("total_items_by_user"));
+Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"), 
+  new Fields("item_amount"), new Fields("total_items_by_user"));
 
-Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"), new Fields("item_amount"), new Fields("total_items_by_item"));
+Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"), 
+  new Fields("item_amount"), new Fields("total_items_by_item"));
 ```
 
 Because each SumBy contains a GroupBy, this assembly will spawn 2 entirely separate Hadoop jobs, each running over the same data set. While the combiners used will mitigate the damage somewhat, your task is still reading, shuffling, and writing the same data twice. Using MultiCombiner, we can combine these two aggregation operations into a single Hadoop job, significantly reducing the total amount of I/O we have to do.
@@ -139,7 +141,8 @@ CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
         .setExactAggregator(new SumExactAggregator(1))
         .get();
 
-MultiCombiner  combiner = MultiCombiner.assembly(purchaseEvents, countByItemDef, countByUserDef);
+MultiCombiner  combiner = MultiCombiner.assembly(purchaseEvents, 
+  countByItemDef, countByUserDef);
 
 Pipe countsByUser = combiner.getTailsByName().get(countByUserDef.getName())
 ```
