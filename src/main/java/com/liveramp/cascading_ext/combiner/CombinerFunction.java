@@ -136,13 +136,13 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
     Iterator<Tuple> iterator = context.cacheTuplesIterator();
     while (iterator.hasNext()) {
 
-      new OutputHandler(flow, (FunctionCall<CombinerFunctionContext<T>>)call).handleOutput(context, iterator.next(), false);
+      new OutputHandler<T>(flow, (FunctionCall<CombinerFunctionContext<T>>)call).handleOutput(context, iterator.next(), false);
       // Note: actively remove from the cache to save memory during cleanup
       iterator.remove();
     }
   }
 
-  private class OutputHandler implements CombinerFunctionContext.OutputHandler {
+  private static class OutputHandler<T> implements CombinerFunctionContext.OutputHandler {
     private final FlowProcess flow;
     private final FunctionCall<CombinerFunctionContext<T>> call;
 

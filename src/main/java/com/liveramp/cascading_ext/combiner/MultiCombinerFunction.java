@@ -64,7 +64,7 @@ public class MultiCombinerFunction
     for (CombinerFunctionContext context : contextList.contexts) {
       context.setGroupFields(call);
       context.setInputFields(call);
-      context.combineAndEvict(flow, new OutputHandler(flow, call));
+      context.combineAndEvict(flow, new OutputHandler(outputFields, flow, call));
     }
   }
 
@@ -74,18 +74,20 @@ public class MultiCombinerFunction
     for (CombinerFunctionContext context : contextList.contexts) {
       Iterator<Tuple> tuples = context.cacheTuplesIterator();
       while (tuples.hasNext()) {
-        new OutputHandler(flow, (FunctionCall<MultiCombinerFunctionContext>)call).handleOutput(context, tuples.next(), false);
+        new OutputHandler(outputFields, flow, (FunctionCall<MultiCombinerFunctionContext>)call).handleOutput(context, tuples.next(), false);
         // Note: actively remove from the cache to save memory during cleanup
         tuples.remove();
       }
     }
   }
 
-  private class OutputHandler implements CombinerFunctionContext.OutputHandler {
+  private static class OutputHandler implements CombinerFunctionContext.OutputHandler {
     private final FlowProcess flow;
     private final FunctionCall<MultiCombinerFunctionContext> call;
+    private final Fields outputFields;
 
-    private OutputHandler(FlowProcess flow, FunctionCall<MultiCombinerFunctionContext> call) {
+    private OutputHandler(Fields outputFields, FlowProcess flow, FunctionCall<MultiCombinerFunctionContext> call) {
+      this.outputFields = outputFields;
       this.flow = flow;
       this.call = call;
     }
