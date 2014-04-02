@@ -16,16 +16,6 @@
 
 package com.liveramp.cascading_ext.combiner;
 
-import cascading.flow.FlowProcess;
-import cascading.operation.FunctionCall;
-import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntry;
-import com.google.common.collect.Lists;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.TupleSerializationUtil;
-import com.liveramp.commons.collections.MemoryBoundLruHashMap;
-import org.apache.hadoop.mapred.JobConf;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,6 +23,18 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
+import org.apache.hadoop.mapred.JobConf;
+
+import cascading.flow.FlowProcess;
+import cascading.operation.FunctionCall;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntry;
+
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.TupleSerializationUtil;
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 
 public class CombinerFunctionContext<T> implements Serializable {
 
@@ -146,6 +148,7 @@ public class CombinerFunctionContext<T> implements Serializable {
       if (flow != null) {
         if (evictedTuples != null) {
           flow.increment("Combiner", "Num Items", -1 * evictedTuples.size());
+          flow.increment("Combiner", "Num Tuples " + evictedTuples.size(), 1);
         }
 
         if (cache.isMemoryBound()) {
