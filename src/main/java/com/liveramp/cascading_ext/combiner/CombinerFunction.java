@@ -16,6 +16,8 @@
 
 package com.liveramp.cascading_ext.combiner;
 
+import java.util.Iterator;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -23,11 +25,8 @@ import cascading.operation.FunctionCall;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
-import com.liveramp.cascading_ext.util.SimpleTupleMemoryUsageEstimator;
-import com.liveramp.commons.util.MemoryUsageEstimator;
 
-import java.util.Iterator;
-import java.util.List;
+import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T>> implements Function<CombinerFunctionContext<T>> {
 
@@ -127,13 +126,7 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
     flow.increment(context.getCounterGroupName(), Combiner.INPUT_TUPLES_COUNTER_NAME, 1);
     context.setGroupFields(call);
     context.setInputFields(call);
-    List<Tuple> tuples = context.combineAndEvict(flow);
-    if (tuples != null) {
-      flow.increment(context.getCounterGroupName(), Combiner.EVICTED_TUPLES_COUNTER_NAME, tuples.size());
-      for (Tuple tuple : tuples) {
-        emitTuple(tuple, flow, call);
-      }
-    }
+    context.combineAndEvict(flow, new OutputHandler(flow, call));
   }
 
   @Override
@@ -143,14 +136,29 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
     Iterator<Tuple> iterator = context.cacheTuplesIterator();
     while (iterator.hasNext()) {
 
-      emitTuple(iterator.next(), flow, (FunctionCall<CombinerFunctionContext<T>>) call);
+      new OutputHandler(flow, (FunctionCall<CombinerFunctionContext<T>>)call).handleOutput(context, iterator.next(), false);
       // Note: actively remove from the cache to save memory during cleanup
       iterator.remove();
     }
   }
 
-  protected void emitTuple(Tuple tuple, FlowProcess flow, FunctionCall<CombinerFunctionContext<T>> call) {
-    flow.increment(call.getContext().getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
-    call.getOutputCollector().add(tuple);
+  private class OutputHandler implements CombinerFunctionContext.OutputHandler {
+    private final FlowProcess flow;
+    private final FunctionCall<CombinerFunctionContext<T>> call;
+
+    private OutputHandler(FlowProcess flow, FunctionCall<CombinerFunctionContext<T>> call) {
+      this.flow = flow;
+      this.call = call;
+    }
+
+    @Override
+    public void handleOutput(CombinerFunctionContext context, Tuple tuple, boolean evicted) {
+      if (evicted) {
+        flow.increment(context.getCounterGroupName(), Combiner.EVICTED_TUPLES_COUNTER_NAME, 1);
+      }
+      flow.increment(context.getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
+      call.getOutputCollector().add(tuple);
+    }
   }
+
 }

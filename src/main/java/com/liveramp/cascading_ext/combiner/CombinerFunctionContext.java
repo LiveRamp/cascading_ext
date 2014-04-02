@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,11 +31,14 @@ import cascading.operation.FunctionCall;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
-import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 
 public class CombinerFunctionContext<T> implements Serializable {
+
+  public interface OutputHandler {
+    void handleOutput(CombinerFunctionContext context, Tuple tuple, boolean evicted);
+  }
 
   private final CombinerDefinition<T> definition;
   private final String counterGroupName;
@@ -85,16 +87,16 @@ public class CombinerFunctionContext<T> implements Serializable {
     CombinerUtils.setTupleEntry(input, inputFieldsPos, definition.getInputFields(), arguments);
   }
 
-  public List<Tuple> combineAndEvict(FlowProcess flow) {
+  public void combineAndEvict(FlowProcess flow, OutputHandler outputHandler) {
     if (containsNonNullField(key) || definition.shouldKeepNullGroups()) {
       long bytesBefore = 0;
       if (cache.isMemoryBound()) {
         bytesBefore = cache.getNumManagedBytes();
       }
 
-      List<Tuple> evictedTuples = null;
       PartialAggregator<T> aggregator = definition.getPartialAggregator();
       T aggregate = cache.get(key.getTuple());
+      int numEvictedTuples = 0;
       // If we have a value for the groupFields in our map then we update them.
       if (aggregate != null) {
         T newAggregate;
@@ -110,8 +112,8 @@ public class CombinerFunctionContext<T> implements Serializable {
 
         if (definition.getEvictor().shouldEvict(newAggregate)) {
           cache.remove(key.getTuple());
-          evictedTuples = new LinkedList<Tuple>();
-          evictedTuples.add(evictTuple(key.getTuple(), newAggregate, cache));
+          outputHandler.handleOutput(this, evictTuple(key.getTuple(), newAggregate, cache), true);
+          numEvictedTuples++;
         } else if (newAggregate != aggregate) {
           // If aggregate was not updated in place by update(), put the new object in the map
           // Note: an entry for this key already exists in the map, so we do not need to
@@ -119,9 +121,9 @@ public class CombinerFunctionContext<T> implements Serializable {
           List<Map.Entry<Tuple, T>> evicted = cache.putAndEvict(key.getTuple(), newAggregate);
           // The new aggregate could be bigger than the previous one so some items may have been evicted.
           if (!evicted.isEmpty()) {
-            evictedTuples = new LinkedList<Tuple>();
             for (Map.Entry<Tuple, T> entry : evicted) {
-              evictedTuples.add(evictTuple(entry.getKey(), entry.getValue(), cache));
+              outputHandler.handleOutput(this, evictTuple(entry.getKey(), entry.getValue(), cache), true);
+              numEvictedTuples++;
             }
           }
         }
@@ -138,19 +140,16 @@ public class CombinerFunctionContext<T> implements Serializable {
         // While adding the new key we may have caused one to get evicted. If any have been evicted
         // then we must make the evicted key/values into tuples and emit them.
         if (!evicted.isEmpty()) {
-          evictedTuples = new LinkedList<Tuple>();
           for (Map.Entry<Tuple, T> entry : evicted) {
-            evictedTuples.add(evictTuple(entry.getKey(), entry.getValue(), cache));
+            outputHandler.handleOutput(this, evictTuple(entry.getKey(), entry.getValue(), cache), true);
+            numEvictedTuples++;
           }
         }
       }
 
       if (flow != null) {
-        if (evictedTuples != null) {
-          int numEvictedTuples = evictedTuples.size();
-          flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
-          flow.increment("Combiner", "Num Evicted Tuples " + (numEvictedTuples > 10 ? ">10" : numEvictedTuples), 1);
-        }
+        flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
+        flow.increment("Combiner", "Num Evicted Tuples " + (numEvictedTuples > 10 ? ">10" : numEvictedTuples), 1);
 
         if (cache.isMemoryBound()) {
           long sizeChange = cache.getNumManagedBytes() - bytesBefore;
@@ -159,17 +158,6 @@ public class CombinerFunctionContext<T> implements Serializable {
           }
         }
       }
-
-      return evictedTuples;
-    }
-    return null;
-  }
-
-  private TupleSerializationUtil getTupleSerializationUtil(FlowProcess<JobConf> flow) {
-    if (flow != null) {
-      return new TupleSerializationUtil(flow.getConfigCopy());
-    } else {
-      return new TupleSerializationUtil(CascadingUtil.get().getJobConf());
     }
   }
 

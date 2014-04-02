@@ -16,6 +16,11 @@
 
 package com.liveramp.cascading_ext.combiner;
 
+import java.util.Iterator;
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -24,10 +29,6 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-import com.google.common.collect.Lists;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class MultiCombinerFunction
     extends BaseOperation<MultiCombinerFunctionContext>
@@ -63,13 +64,7 @@ public class MultiCombinerFunction
     for (CombinerFunctionContext context : contextList.contexts) {
       context.setGroupFields(call);
       context.setInputFields(call);
-      List<Tuple> tuples = context.combineAndEvict(flow);
-      if (tuples != null) {
-        flow.increment(context.getCounterGroupName(), Combiner.EVICTED_TUPLES_COUNTER_NAME, tuples.size());
-        for (Tuple tuple : tuples) {
-          emitTuple(context, tuple, flow, call);
-        }
-      }
+      context.combineAndEvict(flow, new OutputHandler(flow, call));
     }
   }
 
@@ -79,20 +74,34 @@ public class MultiCombinerFunction
     for (CombinerFunctionContext context : contextList.contexts) {
       Iterator<Tuple> tuples = context.cacheTuplesIterator();
       while (tuples.hasNext()) {
-        emitTuple(context, tuples.next(), flow, (FunctionCall) call);
+        new OutputHandler(flow, (FunctionCall<MultiCombinerFunctionContext>)call).handleOutput(context, tuples.next(), false);
         // Note: actively remove from the cache to save memory during cleanup
         tuples.remove();
       }
     }
   }
 
-  protected void emitTuple(CombinerFunctionContext context, Tuple tuple, FlowProcess flow, FunctionCall call) {
-    flow.increment(context.getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
-    TupleEntry output = new TupleEntry(outputFields);
-    output.setTuple(Tuple.size(outputFields.size()));
+  private class OutputHandler implements CombinerFunctionContext.OutputHandler {
+    private final FlowProcess flow;
+    private final FunctionCall<MultiCombinerFunctionContext> call;
 
-    MultiCombiner.populateOutputTupleEntry(context.getDefinition(), output, tuple);
+    private OutputHandler(FlowProcess flow, FunctionCall<MultiCombinerFunctionContext> call) {
+      this.flow = flow;
+      this.call = call;
+    }
 
-    call.getOutputCollector().add(output);
+    @Override
+    public void handleOutput(CombinerFunctionContext context, Tuple tuple, boolean evicted) {
+      if (evicted) {
+        flow.increment(context.getCounterGroupName(), Combiner.EVICTED_TUPLES_COUNTER_NAME, 1);
+      }
+      flow.increment(context.getCounterGroupName(), Combiner.OUTPUT_TUPLES_COUNTER_NAME, 1);
+      TupleEntry output = new TupleEntry(outputFields);
+      output.setTuple(Tuple.size(outputFields.size()));
+
+      MultiCombiner.populateOutputTupleEntry(context.getDefinition(), output, tuple);
+
+      call.getOutputCollector().add(output);
+    }
   }
 }
