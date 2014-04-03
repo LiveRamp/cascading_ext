@@ -148,8 +148,16 @@ public class CombinerFunctionContext<T> implements Serializable {
       }
 
       if (flow != null) {
-        flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
-        flow.increment("Combiner", "Num Evicted Tuples " + (numEvictedTuples > 10 ? ">10" : numEvictedTuples), 1);
+        if (numEvictedTuples > 0) {
+          flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
+          if (numEvictedTuples < 10) {
+            flow.increment("Combiner", "Num Evicted Tuples <10", 1);
+          } else if (numEvictedTuples < 100) {
+            flow.increment("Combiner", "Num Evicted Tuples <100", 1);
+          } else {
+            flow.increment("Combiner", "Num Evicted Tuples >=100", 1);
+          }
+        }
 
         if (cache.isMemoryBound()) {
           long sizeChange = cache.getNumManagedBytes() - bytesBefore;
