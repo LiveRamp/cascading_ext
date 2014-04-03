@@ -106,7 +106,7 @@ public class CombinerFunctionContext<T> implements Serializable {
           long newSize = cache.estimateValueMemorySize(newAggregate);
           cache.adjustNumManagedBytes(newSize - previousSize);
           if (newSize > previousSize) {
-            List<Map.Entry<Tuple, T>> evicted = cache.evict();
+            List<Map.Entry<Tuple, T>> evicted = cache.evictIfNecessary();
             outputEvictedTuples(flow, outputHandler, evicted);
           }
         } else {
@@ -232,7 +232,7 @@ public class CombinerFunctionContext<T> implements Serializable {
 
   private Tuple evictTuple(Tuple key, T aggregate, MemoryBoundLruHashMap<Tuple, T> map) {
     if (definition.isStrict()) {
-      throw new IllegalStateException("A strict " + this.getClass().getSimpleName() + " should never evict."
+      throw new IllegalStateException("A strict " + this.getClass().getSimpleName() + " should never evictIfNecessary."
           + " key: " + key + ", aggregate: " + aggregate + ", combiner size: " + map.size());
     }
     return createResultTuple(key, aggregate);
