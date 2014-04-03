@@ -96,7 +96,6 @@ public class CombinerFunctionContext<T> implements Serializable {
 
       PartialAggregator<T> aggregator = definition.getPartialAggregator();
       T aggregate = cache.get(key.getTuple());
-      int numEvictedTuples = 0;
       // If we have a value for the groupFields in our map then we update them.
       if (aggregate != null) {
         T newAggregate;
@@ -106,6 +105,10 @@ public class CombinerFunctionContext<T> implements Serializable {
           newAggregate = aggregator.partialAggregate(aggregate, input);
           long newSize = cache.estimateValueMemorySize(newAggregate);
           cache.adjustNumManagedBytes(newSize - previousSize);
+          if (newSize > previousSize) {
+            List<Map.Entry<Tuple, T>> evicted = cache.evict();
+            outputEvictedTuples(flow, outputHandler, evicted);
+          }
         } else {
           newAggregate = aggregator.partialAggregate(aggregate, input);
         }
@@ -113,19 +116,14 @@ public class CombinerFunctionContext<T> implements Serializable {
         if (definition.getEvictor().shouldEvict(newAggregate)) {
           cache.remove(key.getTuple());
           outputHandler.handleOutput(this, evictTuple(key.getTuple(), newAggregate, cache), true);
-          numEvictedTuples++;
+          outputEvictedTuplesCounter(flow, 1);
         } else if (newAggregate != aggregate) {
           // If aggregate was not updated in place by update(), put the new object in the map
           // Note: an entry for this key already exists in the map, so we do not need to
           // deep copy the key when putting (overwriting) the new aggregate value.
           List<Map.Entry<Tuple, T>> evicted = cache.putAndEvict(key.getTuple(), newAggregate);
           // The new aggregate could be bigger than the previous one so some items may have been evicted.
-          if (!evicted.isEmpty()) {
-            for (Map.Entry<Tuple, T> entry : evicted) {
-              outputHandler.handleOutput(this, evictTuple(entry.getKey(), entry.getValue(), cache), true);
-              numEvictedTuples++;
-            }
-          }
+          outputEvictedTuples(flow, outputHandler, evicted);
         }
       } else {
         // If we don't have the key in our map then we add the value for the key
@@ -139,31 +137,40 @@ public class CombinerFunctionContext<T> implements Serializable {
         }
         // While adding the new key we may have caused one to get evicted. If any have been evicted
         // then we must make the evicted key/values into tuples and emit them.
-        if (!evicted.isEmpty()) {
-          for (Map.Entry<Tuple, T> entry : evicted) {
-            outputHandler.handleOutput(this, evictTuple(entry.getKey(), entry.getValue(), cache), true);
-            numEvictedTuples++;
-          }
-        }
+        outputEvictedTuples(flow, outputHandler, evicted);
       }
 
       if (flow != null) {
-        if (numEvictedTuples > 0) {
-          flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
-          if (numEvictedTuples < 10) {
-            flow.increment("Combiner", "Num Evicted Tuples <10", 1);
-          } else if (numEvictedTuples < 100) {
-            flow.increment("Combiner", "Num Evicted Tuples <100", 1);
-          } else {
-            flow.increment("Combiner", "Num Evicted Tuples >=100", 1);
-          }
-        }
 
         if (cache.isMemoryBound()) {
           long sizeChange = cache.getNumManagedBytes() - bytesBefore;
           if (sizeChange != 0) {
             flow.increment("Combiner", "Num Bytes", sizeChange);
           }
+        }
+      }
+    }
+  }
+
+  private void outputEvictedTuples(FlowProcess flow, OutputHandler outputHandler, List<Map.Entry<Tuple, T>> evicted) {
+    if (!evicted.isEmpty()) {
+      for (Map.Entry<Tuple, T> entry : evicted) {
+        outputHandler.handleOutput(this, evictTuple(entry.getKey(), entry.getValue(), cache), true);
+      }
+      outputEvictedTuplesCounter(flow, evicted.size());
+    }
+  }
+
+  private void outputEvictedTuplesCounter(FlowProcess flow, int numEvictedTuples) {
+    if (flow != null) {
+      if (numEvictedTuples > 0) {
+        flow.increment("Combiner", "Num Items", -1 * numEvictedTuples);
+        if (numEvictedTuples < 10) {
+          flow.increment("Combiner", "Num Evicted Tuples <10", 1);
+        } else if (numEvictedTuples < 100) {
+          flow.increment("Combiner", "Num Evicted Tuples <100", 1);
+        } else {
+          flow.increment("Combiner", "Num Evicted Tuples >=100", 1);
         }
       }
     }
