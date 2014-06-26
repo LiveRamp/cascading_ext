@@ -18,6 +18,7 @@ package com.liveramp.cascading_ext.combiner;
 
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class CombinerDefinitionBuilder<T> {
@@ -29,7 +30,7 @@ public class CombinerDefinitionBuilder<T> {
   private Fields intermediateFields;
   private Fields outputFields;
   private int limit = Combiner.DEFAULT_LIMIT;
-  private long memoryLimit = 0;
+  private long memoryLimit = -1;
   private MemoryUsageEstimator<Tuple> keySizeEstimator;
   private MemoryUsageEstimator<T> valueSizeEstimator;
   private boolean strict = Combiner.DEFAULT_STRICTNESS;
