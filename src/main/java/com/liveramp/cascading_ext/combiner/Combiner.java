@@ -19,6 +19,8 @@ package com.liveramp.cascading_ext.combiner;
 import cascading.pipe.*;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class Combiner<T> extends SubAssembly {
@@ -31,17 +33,17 @@ public class Combiner<T> extends SubAssembly {
   public static final boolean DEFAULT_STRICTNESS = false;
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields secondarySortFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int itemLimit,
-      long memoryLimit,
-      MemoryUsageEstimator<Tuple> keySizeEstimator,
-      MemoryUsageEstimator<T> valueSizeEstimator,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields secondarySortFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  int itemLimit,
+                  long memoryLimit,
+                  MemoryUsageEstimator<Tuple> keySizeEstimator,
+                  MemoryUsageEstimator<T> valueSizeEstimator,
+                  boolean strict) {
     Pipe[] pipesCopy = new Pipe[pipes.length];
     for (int i = 0; i < pipes.length; i++) {
       pipesCopy[i] = new Each(
@@ -81,17 +83,17 @@ public class Combiner<T> extends SubAssembly {
         intermediateFields,
         outputFields,
         limit,
-        -1,
+        MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY,
         null,
         null,
         strict);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields) {
     this(pipe,
         aggregator,
         groupFields,
@@ -102,11 +104,11 @@ public class Combiner<T> extends SubAssembly {
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields) {
     this(pipe,
         aggregator,
         groupFields,
@@ -118,69 +120,69 @@ public class Combiner<T> extends SubAssembly {
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  int limit) {
     this(pipe, aggregator, groupFields, inputFields, outputFields, limit, DEFAULT_STRICTNESS);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  int limit) {
     this(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit, DEFAULT_STRICTNESS);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  boolean strict) {
     this(pipe, aggregator, groupFields, inputFields, outputFields, DEFAULT_LIMIT, strict);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  boolean strict) {
     this(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields, DEFAULT_LIMIT, strict);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  int limit,
+                  boolean strict) {
     this(new Pipe[]{pipe}, aggregator, groupFields, inputFields, outputFields, outputFields, limit, strict);
   }
 
   public Combiner(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  int limit,
+                  boolean strict) {
     this(new Pipe[]{pipe}, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit, strict);
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields) {
     this(pipes,
         aggregator,
         groupFields,
@@ -192,11 +194,11 @@ public class Combiner<T> extends SubAssembly {
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields) {
     this(pipes,
         aggregator,
         groupFields,
@@ -208,261 +210,260 @@ public class Combiner<T> extends SubAssembly {
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  int limit) {
     this(pipes, aggregator, groupFields, inputFields, outputFields, outputFields, limit, DEFAULT_STRICTNESS);
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  int limit) {
     this(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit, DEFAULT_STRICTNESS);
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  boolean strict) {
     this(pipes, aggregator, groupFields, inputFields, outputFields, outputFields, DEFAULT_LIMIT, strict);
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields intermediateFields,
+                  Fields outputFields,
+                  boolean strict) {
     this(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields, DEFAULT_LIMIT, strict);
   }
 
   public Combiner(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                  ExactAggregator<T> aggregator,
+                  Fields groupFields,
+                  Fields inputFields,
+                  Fields outputFields,
+                  int limit,
+                  boolean strict) {
     this(pipes, aggregator, groupFields, inputFields, outputFields, outputFields, limit, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, outputFields);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         int limit) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, outputFields, limit);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         int limit) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         boolean strict) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, outputFields, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         boolean strict) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         int limit,
+                                         boolean strict) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, outputFields, limit, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         int limit,
+                                         boolean strict) {
     return new Combiner<T>(pipe, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe pipe,
-      ExactAggregator<T> aggregator,
-      CombinerDefinition<T> combinerDefinition) {
+                                         ExactAggregator<T> aggregator,
+                                         CombinerDefinition<T> combinerDefinition) {
     return new Combiner<T>(new Pipe[]{pipe}, aggregator, combinerDefinition);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, outputFields);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         int limit) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, outputFields, limit);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         int limit) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         boolean strict) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, outputFields, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         boolean strict) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields outputFields,
+                                         int limit,
+                                         boolean strict) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, outputFields, outputFields, limit, strict);
   }
 
   public static <T> Combiner<T> assembly(Pipe[] pipes,
-      ExactAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields intermediateFields,
-      Fields outputFields,
-      int limit,
-      boolean strict) {
+                                         ExactAggregator<T> aggregator,
+                                         Fields groupFields,
+                                         Fields inputFields,
+                                         Fields intermediateFields,
+                                         Fields outputFields,
+                                         int limit,
+                                         boolean strict) {
     return new Combiner<T>(pipes, aggregator, groupFields, inputFields, intermediateFields, outputFields, limit, strict);
   }
 
 
-
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                                                 Fields groupFields,
+                                                 Fields inputFields,
+                                                 Fields outputFields) {
     return function(
         aggregator,
         groupFields,
         inputFields,
         outputFields,
         DEFAULT_LIMIT,
-        -1,
+        MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY,
         null,
         null,
         DEFAULT_STRICTNESS);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int limit) {
+                                                 Fields groupFields,
+                                                 Fields inputFields,
+                                                 Fields outputFields,
+                                                 int limit) {
     return function(aggregator, groupFields, inputFields, outputFields, limit, -1, null, null, DEFAULT_STRICTNESS);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      boolean strict) {
-    return function(aggregator, groupFields, inputFields, outputFields, DEFAULT_LIMIT, -1, null, null, strict);
+                                                 Fields groupFields,
+                                                 Fields inputFields,
+                                                 Fields outputFields,
+                                                 boolean strict) {
+    return function(aggregator, groupFields, inputFields, outputFields, DEFAULT_LIMIT, MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY, null, null, strict);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields,
-      int itemLimit,
-      long memoryLimit,
-      MemoryUsageEstimator<Tuple> keySizeEstimator,
-      MemoryUsageEstimator<T> valueSizeEstimator,
-      boolean strict) {
+                                                 Fields groupFields,
+                                                 Fields inputFields,
+                                                 Fields outputFields,
+                                                 int itemLimit,
+                                                 long memoryLimit,
+                                                 MemoryUsageEstimator<Tuple> keySizeEstimator,
+                                                 MemoryUsageEstimator<T> valueSizeEstimator,
+                                                 boolean strict) {
     return new CombinerFunction<T>(aggregator, groupFields, inputFields, outputFields, itemLimit, memoryLimit, keySizeEstimator, valueSizeEstimator, strict);
   }
 
   public static <T> CombinerAggregator<T> aggregator(FinalAggregator<T> aggregator,
-      Fields groupFields,
-      Fields inputFields,
-      Fields outputFields) {
+                                                     Fields groupFields,
+                                                     Fields inputFields,
+                                                     Fields outputFields) {
     return new CombinerAggregator<T>(aggregator, groupFields, inputFields, outputFields);
   }
 }
