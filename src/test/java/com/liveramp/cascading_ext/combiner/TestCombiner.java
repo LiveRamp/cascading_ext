@@ -1,5 +1,11 @@
 package com.liveramp.cascading_ext.combiner;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Test;
+
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.SequenceFile;
@@ -9,16 +15,12 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
+
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.combiner.lib.BaseExactAggregator;
 import com.liveramp.cascading_ext.util.SimpleTupleMemoryUsageEstimator;
 import com.liveramp.commons.util.LongMemoryUsageEstimator;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 public class TestCombiner extends BaseTestCase {
 
@@ -72,7 +74,7 @@ public class TestCombiner extends BaseTestCase {
 
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, Combiner.function(new SimpleAggregator(), new Fields("key"), new Fields("value"),
-        new Fields("sum"), 0, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
+        new Fields("sum"), -1, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
 
     CascadingUtil.get().getFlowConnector().connect(source, sink, pipe).complete();
 
