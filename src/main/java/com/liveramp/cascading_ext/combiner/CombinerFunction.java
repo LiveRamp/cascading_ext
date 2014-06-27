@@ -26,6 +26,7 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 import com.liveramp.commons.util.MemoryUsageEstimator;
 
 public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T>> implements Function<CombinerFunctionContext<T>> {
@@ -37,7 +38,7 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
       Fields groupFields,
       Fields inputFields,
       Fields outputFields) {
-    this(aggregator, groupFields, inputFields, outputFields, Combiner.DEFAULT_LIMIT, -1, null, null, Combiner.DEFAULT_STRICTNESS);
+    this(aggregator, groupFields, inputFields, outputFields, Combiner.DEFAULT_LIMIT, MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY, null, null, Combiner.DEFAULT_STRICTNESS);
   }
 
   public CombinerFunction(
@@ -46,7 +47,7 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
       Fields inputFields,
       Fields outputFields,
       int limit) {
-    this(aggregator, groupFields, inputFields, outputFields, limit, -1, null, null, Combiner.DEFAULT_STRICTNESS);
+    this(aggregator, groupFields, inputFields, outputFields, limit, MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY, null, null, Combiner.DEFAULT_STRICTNESS);
   }
 
   public CombinerFunction(
@@ -55,7 +56,7 @@ public class CombinerFunction<T> extends BaseOperation<CombinerFunctionContext<T
       Fields inputFields,
       Fields outputFields,
       boolean strict) {
-    this(aggregator, groupFields, inputFields, outputFields, Combiner.DEFAULT_LIMIT, -1, null, null, strict);
+    this(aggregator, groupFields, inputFields, outputFields, Combiner.DEFAULT_LIMIT, MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY, null, null, strict);
   }
 
   public CombinerFunction(

@@ -9,11 +9,14 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
+
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.combiner.lib.BaseExactAggregator;
 import com.liveramp.cascading_ext.util.SimpleTupleMemoryUsageEstimator;
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
 import com.liveramp.commons.util.LongMemoryUsageEstimator;
+
 import org.junit.Test;
 
 import java.io.IOException;
@@ -49,11 +52,11 @@ public class TestCombiner extends BaseTestCase {
     printCollection(tuples);
 
     assertCollectionEquivalent(Arrays.asList(
-        new Tuple("k0", 3L),
-        new Tuple("k1", 8L)),
-        tuples);
+            new Tuple("k0", 3L),
+            new Tuple("k1", 8L)),
+        tuples
+    );
   }
-
 
 
   @Test
@@ -72,7 +75,7 @@ public class TestCombiner extends BaseTestCase {
 
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, Combiner.function(new SimpleAggregator(), new Fields("key"), new Fields("value"),
-        new Fields("sum"), 0, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
+        new Fields("sum"), MemoryBoundLruHashMap.UNLIMITED_ITEM_CAPACITY, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
 
     CascadingUtil.get().getFlowConnector().connect(source, sink, pipe).complete();
 
@@ -81,10 +84,11 @@ public class TestCombiner extends BaseTestCase {
     printCollection(tuples);
 
     assertCollectionEquivalent(Arrays.asList(
-        new Tuple("key0", 3L),
-        new Tuple("key1", -2L),
-        new Tuple("key0", 10L)),
-        tuples);
+            new Tuple("key0", 3L),
+            new Tuple("key1", -2L),
+            new Tuple("key0", 10L)),
+        tuples
+    );
   }
 
   private static class SimpleAggregator extends BaseExactAggregator<Long> implements ExactAggregator<Long> {
@@ -139,9 +143,10 @@ public class TestCombiner extends BaseTestCase {
     printCollection(tuples);
 
     assertCollectionEquivalent(Arrays.asList(
-        new Tuple("k0", 3L, 2L, 1.5D),
-        new Tuple("k1", 15L, 3L, 5.0D)),
-        tuples);
+            new Tuple("k0", 3L, 2L, 1.5D),
+            new Tuple("k1", 15L, 3L, 5.0D)),
+        tuples
+    );
   }
 
   private static class ComplexAggregator implements ExactAggregator<long[]> {
@@ -172,7 +177,7 @@ public class TestCombiner extends BaseTestCase {
 
     @Override
     public Tuple toFinalTuple(long[] aggregate) {
-      double average = (double) aggregate[0] / aggregate[1];
+      double average = (double)aggregate[0] / aggregate[1];
       return new Tuple(aggregate[0], aggregate[1], average);
     }
   }
