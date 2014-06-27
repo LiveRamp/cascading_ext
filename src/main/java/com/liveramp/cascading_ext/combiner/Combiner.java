@@ -437,7 +437,7 @@ public class Combiner<T> extends SubAssembly {
                                                  Fields inputFields,
                                                  Fields outputFields,
                                                  int limit) {
-    return function(aggregator, groupFields, inputFields, outputFields, limit, -1, null, null, DEFAULT_STRICTNESS);
+    return function(aggregator, groupFields, inputFields, outputFields, limit, MemoryBoundLruHashMap.UNLIMITED_MEMORY_CAPACITY, null, null, DEFAULT_STRICTNESS);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
