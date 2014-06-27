@@ -81,7 +81,7 @@ public class Combiner<T> extends SubAssembly {
         intermediateFields,
         outputFields,
         limit,
-        0,
+        -1,
         null,
         null,
         strict);
