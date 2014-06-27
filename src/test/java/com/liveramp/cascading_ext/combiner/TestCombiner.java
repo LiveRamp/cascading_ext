@@ -72,7 +72,7 @@ public class TestCombiner extends BaseTestCase {
 
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, Combiner.function(new SimpleAggregator(), new Fields("key"), new Fields("value"),
-        new Fields("sum"), 0, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
+        new Fields("sum"), -1, 100, new SimpleTupleMemoryUsageEstimator(), new LongMemoryUsageEstimator(), false));
 
     CascadingUtil.get().getFlowConnector().connect(source, sink, pipe).complete();
 
