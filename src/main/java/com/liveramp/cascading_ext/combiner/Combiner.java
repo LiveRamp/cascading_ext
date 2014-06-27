@@ -425,7 +425,7 @@ public class Combiner<T> extends SubAssembly {
         inputFields,
         outputFields,
         DEFAULT_LIMIT,
-        0,
+        -1,
         null,
         null,
         DEFAULT_STRICTNESS);
@@ -436,7 +436,7 @@ public class Combiner<T> extends SubAssembly {
       Fields inputFields,
       Fields outputFields,
       int limit) {
-    return function(aggregator, groupFields, inputFields, outputFields, limit, 0, null, null, DEFAULT_STRICTNESS);
+    return function(aggregator, groupFields, inputFields, outputFields, limit, -1, null, null, DEFAULT_STRICTNESS);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
@@ -444,7 +444,7 @@ public class Combiner<T> extends SubAssembly {
       Fields inputFields,
       Fields outputFields,
       boolean strict) {
-    return function(aggregator, groupFields, inputFields, outputFields, DEFAULT_LIMIT, 0, null, null, strict);
+    return function(aggregator, groupFields, inputFields, outputFields, DEFAULT_LIMIT, -1, null, null, strict);
   }
 
   public static <T> CombinerFunction<T> function(PartialAggregator<T> aggregator,
