@@ -16,26 +16,36 @@
 
 package com.liveramp.cascading_ext.tap;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowProcess;
 import cascading.tap.Tap;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-import com.liveramp.cascading_ext.CascadingUtil;
-import org.apache.hadoop.mapred.JobConf;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.liveramp.cascading_ext.CascadingUtil;
 
 public class TapHelper {
+
+  public static void writeToTap(Tap<JobConf, ?, ?> t, List<Tuple> tuples) throws IOException {
+    writeToTap(t, CascadingUtil.get().getFlowProcess(), tuples);
+  }
 
   public static void writeToTap(Tap<JobConf, ?, ?> t, Tuple... tuples) throws IOException {
     writeToTap(t, CascadingUtil.get().getFlowProcess(), tuples);
   }
-
   public static void writeToTap(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf, Tuple... tuples) throws IOException {
+    writeToTap(t, conf, Lists.newArrayList(tuples));
+  }
+
+  public static void writeToTap(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf, List<Tuple> tuples) throws IOException {
     TupleEntryCollector collector = t.openForWrite(conf);
     for (Tuple tuple : tuples) {
       collector.add(tuple);
