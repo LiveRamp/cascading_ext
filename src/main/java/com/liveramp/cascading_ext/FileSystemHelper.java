@@ -36,6 +36,8 @@ public class FileSystemHelper {
     return getFS();
   }
 
+  @Deprecated
+  // Please use @link{getFileSystemForPath(String)} where possible.
   public static FileSystem getFS() {
     try {
       return FileSystem.get(new Configuration());
