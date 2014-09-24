@@ -44,6 +44,18 @@ public class FileSystemHelper {
     }
   }
 
+  public static FileSystem getFileSystemForPath(String path) {
+    return getFileSystemForPath(new Path(path));
+  }
+
+  public static FileSystem getFileSystemForPath(Path path) {
+    try {
+      return path.getFileSystem(new Configuration());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static void createLocalFile(String path, String content) {
     try {
       DataOutputStream dos = new DataOutputStream(new FileOutputStream(new File(path)));
