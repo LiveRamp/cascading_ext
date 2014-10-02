@@ -33,7 +33,7 @@ public class Bytes {
     return new BytesWritable(BytesUtils.byteBufferToByteArray(buffer));
   }
 
-  public static ByteBuffer bytesWriteableToByteBuffer(BytesWritable writable){
+  public static ByteBuffer bytesWritableToByteBuffer(BytesWritable writable){
     return ByteBuffer.wrap(getBytes(writable));
   }
 
