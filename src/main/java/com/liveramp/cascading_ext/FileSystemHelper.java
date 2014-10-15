@@ -272,7 +272,8 @@ public class FileSystemHelper {
   }
 
   public static FileStatus[] safeListStatus(Path p) throws IOException {
-    return safeListStatus(getFS(), p);
+    FileSystem fs = FileSystemHelper.getFileSystemForPath(p);
+    return safeListStatus(fs, p);
   }
 
   public static FileStatus[] safeListStatus(Path p, PathFilter filter) throws IOException {
