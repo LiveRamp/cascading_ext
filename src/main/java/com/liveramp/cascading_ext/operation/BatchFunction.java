@@ -30,7 +30,7 @@ public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Co
     }
   }
 
-  public abstract List<T> apply(List<S> input);
+  public abstract List<T> apply(FlowProcess flowProcess, List<S> input);
 
   private void emitAll(FunctionCall<Context<S>> functionCall, Collection<T> output) {
     for (T t : output) {
@@ -38,9 +38,9 @@ public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Co
     }
   }
 
-  private void applyAndRefresh(FunctionCall<Context<S>> functionCall) {
+  private void applyAndRefresh(FlowProcess flowProcess, FunctionCall<Context<S>> functionCall) {
     Context<S> context = functionCall.getContext();
-    List<T> output = apply(context.input);
+    List<T> output = apply(flowProcess, context.input);
     emitAll(functionCall, output);
     context = new Context<S>();
     functionCall.setContext(context);
@@ -60,14 +60,14 @@ public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Co
     functionCall.getContext().input.add(arg);
 
     if (functionCall.getContext().input.size() >= maxSizeOfBatch) {
-      applyAndRefresh(functionCall);
+      applyAndRefresh(flowProcess, functionCall);
     }
   }
 
 
   @Override
   public void flush(FlowProcess flowProcess, OperationCall<Context<S>> operationCall) {
-    applyAndRefresh((FunctionCall<Context<S>>) operationCall);
+    applyAndRefresh(flowProcess, (FunctionCall<Context<S>>) operationCall);
   }
 
 }

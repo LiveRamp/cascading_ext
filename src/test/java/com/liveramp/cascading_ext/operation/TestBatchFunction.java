@@ -14,6 +14,7 @@ import org.apache.hadoop.mapred.RecordReader;
 import org.junit.Test;
 
 import cascading.flow.Flow;
+import cascading.flow.FlowProcess;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.SequenceFile;
@@ -81,7 +82,7 @@ public class TestBatchFunction extends BaseTestCase {
     }
 
     @Override
-    public List<BytesWritable> apply(List<BytesWritable> input) {
+    public List<BytesWritable> apply(FlowProcess flowProcess, List<BytesWritable> input) {
       List<BytesWritable> output = Lists.newArrayList();
 
       for (BytesWritable bytesWritable : input) {
