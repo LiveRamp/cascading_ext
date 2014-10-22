@@ -16,29 +16,35 @@
 
 package com.liveramp.cascading_ext.bloom;
 
-import cascading.scheme.hadoop.SequenceFile;
-import cascading.tap.hadoop.Hfs;
-import cascading.tuple.Fields;
-import cascading.tuple.TupleEntry;
-import cascading.tuple.TupleEntryIterator;
-import cascading.util.Pair;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import com.clearspring.analytics.stream.cardinality.ICardinality;
-import com.liveramp.cascading_ext.Bytes;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.FileSystemHelper;
-import com.liveramp.cascading_ext.FixedSizeBitSet;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
+import cascading.scheme.hadoop.SequenceFile;
+import cascading.tap.hadoop.Hfs;
+import cascading.tuple.Fields;
+import cascading.tuple.TupleEntry;
+import cascading.tuple.TupleEntryIterator;
+import cascading.util.Pair;
+
+import com.liveramp.cascading_ext.Bytes;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.FileSystemHelper;
+import com.liveramp.cascading_ext.FixedSizeBitSet;
 
 public class BloomUtil {
   private static Logger LOG = Logger.getLogger(BloomUtil.class);
@@ -83,6 +89,7 @@ public class BloomUtil {
           }
         }
       }
+      itr.close();
     }
 
     return new BloomFilter(numBloomBits, numBloomHashes, bitSet, numElems);
