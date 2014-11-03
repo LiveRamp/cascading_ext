@@ -12,11 +12,6 @@
       <url>http://conjars.org/repo</url>
     </repository>
     <repository>
-      <id>cdh.repo</id>
-      <name>Cloudera</name>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-    </repository>
-    <repository>
       <id>liveramp-repositories</id>
       <name>Liveramp Repositories</name>
       <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
@@ -35,16 +30,10 @@
     </snapshotRepository>
   </distributionManagement>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>sonatype-releases</id>
-      <url>http://oss.sonatype.org/content/repositories/releases</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </pluginRepository>
-  </pluginRepositories>
+  <properties>
+    <cascadingVersion>2.6.0</cascadingVersion>
+    <hadoopVersion>2.4.0</hadoopVersion>
+  </properties>
 
   <dependencies>
 
@@ -53,30 +42,17 @@
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>2.0.0-mr1-cdh4.1.2</version>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoopVersion}</version>
       <scope>provided</scope>
-    </dependency>
 
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>2.0.0-cdh4.1.2</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs</artifactId>
-      <version>2.0.0-cdh4.1.2</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-test</artifactId>
-      <version>2.0.0-mr1-cdh4.1.2</version>
-      <scope>test</scope>
+      <!-- Spark needs this exclusion to avoid dependency collision -->
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -87,14 +63,8 @@
 
     <dependency>
       <groupId>cascading</groupId>
-      <artifactId>cascading-core</artifactId>
-      <version>2.5.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>cascading</groupId>
-      <artifactId>cascading-hadoop</artifactId>
-      <version>2.5.1</version>
+      <artifactId>cascading-hadoop2-mr1</artifactId>
+      <version>${cascadingVersion}</version>
     </dependency>
 
     <dependency>
