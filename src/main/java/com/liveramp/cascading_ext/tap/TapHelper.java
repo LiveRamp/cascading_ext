@@ -16,21 +16,19 @@
 
 package com.liveramp.cascading_ext.tap;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.google.common.collect.Lists;
-import org.apache.hadoop.mapred.JobConf;
-
 import cascading.flow.FlowProcess;
 import cascading.tap.Tap;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
-
+import com.google.common.collect.Lists;
 import com.liveramp.cascading_ext.CascadingUtil;
+import org.apache.hadoop.mapred.JobConf;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TapHelper {
 
@@ -57,7 +55,7 @@ public class TapHelper {
     TupleEntryIterator iter = t.openForRead(CascadingUtil.get().getFlowProcess());
     List<TupleEntry> tuples = new ArrayList<TupleEntry>();
     while (iter.hasNext()) {
-      tuples.add(iter.next());
+      tuples.add(new TupleEntry(iter.next()));
     }
     return tuples;
   }
