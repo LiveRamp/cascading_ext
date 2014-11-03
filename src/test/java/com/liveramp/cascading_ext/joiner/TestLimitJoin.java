@@ -32,9 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TestLimitJoin extends BaseTestCase {
 
@@ -78,13 +76,47 @@ public class TestLimitJoin extends BaseTestCase {
 
     CascadingUtil.get().getFlowConnector().connect(sources, output, joined).complete();
 
-    List<Tuple> results = TapHelper.getAllTuples(output);
-    Assert.assertEquals(results.get(0), new Tuple("1", "A", "E"));
-    Assert.assertEquals(results.get(1), new Tuple("1", "B", "E"));
-    Assert.assertEquals(results.get(2), new Tuple("2", "D", "F"));
-    Assert.assertEquals(results.get(3), new Tuple("2", "H", "F"));
+    // These would be the results of an ordinary inner join
+    Set<Tuple> allowedResults = new HashSet<Tuple>(Arrays.asList(
+        new Tuple("1", "A", "E"),
+        new Tuple("1", "B", "E"),
+        new Tuple("1", "C", "E"),
+        new Tuple("2", "D", "F"),
+        new Tuple("2", "D", "G"),
+        new Tuple("2", "H", "F"),
+        new Tuple("2", "H", "G"),
+        new Tuple("2", "I", "F"),
+        new Tuple("2", "I", "G")
+    ));
 
+    /*
+
+    Example good output:
+      1 A E
+      1 B E
+      2 D F
+      2 H F
+
+     */
+
+    // Read the results and make sure we saw two results from allowedResults with 1 as the key, and two with 2 as the key
+    Set<Tuple> results = new HashSet<Tuple>(TapHelper.getAllTuples(output));
     Assert.assertEquals(4, results.size());
+    int key1 = 0;
+    int key2 = 0;
+    for (Tuple result : results) {
+      Assert.assertTrue(allowedResults.contains(result));
+      String key = result.getString(0);
+      if(key.equals("1")){
+        key1++;
+      } else if(key.equals("2")) {
+        key2++;
+      } else {
+        throw new IllegalStateException("Key should be 1 or 2");
+      }
+    }
+    Assert.assertEquals(2, key1);
+    Assert.assertEquals(2, key2);
   }
 
 }
