@@ -112,13 +112,11 @@ public class NullTap extends Tap<JobConf, RecordReader, OutputCollector> impleme
     }
   }
 
+  /**
+   * NullIterator has no tuples.
+   */
   private static class NullIterator extends TupleEntryIterator {
 
-    /**
-     * Constructor TupleEntryIterator creates a new TupleEntryIterator instance.
-     *
-     * @param fields of type Fields
-     */
     public NullIterator(Fields fields) {
       super(fields);
     }
