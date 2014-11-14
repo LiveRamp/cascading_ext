@@ -18,6 +18,7 @@ package com.liveramp.cascading_ext.tap;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.UUID;
 
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -43,13 +44,16 @@ import cascading.tuple.TupleEntryIterator;
 public class NullTap extends Tap<JobConf, RecordReader, OutputCollector> implements FlowListener {
   private final TupleEntryCollector outCollector = new NullOutputCollector();
 
+  final UUID id;
+
   public NullTap() {
     super(new NullScheme<JobConf, RecordReader, OutputCollector, Object, Object>());
+    id = UUID.randomUUID();
   }
 
   @Override
   public String getIdentifier() {
-    return "NullTap";
+    return "NullTap-"+id;
   }
 
   @Override
