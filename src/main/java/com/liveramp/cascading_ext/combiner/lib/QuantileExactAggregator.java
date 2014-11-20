@@ -11,7 +11,7 @@ import com.liveramp.cascading_ext.combiner.ExactAggregator;
 
 /**
  * Memory usage scales linearly with compression factor (related to number of
- * bins uses to estimate quantiles). In practice a value of 1000 seems to work
+ * bins used to estimate quantiles). In practice a value of 1000 seems to work
  * well.
  */
 public class QuantileExactAggregator implements ExactAggregator<QDigest> {
