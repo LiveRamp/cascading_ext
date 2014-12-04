@@ -1,6 +1,7 @@
 package com.liveramp.cascading_ext;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -22,9 +23,10 @@ public class FixedWidthTextScheme extends TextLine {
   private final List<Integer> columnWidths;
   private final int sum;
 
-  public FixedWidthTextScheme(Fields sourceFields, List<Integer> columnWidths) {
+  public FixedWidthTextScheme(Fields sourceFields, List<Integer> columnWidths, Charset charset) {
     this.setSourceFields(sourceFields);
 
+    this.setCharsetName(charset.name());
     this.columnWidths = columnWidths;
     this.sum = getTotalLength(columnWidths);
 
