@@ -16,22 +16,26 @@
 
 package com.liveramp.cascading_ext;
 
-import cascading.tap.Tap;
-import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntryIterator;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.collect.Lists;
-import com.liveramp.cascading_ext.bloom.BloomProps;
-import com.liveramp.cascading_ext.fs.TrashHelper;
-import junit.framework.Assert;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import cascading.tap.Tap;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntryIterator;
+
+import com.liveramp.cascading_ext.bloom.BloomProps;
+import com.liveramp.cascading_ext.fs.TrashHelper;
+
+import static org.junit.Assert.assertTrue;
 
 public abstract class BaseTestCase {
   private String TEST_ROOT;
@@ -70,7 +74,7 @@ public abstract class BaseTestCase {
     List<Tuple> ret = Lists.newArrayList();
     TupleEntryIterator tupleEntryIterator = sink.openForRead(CascadingUtil.get().getFlowProcess());
     while (tupleEntryIterator.hasNext()) {
-      ret.add(tupleEntryIterator.next().getTuple());
+      ret.add(new Tuple(tupleEntryIterator.next().getTuple()));
     }
     return ret;
   }
@@ -82,9 +86,6 @@ public abstract class BaseTestCase {
   }
 
   protected <T> void assertCollectionEquivalent(Collection<T> expected, Collection<T> actual) {
-    Assert.assertEquals(expected.size(), actual.size());
-    for (T t : actual) {
-      Assert.assertTrue(expected.contains(t));
-    }
+    assertTrue(CollectionUtils.isEqualCollection(expected, actual));
   }
 }
