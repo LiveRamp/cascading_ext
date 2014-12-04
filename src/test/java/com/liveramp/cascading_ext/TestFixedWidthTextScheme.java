@@ -32,8 +32,8 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
 
   private final String testPath;
 
-  public TestFixedWidthTextScheme() {
-    testPath = "/tmp/test-fixed-width-text-scheme.txt";
+  public TestFixedWidthTextScheme() throws IOException {
+    testPath = getTestRoot() + "/test-fixed-width-text-scheme.txt";
   }
 
   private void writeLine(FileOutputStream writer, String s) throws IOException {
@@ -43,6 +43,8 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
 
   @Before
   public void setUp() throws Exception {
+    fs.mkdirs(new Path(getTestRoot()));
+
     FileOutputStream writer = new FileOutputStream(new File(testPath));
     writeLine(writer, "012345");
     writeLine(writer, "abcdef");
@@ -67,6 +69,7 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
         tuplesRead);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testShortRead() throws IOException {
     FileWriter writer = new FileWriter(new File(testPath));
@@ -83,6 +86,7 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
 
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testLengthyRead() throws IOException {
     FileWriter writer = new FileWriter(new File(testPath));
@@ -97,6 +101,16 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
       assertTrue(e.getCause().getClass() == TapException.class);
     }
 
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void testColsFieldsMismatch() throws IOException {
+   try {
+     FixedWidthTextScheme scheme = new FixedWidthTextScheme(FIELDS.append(new Fields("toomuch")), COLUMN_WIDTHS, CHARSET);
+     fail("Should have failed on colwidths-fields mismatch.");
+    } catch (IllegalArgumentException e) {
+    }
   }
 
 }
