@@ -2,9 +2,9 @@ package com.liveramp.cascading_ext;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -30,6 +30,16 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
   private static final List<Integer> COLUMN_WIDTHS = Lists.newArrayList(3, 1, 2);
   public static final Charset CHARSET = Charset.forName("UTF-8");
 
+  public static final List<String> INPUT = Lists.newArrayList(
+      "012345",
+      "abcdef",
+      "FIRsTH");
+
+  public static final List<Tuple> EXPECTED = Lists.newArrayList(
+      new Tuple("012", "3", "45"),
+      new Tuple("abc", "d", "ef"),
+      new Tuple("FIR", "s", "TH"));
+
   private final String testPath;
 
   public TestFixedWidthTextScheme() throws IOException {
@@ -46,9 +56,9 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
     fs.mkdirs(new Path(getTestRoot()));
 
     FileOutputStream writer = new FileOutputStream(new File(testPath));
-    writeLine(writer, "012345");
-    writeLine(writer, "abcdef");
-    writeLine(writer, "FIRsTH");
+    for (String line : INPUT) {
+      writeLine(writer, line);
+    }
     writer.close();
   }
 
@@ -61,19 +71,14 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
   public void testRead() throws IOException {
     Tap in = new Hfs(new FixedWidthTextScheme(FIELDS, COLUMN_WIDTHS, CHARSET), testPath);
     List<Tuple> tuplesRead = getAllTuples(in);
-    assertEquals(
-        Lists.newArrayList(
-            new Tuple("012", "3", "45"),
-            new Tuple("abc", "d", "ef"),
-            new Tuple("FIR", "s", "TH")),
-        tuplesRead);
+    assertEquals(EXPECTED, tuplesRead);
   }
 
   @SuppressWarnings("unused")
   @Test
   public void testShortRead() throws IOException {
-    FileWriter writer = new FileWriter(new File(testPath));
-    writer.append("short\n");
+    FileOutputStream writer = new FileOutputStream(testPath, true);
+    writeLine(writer, "short");
     writer.close();
 
     Tap in = new Hfs(new FixedWidthTextScheme(FIELDS, COLUMN_WIDTHS, CHARSET), testPath);
@@ -89,8 +94,8 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
   @SuppressWarnings("unused")
   @Test
   public void testLengthyRead() throws IOException {
-    FileWriter writer = new FileWriter(new File(testPath));
-    writer.append("Lengthy\n");
+    FileOutputStream writer = new FileOutputStream(testPath, true);
+    writeLine(writer, "Lengthy");
     writer.close();
 
     Tap in = new Hfs(new FixedWidthTextScheme(FIELDS, COLUMN_WIDTHS, CHARSET), testPath);
@@ -111,6 +116,27 @@ public class TestFixedWidthTextScheme extends BaseTestCase {
      fail("Should have failed on colwidths-fields mismatch.");
     } catch (IllegalArgumentException e) {
     }
+  }
+
+  @Test
+  public void testNoFailureOnNonStrict() throws IOException {
+    FileOutputStream writer = new FileOutputStream(testPath, true);
+    writeLine(writer, "Lengthy");
+    writeLine(writer, "Normal");
+    writeLine(writer, "Short");
+    writeLine(writer, "Normal");
+    writeLine(writer, "Tiny");
+    writer.close();
+
+    List<Tuple> expected = new ArrayList<Tuple>();
+    expected.addAll(EXPECTED);
+    expected.add(new Tuple("Nor", "m", "al"));
+    expected.add(new Tuple("Nor", "m", "al"));
+
+    Tap in = new Hfs(new FixedWidthTextScheme(FIELDS, COLUMN_WIDTHS, CHARSET, false), testPath);
+    List<Tuple> tuplesRead = getAllTuples(in);
+
+    assertEquals(expected, tuplesRead);
   }
 
 }
