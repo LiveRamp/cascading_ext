@@ -36,9 +36,23 @@ public class FileSystemHelper {
     return getFS();
   }
 
+  @Deprecated
+  // Please use @link{getFileSystemForPath(String)} where possible.
   public static FileSystem getFS() {
     try {
       return FileSystem.get(new Configuration());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static FileSystem getFileSystemForPath(String path) {
+    return getFileSystemForPath(new Path(path));
+  }
+
+  public static FileSystem getFileSystemForPath(Path path) {
+    try {
+      return path.getFileSystem(new Configuration());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -258,11 +272,13 @@ public class FileSystemHelper {
   }
 
   public static FileStatus[] safeListStatus(Path p) throws IOException {
-    return safeListStatus(getFS(), p);
+    FileSystem fs = FileSystemHelper.getFileSystemForPath(p);
+    return safeListStatus(fs, p);
   }
 
   public static FileStatus[] safeListStatus(Path p, PathFilter filter) throws IOException {
-    return safeListStatus(getFS(), p, filter);
+    FileSystem fs = FileSystemHelper.getFileSystemForPath(p);
+    return safeListStatus(fs, p, filter);
   }
 
   public static FileStatus[] safeListStatus(FileSystem fs, Path p) throws IOException {
