@@ -16,6 +16,14 @@
 
 package com.liveramp.cascading_ext.combiner;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Filter;
@@ -29,13 +37,6 @@ import cascading.pipe.assembly.Retain;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MultiCombiner extends SubAssembly {
 
@@ -77,10 +78,10 @@ public class MultiCombiner extends SubAssembly {
   private boolean combinerIdsCollide(List<CombinerDefinition> combinerDefinitions) {
     Set<Integer> ids = Sets.newHashSet();
     for (CombinerDefinition definition : combinerDefinitions) {
-      if (ids.contains(Integer.valueOf(definition.getId()))) {
+      if (ids.contains(definition.getId())) {
         return true;
       }
-      ids.add(Integer.valueOf(definition.getId()));
+      ids.add(definition.getId());
     }
     return false;
   }
@@ -146,18 +147,18 @@ public class MultiCombiner extends SubAssembly {
 
   public static <T> void populateOutputTupleEntry(CombinerDefinition<T> definition, TupleEntry output, Tuple resultTuple) {
     //set the ID so we can differentiate later
-    output.set(MultiCombiner.ID_FIELD, definition.getId());
+    output.setRaw(MultiCombiner.ID_FIELD, definition.getId());
 
     //our tuples are of the form groupFields+outputFields, set the TupleEntry fields appropriately
     Fields groupFields = definition.getGroupFields();
     int index = 0;
     for (int i = 0; i < groupFields.size(); i++) {
-      output.set(groupFields.get(i), resultTuple.getObject(index));
+      output.setRaw(groupFields.get(i), resultTuple.getObject(index));
       index++;
     }
     Fields outputFields = definition.getOutputFields();
     for (int i = 0; i < outputFields.size(); i++) {
-      output.set(outputFields.get(i), resultTuple.getObject(index));
+      output.setRaw(outputFields.get(i), resultTuple.getObject(index));
       index++;
     }
   }
