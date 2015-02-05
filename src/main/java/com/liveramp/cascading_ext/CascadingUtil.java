@@ -28,6 +28,8 @@ import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
 import com.liveramp.cascading_ext.util.OperationStatsUtils;
+
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -46,9 +48,7 @@ public class CascadingUtil {
   }
 
   protected CascadingUtil() {
-    addDefaultFlowStepStrategy(RenameJobStrategy.class);
-    addDefaultFlowStepStrategy(BloomAssemblyStrategy.class);
-
+    defaultFlowStepStrategies.addAll(getDefaultFlowStepStrategies());
     defaultProperties.putAll(BloomProps.getDefaultProperties());
   }
 
@@ -74,6 +74,13 @@ public class CascadingUtil {
 
   public void clearDefaultFlowStepStrategies() {
     defaultFlowStepStrategies.clear();
+  }
+
+  public List<FlowStepStrategyFactory<JobConf>> getDefaultFlowStepStrategies() {
+    List<FlowStepStrategyFactory<JobConf>> defaultStrategies = Lists.newArrayList();
+    defaultStrategies.add(new SimpleFlowStepStrategyFactory(RenameJobStrategy.class));
+    defaultStrategies.add(new SimpleFlowStepStrategyFactory(BloomAssemblyStrategy.class));
+    return defaultFlowStepStrategies;
   }
 
   public void addSerialization(Class<? extends Serialization> serialization) {
