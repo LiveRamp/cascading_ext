@@ -80,7 +80,7 @@ public class CascadingUtil {
     List<FlowStepStrategyFactory<JobConf>> defaultStrategies = Lists.newArrayList();
     defaultStrategies.add(new SimpleFlowStepStrategyFactory(RenameJobStrategy.class));
     defaultStrategies.add(new SimpleFlowStepStrategyFactory(BloomAssemblyStrategy.class));
-    return defaultFlowStepStrategies;
+    return defaultStrategies;
   }
 
   public void addSerialization(Class<? extends Serialization> serialization) {
