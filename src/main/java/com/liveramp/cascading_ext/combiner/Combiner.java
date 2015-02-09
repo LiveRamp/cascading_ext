@@ -44,6 +44,7 @@ public class Combiner<T> extends SubAssembly {
                   MemoryUsageEstimator<Tuple> keySizeEstimator,
                   MemoryUsageEstimator<T> valueSizeEstimator,
                   boolean strict) {
+    super(pipes);
     Pipe[] pipesCopy = new Pipe[pipes.length];
     for (int i = 0; i < pipes.length; i++) {
       pipesCopy[i] = new Each(

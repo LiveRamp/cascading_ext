@@ -43,9 +43,11 @@ public class MultiCombiner extends SubAssembly {
   public static final Comparable ID_FIELD = "__combiner_id";
 
   public MultiCombiner(Pipe[] pipes, List<CombinerDefinition> combinerDefinitions, boolean filterTails) {
+    super(pipes);
+
     if (combinerIdsCollide(combinerDefinitions)) {
       throw new IllegalArgumentException("Some CombinerDefinition ids collide. " +
-          "Make sure that all names are unqiue and, if they are, check for hashCode collisions");
+          "Make sure that all names are unique and, if they are, check for hashCode collisions");
     }
 
     Pipe[] pipesCopy = new Pipe[pipes.length];
