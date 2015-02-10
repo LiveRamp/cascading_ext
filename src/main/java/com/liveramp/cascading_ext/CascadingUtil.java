@@ -131,9 +131,15 @@ public class CascadingUtil {
 
   public Map<Object, Object> getDefaultProperties() {
     Map<Object, Object> properties = new HashMap<Object, Object>();
+    properties.putAll(getDefaultSerializationProperties());
+    properties.putAll(defaultProperties);
+    return properties;
+  }
+
+  public Map<Object, Object> getDefaultSerializationProperties() {
+    Map<Object, Object> properties = new HashMap<Object, Object>();
     properties.putAll(getSerializationsProperty());
     properties.putAll(getSerializationTokensProperty());
-    properties.putAll(defaultProperties);
     return properties;
   }
 
