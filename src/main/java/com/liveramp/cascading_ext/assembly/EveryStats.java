@@ -21,34 +21,42 @@ public class EveryStats extends SubAssembly {
   }
 
   public EveryStats(Pipe pipe, Aggregator aggregator) {
+    super(pipe);
     setTails(new Every(pipe, decorateAggregator(aggregator)));
   }
 
   public EveryStats(Pipe pipe, Fields comparables, Aggregator aggregator) {
+    super(pipe);
     setTails(new Every(pipe, comparables, decorateAggregator(aggregator)));
   }
 
   public EveryStats(Pipe pipe, Fields comparables, Aggregator aggregator, Fields comparables2) {
+    super(pipe);
     setTails(new Every(pipe, comparables, decorateAggregator(aggregator), comparables2));
   }
 
   public EveryStats(Pipe pipe, Aggregator aggregator, Fields comparables) {
+    super(pipe);
     setTails(new Every(pipe, decorateAggregator(aggregator), comparables));
   }
 
   public EveryStats(Pipe pipe, Buffer buffer) {
+    super(pipe);
     setTails(new Every(pipe, decorateBuffer(buffer)));
   }
 
   public EveryStats(Pipe pipe, Fields comparables, Buffer buffer) {
+    super(pipe);
     setTails(new Every(pipe, comparables, decorateBuffer(buffer)));
   }
 
   public EveryStats(Pipe pipe, Fields comparables, Buffer buffer, Fields comparables2) {
+    super(pipe);
     setTails(new Every(pipe, comparables, decorateBuffer(buffer), comparables2));
   }
 
   public EveryStats(Pipe pipe, Buffer buffer, Fields comparables) {
+    super(pipe);
     setTails(new Every(pipe, decorateBuffer(buffer), comparables));
   }
 }

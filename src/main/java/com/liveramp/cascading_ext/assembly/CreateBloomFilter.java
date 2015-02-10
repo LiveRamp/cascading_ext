@@ -16,13 +16,25 @@
 
 package com.liveramp.cascading_ext.assembly;
 
+import java.io.IOException;
+import java.util.Random;
+
+import com.clearspring.analytics.stream.cardinality.HyperLogLog;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.log4j.Logger;
+
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Filter;
 import cascading.operation.FilterCall;
 import cascading.operation.OperationCall;
-import cascading.pipe.*;
+import cascading.pipe.Each;
+import cascading.pipe.Every;
+import cascading.pipe.GroupBy;
+import cascading.pipe.Pipe;
+import cascading.pipe.SubAssembly;
 import cascading.pipe.assembly.Unique;
 import cascading.property.ConfigDef;
 import cascading.scheme.hadoop.SequenceFile;
@@ -31,18 +43,12 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
-import com.clearspring.analytics.stream.cardinality.HyperLogLog;
+
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
 import com.liveramp.cascading_ext.hash.HashFunctionFactory;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.Random;
 
 public class CreateBloomFilter extends SubAssembly {
 
@@ -53,6 +59,7 @@ public class CreateBloomFilter extends SubAssembly {
   }
 
   public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField) throws IOException {
+    super(keys);
 
     // Collect stats used to configure the bloom filter creation step
     Pipe smallPipe = new Each(keys, new CollectKeyStats(keyBytesField));
