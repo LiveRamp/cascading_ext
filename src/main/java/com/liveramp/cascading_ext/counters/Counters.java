@@ -16,17 +16,26 @@
 
 package com.liveramp.cascading_ext.counters;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.mapred.RunningJob;
+
 import cascading.flow.Flow;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.RunningJob;
 
-import java.util.*;
+import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 
 public class Counters {
   /**
@@ -61,38 +70,38 @@ public class Counters {
     return counters;
   }
 
-  public static Long get(Flow flow, String group, String value){
+  public static Long get(Flow flow, String group, String value) {
     return get(flow.getFlowStats(), group, value);
   }
 
-  public static Long get(FlowStats stats, String group, String value){
-    try{
+  public static Long get(FlowStats stats, String group, String value) {
+    try {
       long total = 0;
-      for(FlowStepStats step: stats.getFlowStepStats()){
+      for (FlowStepStats step : stats.getFlowStepStats()) {
         total += get(step, group, value);
       }
       return total;
-    } catch(Exception e){
+    } catch (Exception e) {
       return null;
     }
   }
 
-  public static Long get(Flow flow, Enum value){
+  public static Long get(Flow flow, Enum value) {
     return get(flow.getFlowStats(), value);
   }
 
-  public static Long get(FlowStats stats, Enum value){
-    try{
+  public static Long get(FlowStats stats, Enum value) {
+    try {
       long total = 0;
-      for(FlowStepStats step: stats.getFlowStepStats()){
+      for (FlowStepStats step : stats.getFlowStepStats()) {
         total += get(step, value);
       }
       return total;
-    } catch(Exception e){
+    } catch (Exception e) {
       return null;
     }
   }
-  
+
   public static List<Counter> getCounters(Flow flow) {
     return getCounters(flow.getFlowStats());
   }
@@ -106,17 +115,17 @@ public class Counters {
   }
 
   public static Long get(FlowStepStats step, String group, String value) {
-    if(step instanceof HadoopStepStats){
-      return getHadoopCounterValue((HadoopStepStats) step, group, value);
-    }else{
+    if (step instanceof HadoopStepStats) {
+      return getHadoopCounterValue((HadoopStepStats)step, group, value);
+    } else {
       return step.getCounterValue(group, value);
     }
   }
 
-  public static Long get(FlowStepStats step, Enum value)  {
-    if(step instanceof HadoopStepStats){
-      return getHadoopCounterValue((HadoopStepStats) step, value);
-    }else{
+  public static Long get(FlowStepStats step, Enum value) {
+    if (step instanceof HadoopStepStats) {
+      return getHadoopCounterValue((HadoopStepStats)step, value);
+    } else {
       return step.getCounterValue(value);
     }
   }
@@ -124,13 +133,9 @@ public class Counters {
   public static void printCounters(Flow flow) {
     System.out.println(prettyCountersString(flow));
   }
-  
-  public static List<Counter> getCounters(RunningJob job){
-    return getStatsFromRunningJob(job, null);
-  }
 
-  public static void printCounters(RunningJob job){
-    System.out.println(prettyCountersString(job));
+  public static List<Counter> getCounters(RunningJob job) {
+    return getStatsFromRunningJob(job, null);
   }
 
   public static String prettyCountersString(RunningJob job) {
@@ -185,17 +190,31 @@ public class Counters {
     return builder.toString();
   }
 
+  public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
+    org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
+    Collection<String> groupNames = allCounters.getGroupNames();
 
+    TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<String, String, Long>();
 
-  private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group){
-    if(statsForStep instanceof HadoopStepStats){
-      return getStatsFromRunningJob(((HadoopStepStats) statsForStep).getRunningJob(), group);
-    }else{
+    for (String groupName : groupNames) {
+      org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
+      for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
+        counterMap.put(groupName, counter.getName(), counter.getValue());
+      }
+    }
+
+    return counterMap;
+  }
+
+  private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group) {
+    if (statsForStep instanceof HadoopStepStats) {
+      return getStatsFromRunningJob(((HadoopStepStats)statsForStep).getRunningJob(), group);
+    } else {
       return getStatsFromGenericStep(statsForStep, group);
     }
   }
 
-  private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group){
+  private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group) {
     List<Counter> counters = new ArrayList<Counter>();
     for (String currentGroup : safeGetCounterGroups(step)) {
       if (group == null || group.equals(currentGroup)) {
@@ -227,50 +246,50 @@ public class Counters {
 
   //  get the un-cached version of the counters
   private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, String group, String value) {
-    try{
+    try {
       org.apache.hadoop.mapred.Counters.Group counterGroup = hadoopStep.getRunningJob().getCounters().getGroup(group);
-      if(counterGroup != null){
+      if (counterGroup != null) {
         return counterGroup.getCounter(value);
       }
       return 0l;
-    }catch(Exception e){
+    } catch (Exception e) {
       return 0l;
     }
   }
 
   //  get the un-cached version of the counters
   private static Long getHadoopCounterValue(HadoopStepStats hadoopStep, Enum counter) {
-    try{
+    try {
       return hadoopStep.getRunningJob().getCounters().getCounter(counter);
-    }catch(Exception e){
+    } catch (Exception e) {
       return 0l;
     }
   }
 
   private static List<Counter> getStatsFromRunningJob(RunningJob job, String groupToSearch) {
-    try{
+    try {
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
       Collection<String> groupNames = allCounters.getGroupNames();
 
       List<Counter> counters = new ArrayList<Counter>();
-      if(groupToSearch == null){
-        for(String group: groupNames){
+      if (groupToSearch == null) {
+        for (String group : groupNames) {
           counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(group)));
         }
-      }else{
+      } else {
         counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(groupToSearch)));
       }
       return counters;
-    }catch(Exception e){
+    } catch (Exception e) {
       return Collections.emptyList();
     }
   }
 
-  private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup){
+  private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup) {
     Iterator<org.apache.hadoop.mapred.Counters.Counter> counterIterator = counterGroup.iterator();
     List<Counter> counters = new ArrayList<Counter>();
 
-    while(counterIterator.hasNext()){
+    while (counterIterator.hasNext()) {
       org.apache.hadoop.mapred.Counters.Counter counter = counterIterator.next();
       counters.add(new Counter(counterGroup.getName(), counter.getName(), counter.getValue()));
     }
