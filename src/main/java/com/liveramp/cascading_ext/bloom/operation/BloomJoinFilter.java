@@ -16,19 +16,21 @@
 
 package com.liveramp.cascading_ext.bloom.operation;
 
+import java.io.IOException;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.Filter;
 import cascading.operation.FilterCall;
 import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
 import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomFilterOperation;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-
-import java.io.IOException;
 
 public class BloomJoinFilter extends BloomFilterOperation implements Filter {
   private transient TupleSerializationUtil tupleSerializationUtil;
@@ -48,7 +50,11 @@ public class BloomJoinFilter extends BloomFilterOperation implements Filter {
     Tuple key = filterCall.getArguments().getTuple();
     try {
       byte[] serialized = tupleSerializationUtil.serialize(key);
-      return !filterMayContain(Bytes.getBytes(new BytesWritable(serialized)));
+
+      boolean result = !filterMayContain(Bytes.getBytes(new BytesWritable(serialized)));
+      flowProcess.increment("BLOOM_JOIN_FILTERED_ITEM", Boolean.toString(result), 1);
+
+      return result;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
