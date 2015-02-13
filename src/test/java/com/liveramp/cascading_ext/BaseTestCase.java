@@ -56,7 +56,7 @@ public abstract class BaseTestCase {
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);
     CascadingUtil.get().setDefaultProperty("io.sort.record.percent", 0.10);
 
-    CascadingUtil.get().setDefaultProperty(BloomProps.NUM_BLOOM_BITS, 10);
+    CascadingUtil.get().setDefaultProperty(BloomProps.TEST_MODE, true);
 
     TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(TEST_ROOT));
 

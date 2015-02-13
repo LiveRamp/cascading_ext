@@ -37,6 +37,8 @@ public class BloomProps {
   public static final String NUM_SPLITS = "cascading_ext.bloom.num.splits";
   public static final String IO_SORT_PERCENT = "cascading_ext.bloom.io.sort.percent";
 
+  public static final String TEST_MODE = "cascading_ext.bloom.test_mode";
+
   /**
    * This parameter controls how accurate (and how much memory) HyperLogLog takes to approximate the
    * distinct number of keys
@@ -53,10 +55,11 @@ public class BloomProps {
   public static final long DEFAULT_NUM_BLOOM_BITS = 300L * 1024 * 1024 * 8;
   public static final int DEFAULT_MAX_BLOOM_FILTER_HASHES = 4;
   public static final int DEFAULT_MIN_BLOOM_FILTER_HASHES = 1;
-  public static final int DEFAULT_BUFFER_SIZE = 300;
   public static final double DEFAULT_HLL_ERR = 0.01;
   public static double DEFAULT_KEY_SAMPLE_RATE = 0.01;
   public static double DEFAULT_IO_SORT_PERCENT = .5;
+
+  private static final long TEST_MODE_NUM_BLOOM_BITS = 10;
 
   public static Map<Object, Object> getDefaultProperties() {
     Map<Object, Object> properties = new HashMap<Object, Object>();
@@ -71,7 +74,16 @@ public class BloomProps {
   }
 
   public static long getNumBloomBits(JobConf conf) {
+
+    if(isTest(conf)){
+      return TEST_MODE_NUM_BLOOM_BITS;
+    }
+
     return Long.parseLong(conf.get(NUM_BLOOM_BITS));
+  }
+
+  private static boolean isTest(JobConf conf) {
+    return conf.getBoolean(TEST_MODE, false);
   }
 
   public static int getMaxBloomHashes(JobConf conf) {
