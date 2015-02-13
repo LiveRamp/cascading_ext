@@ -16,10 +16,10 @@
 
 package com.liveramp.cascading_ext.bloom;
 
-import org.apache.hadoop.mapred.JobConf;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.hadoop.mapred.JobConf;
 
 public class BloomProps {
 
@@ -35,7 +35,6 @@ public class BloomProps {
   public static final String MAX_BLOOM_HASHES = "cascading_ext.bloom.max.hashes";
   public static final String MIN_BLOOM_HASHES = "cascading_ext.bloom.min.hashes";
   public static final String NUM_SPLITS = "cascading_ext.bloom.num.splits";
-  public static final String BUFFER_SIZE = "cascading_ext.bloom.buffer.size";
   public static final String IO_SORT_PERCENT = "cascading_ext.bloom.io.sort.percent";
 
   /**
@@ -65,7 +64,6 @@ public class BloomProps {
     properties.put(MAX_BLOOM_HASHES, Integer.toString(DEFAULT_MAX_BLOOM_FILTER_HASHES));
     properties.put(MIN_BLOOM_HASHES, Integer.toString(DEFAULT_MIN_BLOOM_FILTER_HASHES));
     properties.put(NUM_SPLITS, 100);
-    properties.put(BUFFER_SIZE, DEFAULT_BUFFER_SIZE);
     properties.put(HLL_ERR, DEFAULT_HLL_ERR);
     properties.put(KEY_SAMPLE_RATE, DEFAULT_KEY_SAMPLE_RATE);
     properties.put(IO_SORT_PERCENT, DEFAULT_IO_SORT_PERCENT);
@@ -86,10 +84,6 @@ public class BloomProps {
 
   public static int getNumSplits(JobConf conf) {
     return Integer.parseInt(conf.get(NUM_SPLITS));
-  }
-
-  public static int getBufferSize(JobConf conf) {
-    return Integer.parseInt(conf.get(BUFFER_SIZE));
   }
 
   public static String getBloomFilterPartsDir(JobConf conf) {

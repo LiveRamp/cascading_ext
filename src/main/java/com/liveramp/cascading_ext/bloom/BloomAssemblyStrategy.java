@@ -16,18 +16,20 @@
 
 package com.liveramp.cascading_ext.bloom;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.log4j.Logger;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowStep;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.planner.BaseFlowStep;
 import cascading.stats.FlowStepStats;
+
 import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
 import com.liveramp.cascading_ext.counters.Counters;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Does any configuration necessary for a job that involves stuff from BloomAssembly
@@ -64,7 +66,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
   private void buildBloomfilter(String bloomID, FlowStep<JobConf> currentStep, List<FlowStep<JobConf>> predecessorSteps) {
     try {
       JobConf currentStepConf = currentStep.getConfig();
-      currentStepConf.set("io.sort.mb", Integer.toString(BloomProps.getBufferSize(currentStepConf)));
       currentStepConf.set("mapred.job.reuse.jvm.num.tasks", "-1");
 
       String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
