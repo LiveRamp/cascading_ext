@@ -40,7 +40,7 @@ public class FileSystemHelper {
   private static final long DEFAULT_FS_OP_DELAY_BETWEEN_TRIES = 5 * 1000L;
 
   /**
-   * @deprecated Please use {@link this#getFileSystemForPath(String)} where possible.
+   * @deprecated Please use {@link #getFileSystemForPath(String)} where possible.
    */
   @Deprecated
   public static FileSystem getFS() {
