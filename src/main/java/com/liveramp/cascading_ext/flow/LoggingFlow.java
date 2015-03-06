@@ -31,7 +31,7 @@ import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  */
 public class LoggingFlow extends HadoopFlow {
   private static final Pattern LOG_ERROR_PATTERN = Pattern.compile("Caused by.*?\\d\\d\\d\\d-\\d\\d-\\d\\d", Pattern.DOTALL);
-  private static Logger LOG = Logger.getLogger(Flow.class);
+  private static Logger LOG = LoggerFactory.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
 
   public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object,Object> properties, JobConf jobConf, FlowDef flowDef) {

@@ -27,14 +27,14 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BloomFilterOperation extends BaseOperation {
-  private static Logger LOG = Logger.getLogger(BloomFilterOperation.class);
+  private static Logger LOG = LoggerFactory.getLogger(BloomFilterOperation.class);
 
   private static BloomFilter filter = null;
   private static String filterJobId = null;

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowStep;
@@ -36,7 +36,7 @@ import com.liveramp.cascading_ext.counters.Counters;
  */
 public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
-  private static Logger LOG = Logger.getLogger(BloomAssemblyStrategy.class);
+  private static Logger LOG = LoggerFactory.getLogger(BloomAssemblyStrategy.class);
 
   @Override
   public void apply(Flow<JobConf> flow, List<FlowStep<JobConf>> predecessorSteps, FlowStep<JobConf> flowStep) {
