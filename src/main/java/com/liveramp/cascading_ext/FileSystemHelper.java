@@ -16,11 +16,20 @@
 
 package com.liveramp.cascading_ext;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
-
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.UUID;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 
 /**
  * This class contains helper methods for working with files, filepaths, and
@@ -30,14 +39,10 @@ public class FileSystemHelper {
   private static final int DEFAULT_FS_OP_NUM_TRIES = 3;
   private static final long DEFAULT_FS_OP_DELAY_BETWEEN_TRIES = 5 * 1000L;
 
+  /**
+   * @deprecated Please use {@link #getFileSystemForPath(String)} where possible.
+   */
   @Deprecated
-  // use getFS() instead.
-  public static FileSystem getFileSystem() {
-    return getFS();
-  }
-
-  @Deprecated
-  // Please use @link{getFileSystemForPath(String)} where possible.
   public static FileSystem getFS() {
     try {
       return FileSystem.get(new Configuration());
