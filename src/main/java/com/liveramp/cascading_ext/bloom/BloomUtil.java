@@ -32,7 +32,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.hadoop.Hfs;
@@ -47,7 +47,7 @@ import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 
 public class BloomUtil {
-  private static Logger LOG = Logger.getLogger(BloomUtil.class);
+  private static Logger LOG = LoggerFactory.getLogger(BloomUtil.class);
 
   private final static Object BF_LOAD_LOCK = new Object();
 

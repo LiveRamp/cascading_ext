@@ -22,7 +22,7 @@ import java.util.Random;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowProcess;
@@ -84,7 +84,7 @@ public class CreateBloomFilter extends SubAssembly {
    * - approximate average tuple size
    */
   private static class CollectKeyStats extends BaseOperation implements Filter {
-    private static Logger LOG = Logger.getLogger(CollectKeyStats.class);
+    private static Logger LOG = LoggerFactory.getLogger(CollectKeyStats.class);
     private static transient Random RAND;
 
     private transient HyperLogLog approxCounter;
