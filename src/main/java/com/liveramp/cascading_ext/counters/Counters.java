@@ -28,6 +28,8 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.flow.Flow;
 import cascading.stats.FlowStats;
@@ -37,13 +39,14 @@ import cascading.tap.Tap;
 
 import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 
+/**
+ * Use these helper methods to safely retrieve Hadoop counters.  Sometimes counters
+ * get pushed off the job tracker too quickly so when we try to retrieve a missing
+ * counter we get a NPE which kills the process.  At this point the counter is gone
+ * so we might as well keep going.
+ */
 public class Counters {
-  /**
-   * Use these helper methods to safely retrieve Hadoop counters.  Sometimes counters
-   * get pushed off the job tracker too quickly so when we try to retrieve a missing
-   * counter we get a NPE which kills the process.  At this point the counter is gone
-   * so we might as well keep going.
-   */
+  private static final Logger LOG = LoggerFactory.getLogger(Counters.class);
 
   /**
    * Get all counters for a given flow.  It returns a map keyed on the step stats object to
@@ -192,15 +195,19 @@ public class Counters {
 
   public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
     org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
-    Collection<String> groupNames = allCounters.getGroupNames();
-
     TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<String, String, Long>();
 
-    for (String groupName : groupNames) {
-      org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
-      for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
-        counterMap.put(groupName, counter.getName(), counter.getValue());
+    if(allCounters != null) {
+      Collection<String> groupNames = allCounters.getGroupNames();
+
+      for (String groupName : groupNames) {
+        org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
+        for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
+          counterMap.put(groupName, counter.getName(), counter.getValue());
+        }
       }
+    }else{
+      LOG.error("Could not retrieve counters from job "+job.getID());
     }
 
     return counterMap;
