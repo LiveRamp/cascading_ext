@@ -16,7 +16,6 @@
 
 package com.liveramp.cascading_ext.counters;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +36,7 @@ import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 import cascading.tap.Tap;
 
+import com.liveramp.commons.collections.nested_map.ThreeNestedMap;
 import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 
 /**
@@ -193,24 +193,57 @@ public class Counters {
     return builder.toString();
   }
 
-  public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
-    org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
+  public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) {
     TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<String, String, Long>();
 
-    if(allCounters != null) {
-      Collection<String> groupNames = allCounters.getGroupNames();
+    try {
+      org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
 
-      for (String groupName : groupNames) {
-        org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
-        for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
-          counterMap.put(groupName, counter.getName(), counter.getValue());
+      if (allCounters != null) {
+        Collection<String> groupNames = allCounters.getGroupNames();
+
+        for (String groupName : groupNames) {
+          org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
+          for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
+            counterMap.put(groupName, counter.getName(), counter.getValue());
+          }
         }
+      } else {
+        LOG.error("Could not retrieve counters from job " + job.getID());
       }
-    }else{
-      LOG.error("Could not retrieve counters from job "+job.getID());
+
+    } catch (Exception e) {
+      LOG.error("Error getting counters!");
     }
 
     return counterMap;
+  }
+
+  public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStats stats) {
+
+    ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<String, String, String, Long>();
+
+    try {
+      for (FlowStepStats step : stats.getFlowStepStats()) {
+
+        if (step instanceof HadoopStepStats) {
+          HadoopStepStats hdStepStats = (HadoopStepStats)step;
+          String jobId = hdStepStats.getJobID();
+
+          for (String currentGroup : safeGetCounterGroups(step)) {
+            for (String name : step.getCountersFor(currentGroup)) {
+              counters.put(jobId, currentGroup, name, step.getCounterValue(currentGroup, name));
+            }
+          }
+
+        }
+
+      }
+    } catch (NullPointerException e) {
+      // getJobID on occasion throws a null pointer exception, ignore it
+    }
+
+    return counters;
   }
 
   private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group) {
