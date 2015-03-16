@@ -16,10 +16,25 @@
 
 package com.liveramp.cascading_ext;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.serializer.Serialization;
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
+
 import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
@@ -28,14 +43,6 @@ import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.RenameJobStrategy;
 import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFactory;
 import com.liveramp.cascading_ext.util.OperationStatsUtils;
-
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.serializer.Serialization;
-import org.apache.hadoop.mapred.JobConf;
-
-import java.util.*;
 
 public class CascadingUtil {
 
@@ -153,7 +160,7 @@ public class CascadingUtil {
   }
 
   public FlowConnector getFlowConnector() {
-    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+    return realGetFlowConnector(Collections.emptyMap(),
         Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
@@ -163,7 +170,7 @@ public class CascadingUtil {
   }
 
   public FlowConnector getFlowConnector(List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    return realGetFlowConnector(Collections.<Object, Object>emptyMap(),
+    return realGetFlowConnector(Collections.emptyMap(),
         flowStepStrategies);
   }
 
