@@ -16,23 +16,6 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import cascading.flow.Flow;
-import cascading.flow.FlowDef;
-import cascading.flow.FlowException;
-import cascading.flow.hadoop.HadoopFlow;
-import cascading.flow.planner.PlatformInfo;
-import cascading.stats.FlowStepStats;
-import cascading.stats.hadoop.HadoopStepStats;
-import com.liveramp.cascading_ext.counters.Counters;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobID;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TaskAttemptID;
-import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,9 +25,32 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.JobID;
+import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.mapred.TaskAttemptID;
+import org.apache.hadoop.mapred.TaskCompletionEvent;
+import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cascading.flow.Flow;
+import cascading.flow.FlowDef;
+import cascading.flow.FlowException;
+import cascading.flow.hadoop.HadoopFlow;
+import cascading.flow.planner.PlatformInfo;
+import cascading.stats.FlowStepStats;
+import cascading.stats.hadoop.HadoopStepStats;
+
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.counters.Counters;
+import com.liveramp.commons.collections.map.MapBuilder;
 
 /**
  * Delegates actual flow operations to a flow that gets passed in, but performs some additional logging when the job
@@ -55,8 +61,61 @@ public class LoggingFlow extends HadoopFlow {
   private static Logger LOG = LoggerFactory.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
 
-  public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object,Object> properties, JobConf jobConf, FlowDef flowDef) {
+  public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef) {
     super(platformInfo, properties, jobConf, flowDef);
+    verifyFlowProperties(properties);
+  }
+
+  private void verifyFlowProperties(Map<Object, Object> properties) {
+    Long maxMem = (Long)properties.get(CascadingUtil.MAX_TASK_MEMORY);
+
+    if (maxMem != null) {
+      verifyArgString(properties, JobConf.MAPRED_TASK_JAVA_OPTS, maxMem);
+      verifyArgString(properties, JobConf.MAPRED_MAP_TASK_JAVA_OPTS, maxMem);
+      verifyArgString(properties, JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS, maxMem);
+    }
+
+  }
+
+  private static final Pattern MEMORY_PATTERN = Pattern.compile(".*-Xmx:?([0-9]+)([gGmMkK])?.*");
+
+  private static final Map<String, Long> quantifiers = new MapBuilder<String, Long>()
+      .put("g", 1024l * 1024l * 1024l)
+      .put("G", 1024l * 1024l * 1024l)
+      .put("m", 1024l * 1024l)
+      .put("M", 1024l * 1024l)
+      .put("k", 1024l)
+      .put("K", 1024l)
+      .get();
+
+  private void verifyArgString(Map<Object, Object> properties, String property, long maxMem) {
+
+    String value = (String)properties.get(property);
+
+    if (value != null) {
+
+      Matcher matcher = MEMORY_PATTERN.matcher(value);
+      if (!matcher.matches()) {
+        throw new RuntimeException("Cannot set property " + property + " without specifying a max heap size!");
+      }
+
+      long configured = valueToBytes(matcher);
+
+      if (configured > maxMem) {
+        throw new RuntimeException("Job configured memory " + configured + " violates global max " + maxMem + "!");
+      }
+
+    }
+
+  }
+
+  private long valueToBytes(Matcher matcher) {
+    Long num = Long.parseLong(matcher.group(1));
+    if (matcher.groupCount() == 2) {
+      return num * quantifiers.get(matcher.group(2));
+    } else {
+      return num;
+    }
   }
 
   @Override

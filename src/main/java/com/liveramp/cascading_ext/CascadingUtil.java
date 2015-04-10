@@ -47,6 +47,7 @@ import com.liveramp.cascading_ext.util.OperationStatsUtils;
 public class CascadingUtil {
 
   public static final String CASCADING_RUN_ID = "cascading_ext.cascading.run.id";
+  public static final String MAX_TASK_MEMORY = "cascading_ext.max.task.memory";
 
   private static final CascadingUtil INSTANCE = new CascadingUtil();
 
