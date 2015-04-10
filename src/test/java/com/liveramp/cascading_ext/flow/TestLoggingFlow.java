@@ -22,13 +22,13 @@ public class TestLoggingFlow extends BaseTestCase {
   @Test
   public void testMem() throws Exception {
 
-    CascadingUtil.get().setDefaultProperty(CascadingUtil.MAX_TASK_MEMORY, 1324*1024l*1024l);
-
     CascadingUtil.get().getFlowConnector().connect(
         new MemorySourceTap(Lists.<Tuple>newArrayList(), new Fields("blank")),
         new NullTap(),
         new Pipe("pipe")
     );
+
+    CascadingUtil.get().setDefaultProperty(CascadingUtil.MAX_TASK_MEMORY, 1324 * 1024l * 1024l);
 
     try {
       CascadingUtil.get().getFlowConnector(Collections.<Object, Object>singletonMap(JobConf.MAPRED_TASK_JAVA_OPTS, "-MyOwnThing")).connect(

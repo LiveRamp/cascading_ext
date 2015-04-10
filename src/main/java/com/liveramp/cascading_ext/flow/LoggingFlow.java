@@ -61,6 +61,17 @@ public class LoggingFlow extends HadoopFlow {
   private static Logger LOG = LoggerFactory.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
 
+  private static final Pattern MEMORY_PATTERN = Pattern.compile(".*-Xmx:?([0-9]+)([gGmMkK])?.*");
+
+  private static final Map<String, Long> quantifiers = new MapBuilder<String, Long>()
+      .put("g", 1024l * 1024l * 1024l)
+      .put("G", 1024l * 1024l * 1024l)
+      .put("m", 1024l * 1024l)
+      .put("M", 1024l * 1024l)
+      .put("k", 1024l)
+      .put("K", 1024l)
+      .get();
+
   public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef) {
     super(platformInfo, properties, jobConf, flowDef);
     verifyFlowProperties(properties);
@@ -77,17 +88,6 @@ public class LoggingFlow extends HadoopFlow {
 
   }
 
-  private static final Pattern MEMORY_PATTERN = Pattern.compile(".*-Xmx:?([0-9]+)([gGmMkK])?.*");
-
-  private static final Map<String, Long> quantifiers = new MapBuilder<String, Long>()
-      .put("g", 1024l * 1024l * 1024l)
-      .put("G", 1024l * 1024l * 1024l)
-      .put("m", 1024l * 1024l)
-      .put("M", 1024l * 1024l)
-      .put("k", 1024l)
-      .put("K", 1024l)
-      .get();
-
   private void verifyArgString(Map<Object, Object> properties, String property, long maxMem) {
 
     String value = (String)properties.get(property);
@@ -100,7 +100,6 @@ public class LoggingFlow extends HadoopFlow {
       }
 
       long configured = valueToBytes(matcher);
-
       if (configured > maxMem) {
         throw new RuntimeException("Job configured memory " + configured + " violates global max " + maxMem + "!");
       }
