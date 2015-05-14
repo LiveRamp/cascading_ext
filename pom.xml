@@ -55,32 +55,19 @@
     <!--set hadoop to provided scopes since it will be provided by the platform (and to make life easier for people -->
     <!--using this lib who use a different distribution)-->
 
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>2.5.0-mr1-cdh5.3.3</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>2.0.0-mr1-cdh4.7.1</version>
+      <version>2.5.0-mr1-cdh5.3.3</version>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>2.0.0-cdh4.7.1</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs</artifactId>
-      <version>2.0.0-cdh4.7.1</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-test</artifactId>
-      <version>2.0.0-mr1-cdh4.7.1</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
