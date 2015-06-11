@@ -57,7 +57,7 @@ public class Counters {
   }
 
   public static Map<FlowStepStats, List<Counter>> getCountersByStep(FlowStats flowStats) {
-    Map<FlowStepStats, List<Counter>> counters = new HashMap<FlowStepStats, List<Counter>>();
+    Map<FlowStepStats, List<Counter>> counters = new HashMap<>();
 
     for (FlowStepStats statsForStep : flowStats.getFlowStepStats()) {
       if (!counters.containsKey(statsForStep)) {
@@ -154,7 +154,7 @@ public class Counters {
     return builder.toString();
   }
 
-  public static String prettyCountersString(Flow flow) {
+  public static String prettyCountersString(Flow<?> flow) {
     Map<FlowStepStats, List<Counter>> counters = Counters.getCountersByStep(flow);
     StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
 
@@ -194,7 +194,7 @@ public class Counters {
   }
 
   public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) {
-    TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<String, String, Long>();
+    TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
 
     try {
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
@@ -221,7 +221,7 @@ public class Counters {
 
   public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStats stats) {
 
-    ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<String, String, String, Long>();
+    ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
 
     try {
       for (FlowStepStats step : stats.getFlowStepStats()) {
@@ -255,7 +255,7 @@ public class Counters {
   }
 
   private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group) {
-    List<Counter> counters = new ArrayList<Counter>();
+    List<Counter> counters = new ArrayList<>();
     for (String currentGroup : safeGetCounterGroups(step)) {
       if (group == null || group.equals(currentGroup)) {
         for (String name : step.getCountersFor(currentGroup)) {
@@ -276,7 +276,7 @@ public class Counters {
 
 
   private static List<Counter> getCountersForGroup(FlowStats flowStats, String group) {
-    List<Counter> counters = new ArrayList<Counter>();
+    List<Counter> counters = new ArrayList<>();
     for (FlowStepStats step : flowStats.getFlowStepStats()) {
       counters.addAll(getStatsFromStep(step, group));
     }
@@ -311,7 +311,7 @@ public class Counters {
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
       Collection<String> groupNames = allCounters.getGroupNames();
 
-      List<Counter> counters = new ArrayList<Counter>();
+      List<Counter> counters = new ArrayList<>();
       if (groupToSearch == null) {
         for (String group : groupNames) {
           counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(group)));
@@ -327,7 +327,7 @@ public class Counters {
 
   private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup) {
     Iterator<org.apache.hadoop.mapred.Counters.Counter> counterIterator = counterGroup.iterator();
-    List<Counter> counters = new ArrayList<Counter>();
+    List<Counter> counters = new ArrayList<>();
 
     while (counterIterator.hasNext()) {
       org.apache.hadoop.mapred.Counters.Counter counter = counterIterator.next();
