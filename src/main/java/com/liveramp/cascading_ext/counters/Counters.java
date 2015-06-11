@@ -291,8 +291,10 @@ public class Counters {
       if (counterGroup != null) {
         return counterGroup.getCounter(value);
       }
+      LOG.info("Counter " + group + ":" + value + " not set.");
       return 0l;
     } catch (Exception e) {
+      LOG.info("Could not obtain counter " + group + ":" + value + " due to " + e);
       return 0l;
     }
   }
