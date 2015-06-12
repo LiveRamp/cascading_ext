@@ -13,7 +13,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
-public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Context<S>> implements Function<BatchFunction.Context<S>> {
+public abstract class BatchFunction<IN, OUT> extends BaseOperation<BatchFunction.Context<IN>> implements Function<BatchFunction.Context<IN>> {
 
   private int maxSizeOfBatch;
 
@@ -30,33 +30,33 @@ public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Co
     }
   }
 
-  public abstract List<T> apply(FlowProcess flowProcess, List<S> input);
+  public abstract List<OUT> apply(FlowProcess flowProcess, List<IN> input);
 
-  private void emitAll(FunctionCall<Context<S>> functionCall, Collection<T> output) {
-    for (T t : output) {
-      functionCall.getOutputCollector().add(new Tuple(t));
+  private void emitAll(FunctionCall<Context<IN>> functionCall, Collection<OUT> output) {
+    for (OUT out : output) {
+      functionCall.getOutputCollector().add(new Tuple(out));
     }
   }
 
-  private void applyAndRefresh(FlowProcess flowProcess, FunctionCall<Context<S>> functionCall) {
-    Context<S> context = functionCall.getContext();
-    List<T> output = apply(flowProcess, context.input);
+  private void applyAndRefresh(FlowProcess flowProcess, FunctionCall<Context<IN>> functionCall) {
+    Context<IN> context = functionCall.getContext();
+    List<OUT> output = apply(flowProcess, context.input);
     emitAll(functionCall, output);
-    context = new Context<S>();
+    context = new Context<IN>();
     functionCall.setContext(context);
   }
 
   @Override
-  public void prepare(FlowProcess flowProcess, OperationCall<Context<S>> operationCall) {
-    Context<S> context = new Context<S>();
+  public void prepare(FlowProcess flowProcess, OperationCall<Context<IN>> operationCall) {
+    Context<IN> context = new Context<IN>();
     operationCall.setContext(context);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public void operate(FlowProcess flowProcess, FunctionCall<Context<S>> functionCall) {
+  public void operate(FlowProcess flowProcess, FunctionCall<Context<IN>> functionCall) {
     TupleEntry arguments = functionCall.getArguments();
-    S arg = (S) arguments.getObject(0);
+    IN arg = (IN) arguments.getObject(0);
     functionCall.getContext().input.add(arg);
 
     if (functionCall.getContext().input.size() >= maxSizeOfBatch) {
@@ -66,8 +66,8 @@ public abstract class BatchFunction<S, T> extends BaseOperation<BatchFunction.Co
 
 
   @Override
-  public void flush(FlowProcess flowProcess, OperationCall<Context<S>> operationCall) {
-    applyAndRefresh(flowProcess, (FunctionCall<Context<S>>) operationCall);
+  public void flush(FlowProcess flowProcess, OperationCall<Context<IN>> operationCall) {
+    applyAndRefresh(flowProcess, (FunctionCall<Context<IN>>) operationCall);
   }
 
 }
