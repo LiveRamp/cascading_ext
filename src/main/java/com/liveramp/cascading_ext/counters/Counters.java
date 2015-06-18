@@ -74,10 +74,8 @@ public class Counters {
   }
 
   public static Long get(Flow flow, String group, String value) {
-    return get(flow.getFlowStats(), group, value);
-  }
+    FlowStats stats = flow.getFlowStats();
 
-  public static Long get(FlowStats stats, String group, String value) {
     try {
       long total = 0;
       for (FlowStepStats step : stats.getFlowStepStats()) {
@@ -90,10 +88,8 @@ public class Counters {
   }
 
   public static Long get(Flow flow, Enum value) {
-    return get(flow.getFlowStats(), value);
-  }
+    FlowStats stats = flow.getFlowStats();
 
-  public static Long get(FlowStats stats, Enum value) {
     try {
       long total = 0;
       for (FlowStepStats step : stats.getFlowStepStats()) {
@@ -106,23 +102,11 @@ public class Counters {
   }
 
   public static List<Counter> getCounters(Flow flow) {
-    return getCounters(flow.getFlowStats());
-  }
-
-  public static List<Counter> getCounters(FlowStats flowStats) {
-    return getCountersForGroup(flowStats, null);
+    return getCountersForGroup(flow.getFlowStats(), null);
   }
 
   public static List<Counter> getCountersForGroup(Flow flow, String group) {
     return getCountersForGroup(flow.getFlowStats(), group);
-  }
-
-  public static Long get(FlowStepStats step, String group, String value) {
-    if (step instanceof HadoopStepStats) {
-      return getHadoopCounterValue((HadoopStepStats)step, group, value);
-    } else {
-      return step.getCounterValue(group, value);
-    }
   }
 
   public static Long get(FlowStepStats step, Enum value) {
@@ -135,10 +119,6 @@ public class Counters {
 
   public static void printCounters(Flow flow) {
     System.out.println(prettyCountersString(flow));
-  }
-
-  public static List<Counter> getCounters(RunningJob job) {
-    return getStatsFromRunningJob(job, null);
   }
 
   public static String prettyCountersString(RunningJob job) {
@@ -223,9 +203,8 @@ public class Counters {
 
     ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
 
-    try {
-      for (FlowStepStats step : stats.getFlowStepStats()) {
-
+    for (FlowStepStats step : stats.getFlowStepStats()) {
+      try {
         if (step instanceof HadoopStepStats) {
           HadoopStepStats hdStepStats = (HadoopStepStats)step;
           String jobId = hdStepStats.getJobID();
@@ -237,13 +216,24 @@ public class Counters {
           }
 
         }
-
+      } catch (NullPointerException e) {
+        LOG.error("NullPointerException getting counters: ", e);
       }
-    } catch (NullPointerException e) {
-      // getJobID on occasion throws a null pointer exception, ignore it
+
     }
 
+
     return counters;
+  }
+
+  //  internal only methods
+
+  private static Long get(FlowStepStats step, String group, String value) {
+    if (step instanceof HadoopStepStats) {
+      return getHadoopCounterValue((HadoopStepStats)step, group, value);
+    } else {
+      return step.getCounterValue(group, value);
+    }
   }
 
   private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group) {
