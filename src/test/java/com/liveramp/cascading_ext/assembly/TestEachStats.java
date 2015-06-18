@@ -35,8 +35,8 @@ public class TestEachStats extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
 
-    Assert.assertEquals(3l, Counters.get(f, "TestEachStats.java", "31 - FilterNull - Input records").longValue());
-    Assert.assertEquals(2l, Counters.get(f, "TestEachStats.java", "31 - FilterNull - Kept records").longValue());
-    Assert.assertEquals(1l, Counters.get(f, "TestEachStats.java", "31 - FilterNull - Removed records").longValue());
+    Assert.assertEquals(3l, Counters.get(f, "TestEachStats.java", "33 - FilterNull - Input records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestEachStats.java", "33 - FilterNull - Kept records").longValue());
+    Assert.assertEquals(1l, Counters.get(f, "TestEachStats.java", "33 - FilterNull - Removed records").longValue());
   }
 }

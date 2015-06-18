@@ -40,8 +40,8 @@ public class TestEveryStats extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), pipe);
     f.complete();
 
-    Assert.assertEquals(2l, Counters.get(f, "TestEveryStats.java", "36 - MyBuffer - Input groups").longValue());
-    Assert.assertEquals(4l, Counters.get(f, "TestEveryStats.java", "36 - MyBuffer - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestEveryStats.java", "38 - MyBuffer - Input groups").longValue());
+    Assert.assertEquals(4l, Counters.get(f, "TestEveryStats.java", "38 - MyBuffer - Output records").longValue());
   }
 
   private static class MyBuffer extends BaseOperation implements Buffer {

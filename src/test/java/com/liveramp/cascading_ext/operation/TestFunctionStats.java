@@ -60,8 +60,8 @@ public class TestFunctionStats extends BaseTestCase {
 
     System.out.println(Counters.getCounters(f));
 
-    Assert.assertEquals(2l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Input records").longValue());
-    Assert.assertEquals(4l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestFunctionStats.java", "55 - MyFunction - Input records").longValue());
+    Assert.assertEquals(4l, Counters.get(f, "TestFunctionStats.java", "55 - MyFunction - Output records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {

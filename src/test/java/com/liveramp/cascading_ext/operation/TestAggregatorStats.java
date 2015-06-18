@@ -59,8 +59,8 @@ public class TestAggregatorStats extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), input);
     f.complete();
 
-    Assert.assertEquals(4l, Counters.get(f, "TestAggregatorStats.java", "55 - MyAggregator - Input records").longValue());
-    Assert.assertEquals(2l, Counters.get(f, "TestAggregatorStats.java", "55 - MyAggregator - Total output records").longValue());
+    Assert.assertEquals(4l, Counters.get(f, "TestAggregatorStats.java", "57 - MyAggregator - Input records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestAggregatorStats.java", "57 - MyAggregator - Total output records").longValue());
   }
 
   private static class MyAggregator extends BaseOperation<MyAggregator.Context> implements Aggregator<MyAggregator.Context> {

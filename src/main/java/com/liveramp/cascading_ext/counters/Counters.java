@@ -187,7 +187,7 @@ public class Counters {
       }
 
     } catch (Exception e) {
-      LOG.error("Error getting counters!");
+      LOG.error("Error getting counters!", e);
     }
 
     return counterMap;
@@ -259,10 +259,10 @@ public class Counters {
     try {
       return stats.getCounterGroups();
     } catch (Exception e) {
+      LOG.error("Error getting counter groups: ", e);
       return Collections.emptyList();
     }
   }
-
 
   private static List<Counter> getCountersForGroup(FlowStats flowStats, String group) {
     List<Counter> counters = new ArrayList<>();
@@ -288,6 +288,7 @@ public class Counters {
       }
       return counters;
     } catch (Exception e) {
+      LOG.error("Error getting counters from job", e);
       return Collections.emptyList();
     }
   }
