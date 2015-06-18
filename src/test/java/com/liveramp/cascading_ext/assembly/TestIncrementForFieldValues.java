@@ -1,21 +1,23 @@
 package com.liveramp.cascading_ext.assembly;
 
-import cascading.flow.Flow;
-import cascading.pipe.Pipe;
-import cascading.stats.FlowStats;
-import cascading.tap.Tap;
-import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
+import java.io.IOException;
+import java.util.Arrays;
+
 import com.google.common.collect.Lists;
-import com.liveramp.cascading_ext.BaseTestCase;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_ext.tap.NullTap;
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
+import cascading.flow.Flow;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+
+import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.counters.Counters;
+import com.liveramp.cascading_ext.tap.NullTap;
 
 public class TestIncrementForFieldValues extends BaseTestCase {
 
@@ -24,7 +26,7 @@ public class TestIncrementForFieldValues extends BaseTestCase {
   }
 
   @Test
-  public void run() {
+  public void run() throws IOException {
     Tap source = new MemorySourceTap(
         Arrays.asList(
             new Tuple(1),
@@ -49,7 +51,7 @@ public class TestIncrementForFieldValues extends BaseTestCase {
   }
 
   @Test
-  public void runMultiValue() {
+  public void runMultiValue() throws IOException {
     Tap source = new MemorySourceTap(
         Arrays.asList(
             new Tuple(1, 1),

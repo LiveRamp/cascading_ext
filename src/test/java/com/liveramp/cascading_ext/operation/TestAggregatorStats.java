@@ -16,6 +16,13 @@
 
 package com.liveramp.cascading_ext.operation;
 
+import java.io.IOException;
+import java.util.Arrays;
+
+import com.twitter.maple.tap.MemorySourceTap;
+import junit.framework.Assert;
+import org.junit.Test;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowProcess;
 import cascading.operation.Aggregator;
@@ -24,24 +31,19 @@ import cascading.operation.BaseOperation;
 import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
-import cascading.stats.FlowStats;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.tap.NullTap;
-import com.twitter.maple.tap.MemorySourceTap;
-import junit.framework.Assert;
-import org.junit.Test;
-
-import java.util.Arrays;
 
 public class TestAggregatorStats extends BaseTestCase {
 
   @Test
-  public void run() {
+  public void run() throws IOException {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),
