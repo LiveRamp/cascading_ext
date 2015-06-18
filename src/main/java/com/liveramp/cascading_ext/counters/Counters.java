@@ -53,10 +53,8 @@ public class Counters {
    * a list of all the counter objects for that step
    */
   public static Map<FlowStepStats, List<Counter>> getCountersByStep(Flow flow) {
-    return getCountersByStep(flow.getFlowStats());
-  }
+    FlowStats flowStats = flow.getFlowStats();
 
-  public static Map<FlowStepStats, List<Counter>> getCountersByStep(FlowStats flowStats) {
     Map<FlowStepStats, List<Counter>> counters = new HashMap<>();
 
     for (FlowStepStats statsForStep : flowStats.getFlowStepStats()) {
@@ -221,7 +219,6 @@ public class Counters {
       }
 
     }
-
 
     return counters;
   }
