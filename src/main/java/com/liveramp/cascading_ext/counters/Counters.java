@@ -62,7 +62,7 @@ public class Counters {
       if (!counters.containsKey(statsForStep)) {
         counters.put(statsForStep, Lists.<Counter>newArrayList());
       }
-      counters.get(statsForStep).addAll(getStatsFromStep(statsForStep, null));
+      counters.get(statsForStep).addAll(getStatsFromStep(statsForStep));
     }
 
     for (Map.Entry<FlowStepStats, List<Counter>> entry : counters.entrySet()) {
@@ -95,10 +95,10 @@ public class Counters {
   }
 
   public static List<Counter> getCounters(Flow flow) {
-    return getCountersForGroup(flow.getFlowStats(), null);
+    return getCountersForGroup(flow.getFlowStats());
   }
 
-  public static List<Counter> getCountersForGroup(Flow flow, String group) {
+  public static List<Counter> getCountersForGroup(Flow flow, String group) throws IOException {
     return getCountersForGroup(flow.getFlowStats(), group);
   }
 
@@ -119,7 +119,7 @@ public class Counters {
     StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
     builder.append("Counters for job ").append(job.getJobName()).append("\n");
 
-    for (Counter counter : getStatsFromRunningJob(job, null)) {
+    for (Counter counter : getStatsFromRunningJob(job)) {
       if (counter.getValue() != null && counter.getValue() > 0) {
         builder.append("    ").append(counter).append("\n");
       }
@@ -235,7 +235,15 @@ public class Counters {
     }
   }
 
-  private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group) {
+  private static List<Counter> getStatsFromStep(FlowStepStats statsForStep) {
+    if (statsForStep instanceof HadoopStepStats) {
+      return getStatsFromRunningJob(((HadoopStepStats)statsForStep).getRunningJob());
+    } else {
+      return getStatsFromGenericStep(statsForStep, null);
+    }
+  }
+
+  private static List<Counter> getStatsFromStep(FlowStepStats statsForStep, String group) throws IOException {
     if (statsForStep instanceof HadoopStepStats) {
       return getStatsFromRunningJob(((HadoopStepStats)statsForStep).getRunningJob(), group);
     } else {
@@ -264,7 +272,16 @@ public class Counters {
     }
   }
 
-  private static List<Counter> getCountersForGroup(FlowStats flowStats, String group) {
+  private static List<Counter> getCountersForGroup(FlowStats flowStats) {
+    List<Counter> counters = new ArrayList<>();
+    for (FlowStepStats step : flowStats.getFlowStepStats()) {
+      counters.addAll(getStatsFromStep(step));
+    }
+    Collections.sort(counters);
+    return counters;
+  }
+
+  private static List<Counter> getCountersForGroup(FlowStats flowStats, String group) throws IOException {
     List<Counter> counters = new ArrayList<>();
     for (FlowStepStats step : flowStats.getFlowStepStats()) {
       counters.addAll(getStatsFromStep(step, group));
@@ -273,24 +290,24 @@ public class Counters {
     return counters;
   }
 
-  private static List<Counter> getStatsFromRunningJob(RunningJob job, String groupToSearch) {
+  private static List<Counter> getStatsFromRunningJob(RunningJob job) {
     try {
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
-      Collection<String> groupNames = allCounters.getGroupNames();
 
       List<Counter> counters = new ArrayList<>();
-      if (groupToSearch == null) {
-        for (String group : groupNames) {
-          counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(group)));
-        }
-      } else {
-        counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(groupToSearch)));
+      for (String group : allCounters.getGroupNames()) {
+        counters.addAll(getAllFromHadoopGroup(allCounters.getGroup(group)));
       }
+
       return counters;
     } catch (Exception e) {
       LOG.error("Error getting counters from job", e);
       return Collections.emptyList();
     }
+  }
+
+  private static List<Counter> getStatsFromRunningJob(RunningJob job, String groupToSearch) throws IOException {
+      return getAllFromHadoopGroup(job.getCounters().getGroup(groupToSearch));
   }
 
   private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup) {
