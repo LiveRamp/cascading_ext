@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowDef;
-import cascading.flow.FlowException;
 import cascading.flow.hadoop.HadoopFlow;
 import cascading.flow.planner.PlatformInfo;
 import cascading.stats.FlowStepStats;
@@ -123,7 +122,7 @@ public class LoggingFlow extends HadoopFlow {
       super.complete();
       logJobIDs();
       logCounters();
-    } catch (FlowException e) {
+    } catch (Exception e) {
       logJobIDs();
       String jobErrors = logJobErrors();
       // jobErrors starts with a line delimiter, so prepend it with a newline so that it aligns correctly when printing exceptions
@@ -270,7 +269,7 @@ public class LoggingFlow extends HadoopFlow {
     }
   }
 
-  private void logCounters() {
+  private void logCounters() throws IOException {
     LOG.info(Counters.prettyCountersString(this));
   }
 

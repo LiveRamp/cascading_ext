@@ -53,6 +53,7 @@ public class Counters {
    * Get all counters for a given flow.  It returns a map keyed on the step stats object to
    * a list of all the counter objects for that step
    */
+  @Deprecated
   public static Map<FlowStepStats, List<Counter>> getCountersByStep(Flow flow) {
     FlowStats flowStats = flow.getFlowStats();
 
@@ -94,8 +95,14 @@ public class Counters {
 
   }
 
+  @Deprecated
   public static List<Counter> getCounters(Flow flow) {
-    return getCountersForGroup(flow.getFlowStats());
+    List<Counter> counters = new ArrayList<>();
+    for (FlowStepStats step : flow.getFlowStats().getFlowStepStats()) {
+      counters.addAll(getStatsFromStep(step));
+    }
+    Collections.sort(counters);
+    return counters;
   }
 
   public static List<Counter> getCountersForGroup(Flow flow, String group) throws IOException {
@@ -115,11 +122,11 @@ public class Counters {
     System.out.println(prettyCountersString(flow));
   }
 
-  public static String prettyCountersString(RunningJob job) {
+  public static String prettyCountersString(RunningJob job) throws IOException {
     StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
     builder.append("Counters for job ").append(job.getJobName()).append("\n");
 
-    for (Counter counter : getStatsFromRunningJob(job)) {
+    for (Counter counter : getCountersList(job)) {
       if (counter.getValue() != null && counter.getValue() > 0) {
         builder.append("    ").append(counter).append("\n");
       }
@@ -167,6 +174,14 @@ public class Counters {
     return builder.toString();
   }
 
+  public static List<Counter> getCountersList(RunningJob job) throws IOException {
+    List<Counter> counters = Lists.newArrayList();
+    for (TwoNestedMap.Entry<String, String, Long> entry : getCounterMap(job)) {
+      counters.add(new Counter(entry.getK1(), entry.getK2(), entry.getValue()));
+    }
+    return counters;
+  }
+
   public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
     TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
 
@@ -185,25 +200,22 @@ public class Counters {
       LOG.error("Could not retrieve counters from job " + job.getID());
     }
 
-
     return counterMap;
   }
 
-  public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStats stats) {
+
+  public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStats stats) throws IOException {
 
     ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
 
     for (FlowStepStats step : stats.getFlowStepStats()) {
       if (step instanceof HadoopStepStats) {
-        HadoopStepStats hdStepStats = (HadoopStepStats)step;
-        String jobId = hdStepStats.getJobID();
-
-        for (String currentGroup : step.getCounterGroups()) {
-          for (String name : step.getCountersFor(currentGroup)) {
-            counters.put(jobId, currentGroup, name, step.getCounterValue(currentGroup, name));
-          }
+        HadoopStepStats hadoopStep = (HadoopStepStats)step;
+        counters.put(hadoopStep.getJobID(), getCounterMap(hadoopStep.getRunningJob()));
+      } else {
+        for (Counter counter : getStatsFromGenericStep(step)) {
+          counters.put(step.getID(), counter.getGroup(), counter.getName(), counter.getValue());
         }
-
       }
     }
 
@@ -226,11 +238,12 @@ public class Counters {
     }
   }
 
+  @Deprecated
   private static List<Counter> getStatsFromStep(FlowStepStats statsForStep) {
     if (statsForStep instanceof HadoopStepStats) {
-      return getStatsFromRunningJob(((HadoopStepStats)statsForStep).getRunningJob());
+      return safeGetStatsFromRunningJob(((HadoopStepStats)statsForStep).getRunningJob());
     } else {
-      return getStatsFromGenericStep(statsForStep, null);
+      return getStatsFromGenericStep(statsForStep);
     }
   }
 
@@ -242,24 +255,25 @@ public class Counters {
     }
   }
 
-  private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group) {
+  private static List<Counter> getStatsFromGenericStep(FlowStepStats step) {
     List<Counter> counters = new ArrayList<>();
     for (String currentGroup : step.getCounterGroups()) {
-      if (group == null || group.equals(currentGroup)) {
-        for (String name : step.getCountersFor(currentGroup)) {
-          counters.add(new Counter(currentGroup, name, step.getCounterValue(currentGroup, name)));
-        }
+      for (String name : step.getCountersFor(currentGroup)) {
+        counters.add(new Counter(currentGroup, name, step.getCounterValue(currentGroup, name)));
       }
     }
     return counters;
   }
 
-  private static List<Counter> getCountersForGroup(FlowStats flowStats) {
+  private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group) {
     List<Counter> counters = new ArrayList<>();
-    for (FlowStepStats step : flowStats.getFlowStepStats()) {
-      counters.addAll(getStatsFromStep(step));
+    for (String currentGroup : step.getCounterGroups()) {
+      if (group.equals(currentGroup)) {
+        for (String name : step.getCountersFor(currentGroup)) {
+          counters.add(new Counter(currentGroup, name, step.getCounterValue(currentGroup, name)));
+        }
+      }
     }
-    Collections.sort(counters);
     return counters;
   }
 
@@ -272,7 +286,8 @@ public class Counters {
     return counters;
   }
 
-  private static List<Counter> getStatsFromRunningJob(RunningJob job) {
+  @Deprecated
+  private static List<Counter> safeGetStatsFromRunningJob(RunningJob job) {
     try {
       org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
 
