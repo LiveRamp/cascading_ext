@@ -160,6 +160,16 @@ public class CascadingUtil {
     return new JobConf(conf);
   }
 
+  public JobConf getJobConfWithDefaultProperties(){
+    JobConf jobConf = getJobConf();
+
+    for (Map.Entry<Object, Object> entry : getDefaultProperties().entrySet()) {
+      jobConf.set(entry.getKey().toString(), entry.getValue().toString());
+    }
+
+    return jobConf;
+  }
+
   public FlowConnector getFlowConnector() {
     return realGetFlowConnector(Collections.emptyMap(),
         Collections.<FlowStepStrategy<JobConf>>emptyList());
@@ -201,6 +211,11 @@ public class CascadingUtil {
   public FlowProcess<JobConf> getFlowProcess() {
     return getFlowProcess(getJobConf());
   }
+
+  public FlowProcess<JobConf> getFlowProcessWithDefaultProperties() {
+    return getFlowProcess(getJobConfWithDefaultProperties());
+  }
+
 
   public FlowProcess<JobConf> getFlowProcess(JobConf jobConf) {
     return new HadoopFlowProcess(jobConf);
