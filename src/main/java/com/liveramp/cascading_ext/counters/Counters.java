@@ -167,28 +167,24 @@ public class Counters {
     return builder.toString();
   }
 
-  public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) {
+  public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
     TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
 
-    try {
-      org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
+    org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
 
-      if (allCounters != null) {
-        Collection<String> groupNames = allCounters.getGroupNames();
+    if (allCounters != null) {
+      Collection<String> groupNames = allCounters.getGroupNames();
 
-        for (String groupName : groupNames) {
-          org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
-          for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
-            counterMap.put(groupName, counter.getName(), counter.getValue());
-          }
+      for (String groupName : groupNames) {
+        org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
+        for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
+          counterMap.put(groupName, counter.getName(), counter.getValue());
         }
-      } else {
-        LOG.error("Could not retrieve counters from job " + job.getID());
       }
-
-    } catch (Exception e) {
-      LOG.error("Error getting counters!", e);
+    } else {
+      LOG.error("Could not retrieve counters from job " + job.getID());
     }
+
 
     return counterMap;
   }
@@ -307,7 +303,7 @@ public class Counters {
   }
 
   private static List<Counter> getStatsFromRunningJob(RunningJob job, String groupToSearch) throws IOException {
-      return getAllFromHadoopGroup(job.getCounters().getGroup(groupToSearch));
+    return getAllFromHadoopGroup(job.getCounters().getGroup(groupToSearch));
   }
 
   private static List<Counter> getAllFromHadoopGroup(org.apache.hadoop.mapred.Counters.Group counterGroup) {
