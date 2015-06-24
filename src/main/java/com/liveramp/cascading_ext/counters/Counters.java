@@ -194,22 +194,17 @@ public class Counters {
     ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
 
     for (FlowStepStats step : stats.getFlowStepStats()) {
-      try {
-        if (step instanceof HadoopStepStats) {
-          HadoopStepStats hdStepStats = (HadoopStepStats)step;
-          String jobId = hdStepStats.getJobID();
+      if (step instanceof HadoopStepStats) {
+        HadoopStepStats hdStepStats = (HadoopStepStats)step;
+        String jobId = hdStepStats.getJobID();
 
-          for (String currentGroup : safeGetCounterGroups(step)) {
-            for (String name : step.getCountersFor(currentGroup)) {
-              counters.put(jobId, currentGroup, name, step.getCounterValue(currentGroup, name));
-            }
+        for (String currentGroup : step.getCounterGroups()) {
+          for (String name : step.getCountersFor(currentGroup)) {
+            counters.put(jobId, currentGroup, name, step.getCounterValue(currentGroup, name));
           }
-
         }
-      } catch (NullPointerException e) {
-        LOG.error("NullPointerException getting counters: ", e);
-      }
 
+      }
     }
 
     return counters;
@@ -249,7 +244,7 @@ public class Counters {
 
   private static List<Counter> getStatsFromGenericStep(FlowStepStats step, String group) {
     List<Counter> counters = new ArrayList<>();
-    for (String currentGroup : safeGetCounterGroups(step)) {
+    for (String currentGroup : step.getCounterGroups()) {
       if (group == null || group.equals(currentGroup)) {
         for (String name : step.getCountersFor(currentGroup)) {
           counters.add(new Counter(currentGroup, name, step.getCounterValue(currentGroup, name)));
@@ -257,15 +252,6 @@ public class Counters {
       }
     }
     return counters;
-  }
-
-  private static Collection<String> safeGetCounterGroups(FlowStepStats stats) {
-    try {
-      return stats.getCounterGroups();
-    } catch (Exception e) {
-      LOG.error("Error getting counter groups: ", e);
-      return Collections.emptyList();
-    }
   }
 
   private static List<Counter> getCountersForGroup(FlowStats flowStats) {
