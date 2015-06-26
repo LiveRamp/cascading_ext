@@ -24,8 +24,9 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.Before;
 
 import cascading.tap.Tap;
@@ -42,11 +43,31 @@ public abstract class BaseTestCase {
   protected static final FileSystem fs = FileSystemHelper.getFS();
 
   static {
-    Logger.getRootLogger().setLevel(Level.ALL);
+    // this prevents the default log4j.properties (hidden inside the hadoop jar)
+    // from being loaded automatically.
+    System.setProperty("log4j.defaultInitOverride", "true");
   }
 
   protected BaseTestCase() {
     TEST_ROOT = "/tmp/cascading_ext_" + this.getClass().getSimpleName() + "_AUTOGEN";
+
+    org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
+
+    rootLogger.setLevel(Level.ALL);
+    org.apache.log4j.Logger.getLogger("org.apache.hadoop").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("cascading").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("org.eclipse.jetty").setLevel(Level.ERROR);
+
+    // Reconfigure the logger to ensure things are working
+
+    ConsoleAppender consoleAppender = new ConsoleAppender(new PatternLayout("%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n"), ConsoleAppender.SYSTEM_ERR);
+    consoleAppender.setName("test-console-appender");
+    consoleAppender.setFollow(true);
+
+    rootLogger.removeAppender("test-console-appender");
+    rootLogger.addAppender(consoleAppender);
+
+
   }
 
   @Before
