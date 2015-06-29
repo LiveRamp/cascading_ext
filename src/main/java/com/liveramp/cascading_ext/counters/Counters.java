@@ -211,7 +211,12 @@ public class Counters {
     for (FlowStepStats step : stats.getFlowStepStats()) {
       if (step instanceof HadoopStepStats) {
         HadoopStepStats hadoopStep = (HadoopStepStats)step;
-        counters.put(hadoopStep.getJobID(), getCounterMap(hadoopStep.getRunningJob()));
+        RunningJob runningJob = hadoopStep.getRunningJob();
+        if(runningJob != null) {
+          counters.put(hadoopStep.getJobID(), getCounterMap(runningJob));
+        }else{
+          LOG.info("Skipping null running job.  Assume job failed on setup.");
+        }
       } else {
         for (Counter counter : getStatsFromGenericStep(step)) {
           counters.put(step.getID(), counter.getGroup(), counter.getName(), counter.getValue());

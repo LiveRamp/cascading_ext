@@ -57,6 +57,7 @@ public abstract class BaseTestCase {
     org.apache.log4j.Logger.getLogger("org.apache.hadoop").setLevel(Level.INFO);
     org.apache.log4j.Logger.getLogger("cascading").setLevel(Level.INFO);
     org.apache.log4j.Logger.getLogger("org.eclipse.jetty").setLevel(Level.ERROR);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank").setLevel(Level.DEBUG);
 
     // Reconfigure the logger to ensure things are working
 
