@@ -232,11 +232,14 @@ public class LoggingFlow extends HadoopFlow {
       throws IOException {
     // The tasktracker for a 'failed/killed' job might not be around...
     if (baseUrl != null) {
+      LOG.info("Fetching failures from baseURL "+baseUrl);
+
       // Construct the url for the tasklogs
-      String taskLogUrl = getTaskLogURL(taskId, baseUrl);
+      String taskLogUrl = getTaskLogURL(taskId, baseUrl)+ "&filter=syslog";
+      LOG.info("Using task log URL: "+taskLogUrl);
 
       // Copy tasks's stdout of the JobClient
-      return getTaskLogStream(new URL(taskLogUrl + "&filter=syslog"));
+      return getTaskLogStream(new URL(taskLogUrl));
 
     }
     return "";
