@@ -107,9 +107,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.clearspring.analytics</groupId>
-      <artifactId>stream</artifactId>
-      <version>2.4.0-fork-11252014</version>
+      <groupId>com.addthis</groupId>
+      <artifactId>stream-lib</artifactId>
+      <version>3.0.0</version>
     </dependency>
 
     <dependency>
