@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -64,6 +65,7 @@ public class CascadingUtil {
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
+  private final Set<String> requiredProperties = Sets.newHashSet();
 
   private transient JobConf conf = null;
 
@@ -94,6 +96,10 @@ public class CascadingUtil {
   public void addSerialization(Class<? extends Serialization> serialization) {
     serializations.add(serialization);
     conf = null;
+  }
+
+  protected void addRequiredProperty(String property){
+    requiredProperties.add(property);
   }
 
   public void addSerializationToken(int token, Class<?> klass) {
@@ -196,6 +202,12 @@ public class CascadingUtil {
     //Add in default properties
     Map<Object, Object> combinedProperties = getDefaultProperties();
     combinedProperties.putAll(properties);
+
+    for (String property : requiredProperties) {
+      if(!combinedProperties.containsKey(property)){
+        throw new RuntimeException("Cannot build flow without setting require property: "+property);
+      }
+    }
 
     //Add in default flow step strategies
     List<FlowStepStrategy<JobConf>> combinedStrategies = new ArrayList<FlowStepStrategy<JobConf>>(flowStepStrategies);
