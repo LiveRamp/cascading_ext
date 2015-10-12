@@ -205,7 +205,7 @@ public class CascadingUtil {
 
     for (String property : requiredProperties) {
       if(!combinedProperties.containsKey(property)){
-        throw new RuntimeException("Cannot build flow without setting require property: "+property);
+        throw new RuntimeException("Cannot build flow without setting required property: "+property);
       }
     }
 
