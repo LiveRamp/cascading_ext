@@ -203,8 +203,10 @@ public class CascadingUtil {
     Map<Object, Object> combinedProperties = getDefaultProperties();
     combinedProperties.putAll(properties);
 
+    //  check required against stuff loaded from app-site.xml
+    JobConf jobConf = getJobConf();
     for (String property : requiredProperties) {
-      if(!combinedProperties.containsKey(property)){
+      if(!combinedProperties.containsKey(property) && jobConf.get(property) == null){
         throw new RuntimeException("Cannot build flow without setting required property: "+property);
       }
     }
