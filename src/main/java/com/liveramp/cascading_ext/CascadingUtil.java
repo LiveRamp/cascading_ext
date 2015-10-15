@@ -24,8 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
@@ -65,7 +68,7 @@ public class CascadingUtil {
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
   private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
-  private final Set<String> requiredProperties = Sets.newHashSet();
+  private final Multimap<String, String> invalidPropertyValues = HashMultimap.create();
 
   private transient JobConf conf = null;
 
@@ -99,7 +102,11 @@ public class CascadingUtil {
   }
 
   protected void addRequiredProperty(String property){
-    requiredProperties.add(property);
+    addInvalidPropertyValue(property, null);
+  }
+
+  protected void addInvalidPropertyValue(String property, String value) {
+    invalidPropertyValues.put(property, value);
   }
 
   public void addSerializationToken(int token, Class<?> klass) {
@@ -166,7 +173,7 @@ public class CascadingUtil {
     return new JobConf(conf);
   }
 
-  public JobConf getJobConfWithDefaultProperties(){
+  public JobConf getJobConfWithDefaultProperties() {
     JobConf jobConf = getJobConf();
 
     for (Map.Entry<Object, Object> entry : getDefaultProperties().entrySet()) {
@@ -177,49 +184,78 @@ public class CascadingUtil {
   }
 
   public FlowConnector getFlowConnector() {
-    return realGetFlowConnector(Collections.emptyMap(),
-        Collections.<FlowStepStrategy<JobConf>>emptyList());
+    return buildFlowConnector(Collections.emptyMap(), Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties) {
-    return realGetFlowConnector(properties,
-        Collections.<FlowStepStrategy<JobConf>>emptyList());
+    return buildFlowConnector(properties, Collections.<FlowStepStrategy<JobConf>>emptyList());
   }
 
   public FlowConnector getFlowConnector(List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    return realGetFlowConnector(Collections.emptyMap(),
-        flowStepStrategies);
+    return buildFlowConnector(Collections.emptyMap(), flowStepStrategies);
   }
 
   public FlowConnector getFlowConnector(Map<Object, Object> properties,
                                         List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    return realGetFlowConnector(properties, flowStepStrategies);
+    return buildFlowConnector(properties, flowStepStrategies);
+  }
+
+  private FlowConnector buildFlowConnector(Map<Object, Object> properties,
+                                           List<FlowStepStrategy<JobConf>> flowStepStrategies) {
+
+    List<FlowStepStrategy<JobConf>> strategies = Lists.newArrayList(flowStepStrategies);
+    strategies.addAll(resolveFlowStepStrategies());
+
+    return buildFlowConnector(getJobConf(),
+        combineProperties(getDefaultProperties(), properties),
+        strategies,
+        invalidPropertyValues);
+  }
+
+  public Multimap<String, String> getInvalidPropertyValues() {
+    return invalidPropertyValues;
+  }
+
+  public List<FlowStepStrategy<JobConf>> resolveFlowStepStrategies(){
+    List<FlowStepStrategy<JobConf>> strategies = Lists.newArrayList();
+    for (FlowStepStrategyFactory<JobConf> factory : defaultFlowStepStrategies) {
+      strategies.add(factory.getFlowStepStrategy());
+    }
+    return strategies;
   }
 
   // We extract this method so that the default name based on the stack position makes sense
-  private FlowConnector realGetFlowConnector(Map<Object, Object> properties,
-                                             List<FlowStepStrategy<JobConf>> flowStepStrategies) {
-    //Add in default properties
-    Map<Object, Object> combinedProperties = getDefaultProperties();
-    combinedProperties.putAll(properties);
+  public static FlowConnector buildFlowConnector(JobConf jobConf,
+                                                 Map<Object, Object> properties,
+                                                 List<FlowStepStrategy<JobConf>> flowStepStrategies,
+                                                 Multimap<String, String> invalidPropertyValues) {
 
     //  check required against stuff loaded from app-site.xml
-    JobConf jobConf = getJobConf();
-    for (String property : requiredProperties) {
-      if(!combinedProperties.containsKey(property) && jobConf.get(property) == null){
-        throw new RuntimeException("Cannot build flow without setting required property: "+property);
+    for (Map.Entry<String, String> entry : invalidPropertyValues.entries()) {
+      String property = entry.getKey();
+      String value = entry.getValue();
+
+      if (ObjectUtils.equals(resolveProperty(property, properties, jobConf), value)) {
+        throw new RuntimeException("Cannot build flow without setting property: " + property +" to a value which is not "+value);
       }
     }
 
-    //Add in default flow step strategies
-    List<FlowStepStrategy<JobConf>> combinedStrategies = new ArrayList<FlowStepStrategy<JobConf>>(flowStepStrategies);
-    for (FlowStepStrategyFactory<JobConf> flowStepStrategyFactory : defaultFlowStepStrategies) {
-      combinedStrategies.add(flowStepStrategyFactory.getFlowStepStrategy());
-    }
-
-    return new LoggingFlowConnector(combinedProperties,
-        new MultiFlowStepStrategy(combinedStrategies),
+    return new LoggingFlowConnector(properties,
+        new MultiFlowStepStrategy(flowStepStrategies),
         OperationStatsUtils.formatStackPosition(OperationStatsUtils.getStackPosition(2)));
+  }
+
+  private static Object resolveProperty(String key, Map<Object, Object> properties, JobConf conf){
+    if(properties.containsKey(key)){
+      return properties.get(key);
+    }
+    return conf.get(key);
+  }
+
+  private static Map<Object, Object> combineProperties(Map<Object, Object> defaultProperties, Map<Object, Object> properties){
+    Map<Object, Object> combinedProperties = Maps.newHashMap(defaultProperties);
+    combinedProperties.putAll(properties);
+    return combinedProperties;
   }
 
   public FlowProcess<JobConf> getFlowProcess() {
