@@ -33,6 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.mapred.JobConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
@@ -49,6 +51,7 @@ import com.liveramp.cascading_ext.flow_step_strategy.SimpleFlowStepStrategyFacto
 import com.liveramp.cascading_ext.util.OperationStatsUtils;
 
 public class CascadingUtil {
+  private static final Logger LOG = LoggerFactory.getLogger(CascadingUtil.class);
 
   public static final String CASCADING_RUN_ID = "cascading_ext.cascading.run.id";
   public static final String MAX_TASK_MEMORY = "cascading_ext.max.task.memory";
@@ -236,6 +239,7 @@ public class CascadingUtil {
       String value = entry.getValue();
 
       if (ObjectUtils.equals(resolveProperty(property, properties, jobConf), value)) {
+        LOG.error("Property "+property+" set to invalid value "+value+" with properties map: "+properties);
         throw new RuntimeException("Cannot build flow without setting property: " + property +" to a value which is not "+value);
       }
     }
