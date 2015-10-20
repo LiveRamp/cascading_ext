@@ -54,7 +54,6 @@ public class CascadingUtil {
   private static final Logger LOG = LoggerFactory.getLogger(CascadingUtil.class);
 
   public static final String CASCADING_RUN_ID = "cascading_ext.cascading.run.id";
-  public static final String MAX_TASK_MEMORY = "cascading_ext.max.task.memory";
 
   private static final CascadingUtil INSTANCE = new CascadingUtil();
 

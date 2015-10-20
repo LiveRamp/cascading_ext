@@ -47,7 +47,6 @@ import cascading.flow.planner.PlatformInfo;
 import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 
-import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.commons.collections.map.MapBuilder;
 
@@ -73,47 +72,6 @@ public class LoggingFlow extends HadoopFlow {
 
   public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef) {
     super(platformInfo, properties, jobConf, flowDef);
-    verifyFlowProperties(properties);
-  }
-
-  private void verifyFlowProperties(Map<Object, Object> properties) {
-    Long maxMem = (Long)properties.get(CascadingUtil.MAX_TASK_MEMORY);
-
-    if (maxMem != null) {
-      verifyArgString(properties, JobConf.MAPRED_TASK_JAVA_OPTS, maxMem);
-      verifyArgString(properties, JobConf.MAPRED_MAP_TASK_JAVA_OPTS, maxMem);
-      verifyArgString(properties, JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS, maxMem);
-    }
-
-  }
-
-  private void verifyArgString(Map<Object, Object> properties, String property, long maxMem) {
-
-    String value = (String)properties.get(property);
-
-    if (value != null) {
-
-      Matcher matcher = MEMORY_PATTERN.matcher(value);
-      if (!matcher.matches()) {
-        throw new RuntimeException("Cannot set property " + property + " without specifying a max heap size!");
-      }
-
-      long configured = valueToBytes(matcher);
-      if (configured > maxMem) {
-        throw new RuntimeException("Job configured memory " + configured + " violates global max " + maxMem + "!");
-      }
-
-    }
-
-  }
-
-  private long valueToBytes(Matcher matcher) {
-    Long num = Long.parseLong(matcher.group(1));
-    if (matcher.groupCount() == 2) {
-      return num * quantifiers.get(matcher.group(2));
-    } else {
-      return num;
-    }
   }
 
   @Override
