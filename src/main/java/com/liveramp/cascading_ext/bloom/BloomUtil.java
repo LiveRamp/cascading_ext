@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,8 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.hadoop.Hfs;
@@ -102,18 +102,6 @@ public class BloomUtil {
   public static Map<String, String> getPropertiesForDistCache(String bloomFilterPath) throws URISyntaxException {
     String path = FileSystemHelper.getFS().getUri().resolve(new URI(bloomFilterPath)).toString();
     return Collections.singletonMap(DistributedCache.CACHE_FILES, path);
-  }
-
-  public static void configureJobConfForBloomFilter(int requiredFieldsSize, int matchKeySize, Map<Object, Object> properties) {
-    properties.putAll(getPropertiesForBloomFilter(requiredFieldsSize, matchKeySize));
-  }
-
-  public static Map<String, String> getPropertiesForBloomFilter(int requiredFieldsSize, int matchKeySize) {
-    Map<String, String> properties = new HashMap<String, String>();
-    double bestIOSortRecordPercent = 16.0 / (16.0 + 8 + requiredFieldsSize + matchKeySize);
-    bestIOSortRecordPercent = Math.max(Math.round(bestIOSortRecordPercent * 100) / 100.0, 0.01);
-    properties.put("io.sort.record.percent", Double.toString(bestIOSortRecordPercent));
-    return properties;
   }
 
   public static long getSplitSize(long numBloomBits, int numSplits) {

@@ -52,12 +52,6 @@ import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 
 public class CreateBloomFilter extends SubAssembly {
 
-  public enum StatsCounters {
-    TOTAL_SAMPLED_TUPLES,
-    KEY_SIZE_SUM,
-    TUPLE_SIZE_SUM
-  }
-
   public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField) throws IOException {
     super(keys);
 
@@ -88,8 +82,6 @@ public class CreateBloomFilter extends SubAssembly {
     private static transient Random RAND;
 
     private transient HyperLogLog approxCounter;
-    private transient TupleSerializationUtil tupleSerializationUtil;
-    private double sampleRate;
     private final String bytesField;
 
     public CollectKeyStats(String bytesField) {
@@ -103,27 +95,13 @@ public class CreateBloomFilter extends SubAssembly {
       BytesWritable key = (BytesWritable) tuple.getObject(bytesField);
       approxCounter.offer(key);
 
-      if (getRand().nextDouble() < sampleRate) {
-        countSampledStats(flowProcess, tuple, key);
-      }
-
       return false;
-    }
-
-    private void countSampledStats(FlowProcess proc, TupleEntry tuple, BytesWritable key) {
-      int tupleSize = serializeTuple(tupleSerializationUtil, tuple, Fields.ALL).length;
-
-      proc.increment(StatsCounters.TOTAL_SAMPLED_TUPLES, 1);
-      proc.increment(StatsCounters.KEY_SIZE_SUM, key.getLength());
-      proc.increment(StatsCounters.TUPLE_SIZE_SUM, tupleSize);
     }
 
     @Override
     public void prepare(FlowProcess flowProcess, OperationCall operationCall) {
       JobConf conf = (JobConf) flowProcess.getConfigCopy();
       approxCounter = new HyperLogLog(BloomProps.getHllErr(conf));
-      sampleRate = BloomProps.getKeySampleRate(conf);
-      tupleSerializationUtil = new TupleSerializationUtil((JobConf) flowProcess.getConfigCopy());
     }
 
     @Override
