@@ -22,7 +22,8 @@ import java.util.Random;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.flow.FlowProcess;
 import cascading.flow.hadoop.HadoopFlowProcess;
@@ -44,7 +45,6 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 
-import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
@@ -149,24 +149,6 @@ public class CreateBloomFilter extends SubAssembly {
       }
 
       return RAND;
-    }
-  }
-
-  protected static byte[] serializeTuple(TupleSerializationUtil tupleSerializationUtil, TupleEntry tupleEntry, Fields selectedFields) {
-    try {
-      if (selectedFields == Fields.ALL) {
-        return tupleSerializationUtil.serialize(tupleEntry.getTuple());
-      }
-
-      Tuple value = new Tuple();
-
-      for (Comparable field : selectedFields) {
-        value.add(tupleEntry.getObject(field));
-      }
-
-      return tupleSerializationUtil.serialize(value);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 }
