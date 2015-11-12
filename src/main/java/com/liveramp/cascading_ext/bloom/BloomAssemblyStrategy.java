@@ -20,16 +20,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowStep;
 import cascading.flow.FlowStepStrategy;
-import cascading.flow.planner.BaseFlowStep;
-import cascading.stats.FlowStepStats;
-
-import com.liveramp.cascading_ext.assembly.CreateBloomFilter;
-import com.liveramp.cascading_ext.counters.Counters;
 
 /**
  * Does any configuration necessary for a job that involves stuff from BloomAssembly
@@ -57,7 +53,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
   private void prepareBloomFilterBuilder(FlowStep<JobConf> currentStep) {
     JobConf currentStepConf = currentStep.getConfig();
     currentStepConf.set("mapred.reduce.tasks", Integer.toString(BloomProps.getNumSplits(currentStepConf)));
-    currentStepConf.set("io.sort.record.percent", Double.toString(BloomProps.getIOSortPercent(currentStepConf)));
   }
 
   /**
@@ -76,28 +71,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
 
         if (bloomID.equals(targetBloomID)) {
           LOG.info("Found step generating required bloom filter: " + targetBloomID);
-
-          // Extract the counters from the previous job to approximate the average key/tuple size
-          FlowStepStats stats = ((BaseFlowStep) step).getFlowStepStats();
-
-          // Collect some of the stats gathered. This will help configure the bloom filter
-          long numSampled = Counters.get(stats, CreateBloomFilter.StatsCounters.TOTAL_SAMPLED_TUPLES);
-          long keySizeSum = Counters.get(stats, CreateBloomFilter.StatsCounters.KEY_SIZE_SUM);
-          long matchSizeSum = Counters.get(stats, CreateBloomFilter.StatsCounters.TUPLE_SIZE_SUM);
-
-          int avgKeySize = 0;
-          int avgMatchSize = 0;
-
-          if (numSampled != 0) {
-            avgKeySize = (int) (keySizeSum / numSampled);
-            avgMatchSize = (int) (matchSizeSum / numSampled);
-          }
-
-          LOG.info("Avg key size ~= " + avgKeySize);
-          LOG.info("Avg match size ~= " + avgMatchSize);
-          for (Map.Entry<String, String> entry : BloomUtil.getPropertiesForBloomFilter(avgMatchSize, avgKeySize).entrySet()) {
-            currentStepConf.set(entry.getKey(), entry.getValue());
-          }
 
           // Put merged result in distributed cache
           LOG.info("Adding dist cache properties to config:");
