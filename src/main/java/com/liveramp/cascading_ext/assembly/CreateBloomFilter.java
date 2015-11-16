@@ -45,6 +45,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryCollector;
 
+import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
@@ -93,7 +94,7 @@ public class CreateBloomFilter extends SubAssembly {
       TupleEntry tuple = filterCall.getArguments();
 
       BytesWritable key = (BytesWritable) tuple.getObject(bytesField);
-      approxCounter.offer(key);
+      approxCounter.offer(Bytes.getBytes(key));
 
       return false;
     }
