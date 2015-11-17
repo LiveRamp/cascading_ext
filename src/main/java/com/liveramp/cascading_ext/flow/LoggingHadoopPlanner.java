@@ -16,6 +16,13 @@
 
 package com.liveramp.cascading_ext.flow;
 
+import java.io.IOException;
+import java.io.ObjectStreamException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
 import cascading.flow.FlowElement;
@@ -28,12 +35,6 @@ import cascading.flow.planner.ElementGraph;
 import cascading.operation.Operation;
 import cascading.pipe.Operator;
 import cascading.pipe.Pipe;
-import org.apache.hadoop.mapred.JobConf;
-
-import java.io.IOException;
-import java.io.ObjectStreamException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoggingHadoopPlanner extends HadoopPlanner {
   private final FlowStepStrategy<JobConf> flowStepStrategy;
@@ -93,7 +94,7 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
         objectSerializer.serialize(operation, true);
       } catch (ObjectStreamException e) {
         throw new RuntimeException("Could not serialize operation: " + operation.getClass().getCanonicalName(), e);
-      } catch (IOException e) {
+      } catch (IOException | NullPointerException e) {
         throw new RuntimeException("Error while trying to serialize: " + operation.getClass().getCanonicalName(), e);
       }
     } catch (ClassNotFoundException e) {
