@@ -1,5 +1,12 @@
 package com.liveramp.cascading_ext.util;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -7,13 +14,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.liveramp.commons.collections.CountingMap;
 
 public class LocalityHelper {
   private static final int DEFAULT_MAX_BLOCK_LOCATIONS_PER_SPLIT = 3;
@@ -42,16 +43,22 @@ public class LocalityHelper {
     return getHostsSortedByLocalityForBlocks(Arrays.asList(locations), maxBlockLocationsPerSplit);
   }
 
-  public static String[] getHostsSortedByLocalityForBlocks(List<BlockLocation> blocks, int maxBlockLocationsPerSplit) throws IOException {
-
-    Map<String, Long> numBytesPerHost = new HashMap<String, Long>();
+  public static Map<String, Long> getBytesPerHost(List<BlockLocation> blocks) throws IOException {
+    CountingMap<String> numBytesPerHost = new CountingMap<>();
     for (BlockLocation location : blocks) {
       Long size = location.getLength();
       for (String host : location.getHosts()) {
-        incrNumBytesPerHost(numBytesPerHost, host, size);
+        numBytesPerHost.increment(host, size);
       }
     }
+    return numBytesPerHost.get();
+  }
 
+  public static String[] getHostsSortedByLocalityForBlocks(List<BlockLocation> blocks, int maxBlockLocationsPerSplit) throws IOException {
+    return getBestNHosts(getBytesPerHost(blocks), maxBlockLocationsPerSplit);
+  }
+
+  public static String[] getBestNHosts(Map<String, Long> numBytesPerHost, int maxBlockLocationsPerSplit){
     final int numHosts = Math.min(numBytesPerHost.size(), maxBlockLocationsPerSplit);
 
     List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
