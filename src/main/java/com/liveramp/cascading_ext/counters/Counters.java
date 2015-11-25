@@ -28,6 +28,9 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.counters.AbstractCounters;
+import org.apache.hadoop.mapreduce.counters.CounterGroupBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,26 +186,37 @@ public class Counters {
   }
 
   public static TwoNestedMap<String, String, Long> getCounterMap(RunningJob job) throws IOException {
-    TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
-
     org.apache.hadoop.mapred.Counters allCounters = job.getCounters();
 
     if (allCounters != null) {
-      Collection<String> groupNames = allCounters.getGroupNames();
-
-      for (String groupName : groupNames) {
-        org.apache.hadoop.mapred.Counters.Group group = allCounters.getGroup(groupName);
-        for (org.apache.hadoop.mapred.Counters.Counter counter : group) {
-          counterMap.put(groupName, counter.getName(), counter.getValue());
-        }
-      }
+      return getCounterMap(allCounters);
     } else {
       LOG.error("Could not retrieve counters from job " + job.getID());
+      return new TwoNestedMap<>();
     }
-
-    return counterMap;
   }
 
+  public static TwoNestedMap<String, String, Long> getCounterMap(Job job) throws IOException {
+    org.apache.hadoop.mapreduce.Counters counters = job.getCounters();
+
+    if (counters != null) {
+      return getCounterMap(counters);
+    }else{
+      LOG.error("Could not retrieve counters from job " + job.getJobID());
+      return new TwoNestedMap<>();
+    }
+  }
+
+  public static <C extends org.apache.hadoop.mapreduce.Counter,G extends CounterGroupBase<C>> TwoNestedMap<String, String, Long> getCounterMap(AbstractCounters<C, G> allCounters) {
+    TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
+    for (String groupName : allCounters.getGroupNames()) {
+      G group = allCounters.getGroup(groupName);
+      for (C counter : group) {
+        counterMap.put(groupName, counter.getName(), counter.getValue());
+      }
+    }
+    return counterMap;
+  }
 
   public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStats stats) throws IOException {
 
@@ -212,9 +226,9 @@ public class Counters {
       if (step instanceof HadoopStepStats) {
         HadoopStepStats hadoopStep = (HadoopStepStats)step;
         RunningJob runningJob = hadoopStep.getRunningJob();
-        if(runningJob != null) {
+        if (runningJob != null) {
           counters.put(hadoopStep.getJobID(), getCounterMap(runningJob));
-        }else{
+        } else {
           LOG.info("Skipping null running job.  Assume job failed on setup.");
         }
       } else {
