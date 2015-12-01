@@ -28,7 +28,13 @@ public abstract class HashFunction implements Serializable {
     this.numHashes = numHashes;
   }
 
-  public void hash(byte[] b, long[] result) {
+  public long[] hash(byte[] b) {
+    long[] result = new long[numHashes];
+    hash(b, result);
+    return result;
+  }
+
+    public void hash(byte[] b, long[] result) {
     if (b.length == 0) {
       throw new IllegalArgumentException("key length must be > 0");
     }

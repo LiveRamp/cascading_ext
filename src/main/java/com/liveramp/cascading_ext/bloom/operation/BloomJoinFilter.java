@@ -18,7 +18,6 @@ package com.liveramp.cascading_ext.bloom.operation;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
 import cascading.flow.FlowProcess;
@@ -28,7 +27,6 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 
-import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomFilterOperation;
 
@@ -49,9 +47,7 @@ public class BloomJoinFilter extends BloomFilterOperation implements Filter {
   public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
     Tuple key = filterCall.getArguments().getTuple();
     try {
-      byte[] serialized = tupleSerializationUtil.serialize(key);
-
-      boolean result = !filterMayContain(Bytes.getBytes(new BytesWritable(serialized)));
+      boolean result = !filterMayContain(tupleSerializationUtil.serialize(key));
       flowProcess.increment("BLOOM_JOIN_FILTERED_ITEM", Boolean.toString(result), 1);
 
       return result;
