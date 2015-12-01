@@ -16,13 +16,19 @@
 
 package com.liveramp.cascading_ext.bloom;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Writable;
+
 import com.liveramp.cascading_ext.FixedSizeBitSet;
 import com.liveramp.cascading_ext.hash.HashFunction;
 import com.liveramp.cascading_ext.hash.HashFunctionFactory;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.Writable;
-
-import java.io.*;
 
 /**
  * This bloom filter implementation is based on the org.apache.hadoop.util.bloom.BloomFilter implementation, but was
