@@ -16,31 +16,28 @@
 
 package com.liveramp.cascading_ext.bloom;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import cascading.flow.FlowProcess;
+import cascading.operation.BaseOperation;
+import cascading.operation.OperationCall;
+import cascading.tuple.Fields;
+import com.liveramp.cascading_ext.FileSystemHelper;
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
-import cascading.flow.FlowProcess;
-import cascading.operation.BaseOperation;
-import cascading.operation.OperationCall;
-import cascading.tuple.Fields;
-
-import com.liveramp.cascading_ext.FileSystemHelper;
-import com.liveramp.cascading_ext.fs.TrashHelper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BloomFilterOperation extends BaseOperation {
   private static Logger LOG = LoggerFactory.getLogger(BloomFilterOperation.class);
 
-  private BloomFilter filter = null;
-  private String filterJobId = null;
+  private static BloomFilter filter = null;
+  private static String filterJobId = null;
 
   // the job id guarantees this stuff works on both cluster and during tests
   // in production, we want to keep the static filter loaded for as long as possible
