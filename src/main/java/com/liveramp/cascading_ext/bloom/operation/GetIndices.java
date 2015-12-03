@@ -48,7 +48,6 @@ public class GetIndices extends BaseOperation implements Function {
   private long splitSize;
   private final HashFunctionFactory factory;
   private HashFunction function;
-  private long[] hashResult;
 
   private transient HyperLogLog approxCounter;
 
@@ -67,7 +66,6 @@ public class GetIndices extends BaseOperation implements Function {
     splitSize = BloomUtil.getSplitSize(numBits, numSplits);
     function = factory.getFunction(numBits, maxHashes);
     approxCounter = new HyperLogLog(BloomProps.getHllErr(conf));
-    hashResult = new long[maxHashes];
 
   }
 
@@ -77,9 +75,9 @@ public class GetIndices extends BaseOperation implements Function {
 
     approxCounter.offer(bytes);
 
-    function.hash(bytes, hashResult);
-    for (int i = 0; i < hashResult.length; i++) {
-      Tuple tuple = new Tuple(hashResult[i] / splitSize, hashResult[i] % splitSize, i);
+    long[] h = function.hash(bytes);
+    for (int i = 0; i < h.length; i++) {
+      Tuple tuple = new Tuple(h[i] / splitSize, h[i] % splitSize, i);
       call.getOutputCollector().add(tuple);
     }
   }
