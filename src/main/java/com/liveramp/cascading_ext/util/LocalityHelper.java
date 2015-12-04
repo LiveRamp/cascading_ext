@@ -61,12 +61,7 @@ public class LocalityHelper {
   public static String[] getBestNHosts(Map<String, Long> numBytesPerHost, int maxBlockLocationsPerSplit){
     final int numHosts = Math.min(numBytesPerHost.size(), maxBlockLocationsPerSplit);
 
-    List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
-    for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
-      scoredHosts.add(new ScoredHost(entry.getKey(), entry.getValue()));
-    }
-
-    Collections.sort(scoredHosts);
+    List<ScoredHost> scoredHosts = getScoredHosts(numBytesPerHost);
     String[] sortedHosts = new String[numHosts];
 
     for (int i = 0; i < numHosts; i++) {
@@ -74,6 +69,27 @@ public class LocalityHelper {
     }
 
     return sortedHosts;
+  }
+
+  private static List<ScoredHost> getScoredHosts(Map<String, Long> numBytesPerHost) {
+    List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
+    for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
+      scoredHosts.add(new ScoredHost(entry.getKey(), entry.getValue()));
+    }
+
+    Collections.sort(scoredHosts);
+    return scoredHosts;
+  }
+
+  public static Long getBytesOnBestHost(Map<String, Long> numBytesPerHost){
+    List<ScoredHost> hosts = getScoredHosts(numBytesPerHost);
+
+    if(hosts.isEmpty()){
+      return 0L;
+    }
+
+    return hosts.get(0).numBytesInHost;
+
   }
 
   private static void incrNumBytesPerHost(Map<String, Long> numBytesPerHost, String host, Long numBytes) {
