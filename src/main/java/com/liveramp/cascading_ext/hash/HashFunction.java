@@ -29,11 +29,16 @@ public abstract class HashFunction implements Serializable {
   }
 
   public long[] hash(byte[] b) {
+    long[] result = new long[numHashes];
+    hash(b, result);
+    return result;
+  }
+
+    public void hash(byte[] b, long[] result) {
     if (b.length == 0) {
       throw new IllegalArgumentException("key length must be > 0");
     }
 
-    long[] result = new long[numHashes];
     int initval = -1;
     for (int i = 0; i < numHashes; i++) {
       long hash;
@@ -41,7 +46,6 @@ public abstract class HashFunction implements Serializable {
       initval = (int) hash;
       result[i] = Math.abs(hash % maxValue);
     }
-    return result;
   }
 
   public abstract long hash(byte[] data, int length, int seed);
