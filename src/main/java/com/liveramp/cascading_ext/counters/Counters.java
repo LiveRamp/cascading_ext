@@ -223,21 +223,28 @@ public class Counters {
     ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
 
     for (FlowStepStats step : stats.getFlowStepStats()) {
-      if (step instanceof HadoopStepStats) {
-        HadoopStepStats hadoopStep = (HadoopStepStats)step;
-        RunningJob runningJob = hadoopStep.getRunningJob();
-        if (runningJob != null) {
-          counters.put(hadoopStep.getJobID(), getCounterMap(runningJob));
-        } else {
-          LOG.info("Skipping null running job.  Assume job failed on setup.");
-        }
-      } else {
-        for (Counter counter : getStatsFromGenericStep(step)) {
-          counters.put(step.getID(), counter.getGroup(), counter.getName(), counter.getValue());
-        }
-      }
+      counters.putAll(getCounterMap(step));
     }
 
+    return counters;
+  }
+
+  public static ThreeNestedMap<String, String, String, Long> getCounterMap(FlowStepStats step) throws IOException {
+
+    ThreeNestedMap<String, String, String, Long> counters = new ThreeNestedMap<>();
+    if (step instanceof HadoopStepStats) {
+      HadoopStepStats hadoopStep = (HadoopStepStats)step;
+      RunningJob runningJob = hadoopStep.getRunningJob();
+      if (runningJob != null) {
+        counters.put(hadoopStep.getJobID(), getCounterMap(runningJob));
+      } else {
+        LOG.info("Skipping null running job.  Assume job failed on setup.");
+      }
+    } else {
+      for (Counter counter : getStatsFromGenericStep(step)) {
+        counters.put(step.getID(), counter.getGroup(), counter.getName(), counter.getValue());
+      }
+    }
     return counters;
   }
 
