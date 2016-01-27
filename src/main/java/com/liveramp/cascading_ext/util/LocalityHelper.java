@@ -1,6 +1,9 @@
 package com.liveramp.cascading_ext.util;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,16 +11,78 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
 
 import com.liveramp.commons.collections.CountingMap;
 
 public class LocalityHelper {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalityHelper.class);
   private static final int DEFAULT_MAX_BLOCK_LOCATIONS_PER_SPLIT = 3;
+
+  private static transient Map<String, String> hostToRack;
+
+  private static void loadTopology() {
+
+    if (hostToRack == null) {
+      try {
+
+        hostToRack = Maps.newHashMap();
+
+        InputStream resource = LocalityHelper.class.getClassLoader().getResourceAsStream("topology.map");
+
+        if (resource != null) {
+
+          DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+          DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+          Document doc = dBuilder.parse(resource);
+
+
+          NodeList nodes = doc.getElementsByTagName("node");
+
+
+          for (int i = 0; i < nodes.getLength(); i++) {
+
+            NamedNodeMap attributes = nodes.item(i).getAttributes();
+            String name = attributes.getNamedItem("name").getTextContent();
+            System.out.println(name);
+            String rack = attributes.getNamedItem("rack").getTextContent();
+            System.out.println(rack);
+
+            hostToRack.put(name, rack);
+          }
+
+          LOG.info("Loaded topology map with " + hostToRack.size() + " hosts");
+
+        } else {
+          LOG.warn("topology.map not found, using empty rack map (ignore if this is a test)");
+        }
+
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+  }
+
+  public static String getRack(String host) {
+    loadTopology();
+
+    for (Map.Entry<String, String> stringStringEntry : hostToRack.entrySet()) {
+      System.out.println(stringStringEntry.getKey());
+    }
+
+    return hostToRack.get(host);
+  }
 
   public static String[] getHostsSortedByLocality(List<String> files, JobConf jobConf) throws IOException {
     return getHostsSortedByLocality(files, jobConf, DEFAULT_MAX_BLOCK_LOCATIONS_PER_SPLIT);
@@ -58,63 +123,69 @@ public class LocalityHelper {
     return getBestNHosts(getBytesPerHost(blocks), maxBlockLocationsPerSplit);
   }
 
-  public static String[] getBestNHosts(Map<String, Long> numBytesPerHost, int maxBlockLocationsPerSplit){
+  public static String[] getBestNHosts(Map<String, Long> numBytesPerHost, int maxBlockLocationsPerSplit) {
     final int numHosts = Math.min(numBytesPerHost.size(), maxBlockLocationsPerSplit);
 
-    List<ScoredHost> scoredHosts = getScoredHosts(numBytesPerHost);
+    List<ScoredLocation> scoredHosts = getScoredHosts(numBytesPerHost);
     String[] sortedHosts = new String[numHosts];
 
     for (int i = 0; i < numHosts; i++) {
-      sortedHosts[i] = scoredHosts.get(i).hostname;
+      sortedHosts[i] = scoredHosts.get(i).location;
     }
 
     return sortedHosts;
   }
 
-  private static List<ScoredHost> getScoredHosts(Map<String, Long> numBytesPerHost) {
-    List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
-    for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
-      scoredHosts.add(new ScoredHost(entry.getKey(), entry.getValue()));
+  private static List<ScoredLocation> getScoredHosts(Map<String, Long> numBytesPerLocation) {
+    List<ScoredLocation> scoredHosts = new ArrayList<ScoredLocation>(numBytesPerLocation.size());
+    for (Map.Entry<String, Long> entry : numBytesPerLocation.entrySet()) {
+      scoredHosts.add(new ScoredLocation(entry.getKey(), entry.getValue()));
     }
 
     Collections.sort(scoredHosts);
     return scoredHosts;
   }
 
-  public static Long getBytesOnBestHost(Map<String, Long> numBytesPerHost){
-    List<ScoredHost> hosts = getScoredHosts(numBytesPerHost);
+  public static Long getBytesOnBestHost(Map<String, Long> numBytesPerHost) {
+    return getBytesInBestLocation(numBytesPerHost);
+  }
 
-    if(hosts.isEmpty()){
+  public static Long getBytesOnBestRack(Map<String, Long> numBytesPerHost) {
+    CountingMap<String> numBytesPerRack = new CountingMap<>();
+    for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
+      numBytesPerRack.increment(getRack(entry.getKey()), entry.getValue());
+    }
+
+    return getBytesInBestLocation(numBytesPerRack.get());
+  }
+
+  private static Long getBytesInBestLocation(Map<String, Long> numBytesPerLocation) {
+    List<ScoredLocation> hosts = getScoredHosts(numBytesPerLocation);
+
+    if (hosts.isEmpty()) {
       return 0L;
     }
 
-    return hosts.get(0).numBytesInHost;
+    return hosts.get(0).numBytesInLocation;
 
   }
 
-  private static void incrNumBytesPerHost(Map<String, Long> numBytesPerHost, String host, Long numBytes) {
-    if (!numBytesPerHost.containsKey(host)) {
-      numBytesPerHost.put(host, numBytes);
-    } else {
-      numBytesPerHost.put(host, numBytesPerHost.get(host) + numBytes);
-    }
-  }
 
-  private static class ScoredHost implements Comparable<ScoredHost> {
-    public String hostname;
-    public long numBytesInHost;
+  private static class ScoredLocation implements Comparable<ScoredLocation> {
+    public String location;
+    public long numBytesInLocation;
 
-    public ScoredHost(String hostname, long numBytesInHost) {
-      this.hostname = hostname;
-      this.numBytesInHost = numBytesInHost;
+    public ScoredLocation(String hostname, long numBytesInLocation) {
+      this.location = hostname;
+      this.numBytesInLocation = numBytesInLocation;
     }
 
     @Override
-    public int compareTo(ScoredHost scoredHost) {
-      int bytesCmp = compareNumBytes(numBytesInHost, scoredHost.numBytesInHost);
+    public int compareTo(ScoredLocation scoredLocation) {
+      int bytesCmp = compareNumBytes(numBytesInLocation, scoredLocation.numBytesInLocation);
 
       if (bytesCmp == 0) {
-        return hostname.compareTo(scoredHost.hostname);
+        return location.compareTo(scoredLocation.location);
       }
 
       return bytesCmp;
