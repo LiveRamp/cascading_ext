@@ -46,18 +46,12 @@ public class LocalityHelper {
           DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
           Document doc = dBuilder.parse(resource);
 
-
           NodeList nodes = doc.getElementsByTagName("node");
 
-
           for (int i = 0; i < nodes.getLength(); i++) {
-
             NamedNodeMap attributes = nodes.item(i).getAttributes();
             String name = attributes.getNamedItem("name").getTextContent();
-            System.out.println(name);
             String rack = attributes.getNamedItem("rack").getTextContent();
-            System.out.println(rack);
-
             hostToRack.put(name, rack);
           }
 
@@ -76,11 +70,6 @@ public class LocalityHelper {
 
   public static String getRack(String host) {
     loadTopology();
-
-    for (Map.Entry<String, String> stringStringEntry : hostToRack.entrySet()) {
-      System.out.println(stringStringEntry.getKey());
-    }
-
     return hostToRack.get(host);
   }
 
