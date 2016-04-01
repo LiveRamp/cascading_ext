@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,6 +33,7 @@ public class LocalityHelper {
   private static final int DEFAULT_MAX_BLOCK_LOCATIONS_PER_SPLIT = 3;
 
   private static transient Map<String, String> hostToRack;
+  private static transient Multimap<String, String> rackToHost;
 
   private static void loadTopology() {
 
@@ -37,6 +41,7 @@ public class LocalityHelper {
       try {
 
         hostToRack = Maps.newHashMap();
+        rackToHost = HashMultimap.create();
 
         InputStream resource = LocalityHelper.class.getClassLoader().getResourceAsStream("topology.map");
 
@@ -53,9 +58,10 @@ public class LocalityHelper {
             String name = attributes.getNamedItem("name").getTextContent();
             String rack = attributes.getNamedItem("rack").getTextContent();
             hostToRack.put(name, rack);
+            rackToHost.put(rack, name);
           }
 
-          LOG.info("Loaded topology map with " + hostToRack.size() + " hosts");
+          LOG.info("Loaded topology map with " + hostToRack.size() + " hosts on "+rackToHost.keySet().size()+" racks");
 
         } else {
           LOG.warn("topology.map not found, using empty rack map (ignore if this is a test)");
@@ -66,6 +72,11 @@ public class LocalityHelper {
       }
     }
 
+  }
+
+  public static Collection<String> getHostsOnRack(String rack){
+    loadTopology();
+    return rackToHost.get(rack);
   }
 
   public static String getRack(String host) {
