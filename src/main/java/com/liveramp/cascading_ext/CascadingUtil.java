@@ -121,6 +121,7 @@ public class CascadingUtil {
     }
 
     serializationTokens.put(token, klass);
+    conf = null;
   }
 
   private Map<String, String> getSerializationsProperty() {
