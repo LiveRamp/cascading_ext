@@ -16,25 +16,19 @@
 
 package com.liveramp.cascading_ext.flow;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
 import org.slf4j.Logger;
@@ -82,7 +76,9 @@ public class LoggingFlow extends HadoopFlow {
       logCounters();
     } catch (Exception e) {
       logJobIDs();
+      long start = System.currentTimeMillis();
       String jobErrors = logJobErrors();
+      LOG.info("Failure log collection took "+(System.currentTimeMillis()-start)+" millis: \n");
       // jobErrors starts with a line delimiter, so prepend it with a newline so that it aligns correctly when printing exceptions
       throw new RuntimeException("\n" + jobErrors, e);
     }
@@ -134,11 +130,11 @@ public class LoggingFlow extends HadoopFlow {
               failures.add(event);
             }
           }
-          // We limit the number of potential logs being pulled to spare the jobtracker
+          // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
           if (failures.size() > 0) {
             Collections.shuffle(failures);
             for (int i = 0; i < FAILURES_TO_QUERY; i++) {
-              jobFailures.add(getFailureLog(failures.get(i)));
+              Collections.addAll(jobFailures, job.getTaskDiagnostics((failures.get(i).getTaskAttemptId())));
             }
           }
         } catch (Exception e) {
@@ -161,73 +157,7 @@ public class LoggingFlow extends HadoopFlow {
 
   private static void logAndAppend(StringBuilder sb, String str) {
     LOG.info(str);
-    sb.append(str + "\n");
-  }
-
-  private static String getFailureLog(TaskCompletionEvent event) {
-    LOG.info("Getting errors for attempt " + event.getTaskAttemptId());
-    String exception = "";
-    try {
-      String fullLog = retrieveTaskLogs(event.getTaskAttemptId(), event.getTaskTrackerHttp());
-      exception = extractErrorFromLogString(fullLog);
-    } catch (IOException e) {
-      LOG.info("Regex Error!", e);
-    }
-    return "\nCluster Log Exception:\n" + exception;
-  }
-
-  protected static String extractErrorFromLogString(String fullLog) {
-    String exception;
-    Matcher matcher = LOG_ERROR_PATTERN.matcher(fullLog);
-    matcher.find();
-    exception = matcher.group();
-    exception = exception.substring(0, exception.length() - 10);
-    return exception;
-  }
-
-  // This method pulled wholesale from a private method in hadoop's JobClient
-  private static String retrieveTaskLogs(TaskAttemptID taskId, String baseUrl)
-      throws IOException {
-    // The tasktracker for a 'failed/killed' job might not be around...
-    if (baseUrl != null) {
-      LOG.info("Fetching failures from baseURL "+baseUrl);
-
-      // Construct the url for the tasklogs
-      String taskLogUrl = getTaskLogURL(taskId, baseUrl)+ "&filter=syslog";
-      LOG.info("Using task log URL: "+taskLogUrl);
-
-      // Copy tasks's stdout of the JobClient
-      return getTaskLogStream(new URL(taskLogUrl));
-
-    }
-    return "";
-  }
-
-  static String getTaskLogURL(TaskAttemptID taskId, String baseUrl) {
-    return (baseUrl + "/tasklog?plaintext=true&attemptid=" + taskId);
-  }
-
-  // This method pulled wholesale from a private method in hadoop's JobClient
-  private static String getTaskLogStream(URL taskLogUrl) {
-    try {
-      URLConnection connection = taskLogUrl.openConnection();
-      BufferedReader input =
-          new BufferedReader(new InputStreamReader(connection.getInputStream()));
-      try {
-        StringBuilder logData = new StringBuilder();
-        String line;
-        while ((line = input.readLine()) != null) {
-          logData.append(line).append("\n");
-        }
-        return logData.toString();
-      } finally {
-        input.close();
-      }
-
-    } catch (IOException ioe) {
-      LOG.warn("Error reading task output" + ioe.getMessage());
-      return "";
-    }
+    sb.append(str).append("\n");
   }
 
   private void logCounters() throws IOException {
