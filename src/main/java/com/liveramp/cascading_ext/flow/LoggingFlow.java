@@ -128,7 +128,6 @@ public class LoggingFlow extends HadoopFlow {
               failures.add(event);
             }
           }
-          LOG.info(job.getHistoryUrl());
           // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
           if (failures.size() > 0) {
             Collections.shuffle(failures);
