@@ -11,9 +11,9 @@ import cascading.flow.FlowStepListener;
 import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_tools.jobs.JobUtil;
+import com.liveramp.cascading_ext.jobs.JobUtil;
 import com.liveramp.commons.state.LaunchedJob;
-import com.liveramp.java_support.workflow.TaskSummary;
+import com.liveramp.commons.state.TaskSummary;
 
 public class JobRecordListener implements FlowStepListener {
   private static final Logger LOG = LoggerFactory.getLogger(JobRecordListener.class);

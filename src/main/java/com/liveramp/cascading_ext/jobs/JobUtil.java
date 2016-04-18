@@ -1,4 +1,4 @@
-package com.liveramp.cascading_tools.jobs;
+package com.liveramp.cascading_ext.jobs;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.TIPStatus;
 import org.apache.hadoop.mapred.TaskReport;
 
-import com.liveramp.java_support.workflow.TaskSummary;
+import com.liveramp.commons.state.TaskSummary;
 
 public class JobUtil {
 

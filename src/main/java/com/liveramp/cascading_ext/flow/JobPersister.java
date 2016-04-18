@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
-import com.liveramp.java_support.workflow.TaskSummary;
+import com.liveramp.commons.state.TaskSummary;
 
 public interface JobPersister {
   void onRunning(LaunchedJob launchedJob) throws IOException;
