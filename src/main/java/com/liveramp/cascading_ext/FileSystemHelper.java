@@ -1,17 +1,17 @@
 /**
- *  Copyright 2012 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2012 LiveRamp
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.cascading_ext;
@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.viewfs.ViewFileSystem;
 
 /**
  * This class contains helper methods for working with files, filepaths, and
@@ -224,9 +225,30 @@ public class FileSystemHelper {
    */
   public static Path getRandomTemporaryPath(Path pathPrefix) throws IOException {
     Path randomTemporaryDir = getRandomPath(pathPrefix);
-    getFS().mkdirs(randomTemporaryDir);
-    getFS().deleteOnExit(randomTemporaryDir);
+    FileSystem fs = getFS();
+    fs.mkdirs(randomTemporaryDir);
+    safeDeleteOnExit(fs, randomTemporaryDir);
     return getRandomPath(randomTemporaryDir);
+  }
+
+
+  public static void safeDeleteOnExit(FileSystem fs, Path path) throws IOException {
+
+    //  if it's a viewFS, get the child FS and attach the deleteOnExit to the right child
+    //  (https://issues.apache.org/jira/browse/HDFS-10323)
+    if(fs instanceof ViewFileSystem) {
+      ViewFileSystem viewfs = (ViewFileSystem)fs;
+      for (FileSystem fileSystem : viewfs.getChildFileSystems()) {
+        if (fileSystem.exists(path)) {
+          fileSystem.deleteOnExit(path);
+        }
+      }
+    }
+
+    else{
+      fs.deleteOnExit(path);
+    }
+
   }
 
   /**
@@ -299,7 +321,7 @@ public class FileSystemHelper {
       }
     }
     //  CDH4 will throw FNFEs if p doesn't exist--let people safely check for files at a path
-    catch(FileNotFoundException e){
+    catch (FileNotFoundException e) {
       return new FileStatus[0];
     }
   }
