@@ -1,9 +1,9 @@
 package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.mapred.RunningJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ public class JobRecordListener implements FlowStepListener {
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
-  private List<TaskSummary> taskSummaries;
+  private Map<String, TaskSummary> taskSummaries;
 
   public JobRecordListener(JobPersister persister,
                            boolean failOnCounterFetch) {
@@ -87,9 +87,9 @@ public class JobRecordListener implements FlowStepListener {
       LOG.info("Done saving task summaries");
 
       if (taskSummaries == null) {
-        taskSummaries = Lists.newArrayList();
+        taskSummaries = Maps.newHashMap();
       }
-      taskSummaries.add(taskSummary);
+      taskSummaries.put(jobID, taskSummary);
 
     } catch (Exception e) {
       LOG.error("Error fetching task summaries", e);
@@ -99,7 +99,7 @@ public class JobRecordListener implements FlowStepListener {
   }
 
   //returns null if no task summaries have been recorded
-  public List<TaskSummary> getTaskSummaries() {
+  public Map<String, TaskSummary> getTaskSummaries() {
     return taskSummaries;
   }
 

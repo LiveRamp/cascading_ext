@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
@@ -52,7 +53,6 @@ import com.liveramp.commons.state.TaskSummary;
  */
 public class LoggingFlow extends HadoopFlow {
   private static Logger LOG = LoggerFactory.getLogger(Flow.class);
-  private static final int FAILURES_TO_QUERY = 3;
   private final JobRecordListener jobRecordListener;
 
   public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef, JobPersister persister) {
@@ -110,13 +110,14 @@ public class LoggingFlow extends HadoopFlow {
     final String divider = StringUtils.repeat("-", 80);
     logAndAppend(jobErrors, divider);
     try {
-      Set<String> jobFailures = new HashSet<>();
-      for (TaskSummary taskSummary : jobRecordListener.getTaskSummaries()) {
-        for (TaskFailure taskFailure : taskSummary.getTaskFailures()) {
-          jobFailures.add(taskFailure.getError());
+      for (Map.Entry<String,TaskSummary> taskSummary : jobRecordListener.getTaskSummaries().entrySet()) {
+        logAndAppend(jobErrors,"for job with ID: " + taskSummary.getKey());
+        List<Object> taskFailures = Lists.newArrayList();
+        for (TaskFailure taskFailure : taskSummary.getValue().getTaskFailures()) {
+          taskFailures.add(taskFailure.getError());
         }
+        logAndAppend(jobErrors,StringUtils.join(taskFailures,", "));
       }
-      logAndAppend(jobErrors, "step attempt failures: " + StringUtils.join(jobFailures, ", "));
     } catch (Exception e) {
       logAndAppend(jobErrors, "unable to retrieve any failures from steps");
       logAndAppend(jobErrors, e.toString());
