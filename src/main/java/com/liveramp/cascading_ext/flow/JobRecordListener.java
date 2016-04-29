@@ -1,7 +1,6 @@
 package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -15,8 +14,6 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.jobs.JobUtil;
-import com.liveramp.commons.collections.nested_map.ThreeNestedMap;
-import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
 import com.liveramp.commons.state.TaskSummary;
 
@@ -25,13 +22,12 @@ public class JobRecordListener implements FlowStepListener {
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
-  private final List<TaskSummary> taskSummaries;
+  private List<TaskSummary> taskSummaries;
 
   public JobRecordListener(JobPersister persister,
                            boolean failOnCounterFetch) {
     this.persister = persister;
     this.failOnCounterFetch = failOnCounterFetch;
-    taskSummaries = Lists.newArrayList();
   }
 
   @Override
@@ -44,8 +40,8 @@ public class JobRecordListener implements FlowStepListener {
       RunningJob job = hdStepStats.getRunningJob();
 
       persister.onRunning(new LaunchedJob(job.getID().toString(),
-          job.getJobName(),
-          job.getTrackingURL())
+              job.getJobName(),
+              job.getTrackingURL())
       );
 
     } catch (NullPointerException | IOException e) {
@@ -90,6 +86,9 @@ public class JobRecordListener implements FlowStepListener {
       persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
 
+      if (taskSummaries == null) {
+        taskSummaries = Lists.newArrayList();
+      }
       taskSummaries.add(taskSummary);
 
     } catch (Exception e) {
@@ -99,6 +98,7 @@ public class JobRecordListener implements FlowStepListener {
 
   }
 
+  //returns null if no task summaries have been recorded
   public List<TaskSummary> getTaskSummaries() {
     return taskSummaries;
   }
