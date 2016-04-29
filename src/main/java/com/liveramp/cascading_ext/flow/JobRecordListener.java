@@ -1,7 +1,9 @@
 package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.google.common.collect.Maps;
 import org.apache.hadoop.mapred.RunningJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +22,13 @@ public class JobRecordListener implements FlowStepListener {
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
+  private final Map<String, TaskSummary> taskSummaries;
 
   public JobRecordListener(JobPersister persister,
                            boolean failOnCounterFetch) {
     this.persister = persister;
     this.failOnCounterFetch = failOnCounterFetch;
+    this.taskSummaries = Maps.newHashMap();
   }
 
   @Override
@@ -37,8 +41,8 @@ public class JobRecordListener implements FlowStepListener {
       RunningJob job = hdStepStats.getRunningJob();
 
       persister.onRunning(new LaunchedJob(job.getID().toString(),
-          job.getJobName(),
-          job.getTrackingURL())
+              job.getJobName(),
+              job.getTrackingURL())
       );
 
     } catch (NullPointerException | IOException e) {
@@ -76,18 +80,28 @@ public class JobRecordListener implements FlowStepListener {
     try {
 
       LOG.info("Fetching task summaries...");
-      TaskSummary summary = JobUtil.getSummary(
+      TaskSummary taskSummary = JobUtil.getSummary(
           hdStepStats.getJobClient(),
           hdStepStats.getRunningJob().getID());
 
-      persister.onTaskInfo(jobID, summary);
+      persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
+
+      if (taskSummaries.containsKey(jobID)) {
+        throw new RuntimeException("Failed fetching task summaries: duplicate task summary/job found.");
+      }
+      taskSummaries.put(jobID, taskSummary);
 
     } catch (Exception e) {
       LOG.error("Error fetching task summaries", e);
       // getJobID on occasion throws a null pointer exception, ignore it
     }
 
+  }
+
+  //returns null if no task summaries have been recorded
+  public Map<String, TaskSummary> getTaskSummaries() {
+    return taskSummaries;
   }
 
   @Override

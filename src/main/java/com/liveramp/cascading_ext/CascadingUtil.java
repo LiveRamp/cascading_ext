@@ -43,6 +43,7 @@ import cascading.flow.hadoop.HadoopFlowProcess;
 
 import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.bloom.BloomProps;
+import com.liveramp.cascading_ext.flow.JobPersister;
 import com.liveramp.cascading_ext.flow.LoggingFlowConnector;
 import com.liveramp.cascading_ext.flow_step_strategy.FlowStepStrategyFactory;
 import com.liveramp.cascading_ext.flow_step_strategy.MultiFlowStepStrategy;
@@ -227,8 +228,22 @@ public class CascadingUtil {
     return strategies;
   }
 
+
+  public static FlowConnector buildFlowConnector(JobConf jobConf,
+                                                 Map<Object, Object> properties,
+                                                 List<FlowStepStrategy<JobConf>> flowStepStrategies,
+                                                 Multimap<String, String> invalidPropertyValues) {
+
+    return buildFlowConnector(jobConf,
+        new JobPersister.NoOp(),
+        properties,
+        flowStepStrategies,
+        invalidPropertyValues);
+  }
+
   // We extract this method so that the default name based on the stack position makes sense
   public static FlowConnector buildFlowConnector(JobConf jobConf,
+                                                 JobPersister persister,
                                                  Map<Object, Object> properties,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
                                                  Multimap<String, String> invalidPropertyValues) {
@@ -246,6 +261,7 @@ public class CascadingUtil {
 
     return new LoggingFlowConnector(properties,
         new MultiFlowStepStrategy(flowStepStrategies),
+        persister,
         OperationStatsUtils.formatStackPosition(OperationStatsUtils.getStackPosition(2)));
   }
 

@@ -34,23 +34,27 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
 
   private final FlowStepStrategy<JobConf> flowStepStrategy;
   private final String defaultFlowName;
+  private final JobPersister persister;
 
   public LoggingFlowConnector(Map<Object, Object> properties,
-                              FlowStepStrategy<JobConf> flowStepStrategy) {
-    this(properties, flowStepStrategy, null);
+                              FlowStepStrategy<JobConf> flowStepStrategy,
+                              JobPersister persister) {
+    this(properties, flowStepStrategy, persister, null);
   }
 
   public LoggingFlowConnector(Map<Object, Object> properties,
                               FlowStepStrategy<JobConf> flowStepStrategy,
+                              JobPersister persister,
                               String defaultFlowName) {
     super(properties);
     this.flowStepStrategy = flowStepStrategy;
     this.defaultFlowName = defaultFlowName;
+    this.persister = persister;
   }
 
   @Override
   public Flow connect(String name, Map<String, Tap> sources, Map<String, Tap> sinks, Map<String, Tap> traps, Pipe... tails) {
-    LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy, getProperties());
+    LoggingHadoopPlanner planner = new LoggingHadoopPlanner(flowStepStrategy, getProperties(), persister);
     planner.initialize(this);
 
     String flowName = name != null ? name : defaultFlowName;
