@@ -1,12 +1,12 @@
 /**
  * Copyright 2012 LiveRamp
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,20 +18,13 @@ package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapred.TaskCompletionEvent.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +36,6 @@ import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.commons.collections.map.MapBuilder;
 import com.liveramp.commons.state.TaskFailure;
 import com.liveramp.commons.state.TaskSummary;
 
@@ -71,13 +63,13 @@ public class LoggingFlow extends HadoopFlow {
       logJobIDs();
       long start = System.currentTimeMillis();
       String jobErrors = logJobErrors();
-      LOG.info("Failure log collection took "+(System.currentTimeMillis()-start)+" millis: \n");
+      LOG.info("Failure log collection took " + (System.currentTimeMillis() - start) + " millis: \n");
       // jobErrors starts with a line delimiter, so prepend it with a newline so that it aligns correctly when printing exceptions
       throw new RuntimeException("\n" + jobErrors, e);
     }
   }
 
-  private void  logJobIDs() {
+  private void logJobIDs() {
     boolean exceptions = false;
     try {
       List<FlowStepStats> stepStats = getFlowStats().getFlowStepStats();
@@ -110,13 +102,14 @@ public class LoggingFlow extends HadoopFlow {
     final String divider = StringUtils.repeat("-", 80);
     logAndAppend(jobErrors, divider);
     try {
-      for (Map.Entry<String,TaskSummary> taskSummary : jobRecordListener.getTaskSummaries().entrySet()) {
-        logAndAppend(jobErrors,"for job with ID: " + taskSummary.getKey());
+      logAndAppend(jobErrors, "step attempt failures: ");
+      for (Map.Entry<String, TaskSummary> taskSummary : jobRecordListener.getTaskSummaries().entrySet()) {
+        logAndAppend(jobErrors, "for job with ID: " + taskSummary.getKey());
         List<Object> taskFailures = Lists.newArrayList();
         for (TaskFailure taskFailure : taskSummary.getValue().getTaskFailures()) {
           taskFailures.add(taskFailure.getError());
         }
-        logAndAppend(jobErrors,StringUtils.join(taskFailures,", "));
+        logAndAppend(jobErrors, StringUtils.join(taskFailures, ", "));
       }
     } catch (Exception e) {
       logAndAppend(jobErrors, "unable to retrieve any failures from steps");

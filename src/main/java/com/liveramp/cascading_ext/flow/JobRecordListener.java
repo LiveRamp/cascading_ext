@@ -22,12 +22,13 @@ public class JobRecordListener implements FlowStepListener {
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
-  private Map<String, TaskSummary> taskSummaries;
+  private final Map<String, TaskSummary> taskSummaries;
 
   public JobRecordListener(JobPersister persister,
                            boolean failOnCounterFetch) {
     this.persister = persister;
     this.failOnCounterFetch = failOnCounterFetch;
+    this.taskSummaries = Maps.newHashMap();
   }
 
   @Override
@@ -86,8 +87,8 @@ public class JobRecordListener implements FlowStepListener {
       persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
 
-      if (taskSummaries == null) {
-        taskSummaries = Maps.newHashMap();
+      if (taskSummaries.containsKey(jobID)) {
+        throw new RuntimeException("Failed fetching task summaries: duplicate task summary/job found.");
       }
       taskSummaries.put(jobID, taskSummary);
 
