@@ -43,29 +43,22 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.commons.collections.map.MapBuilder;
+import com.liveramp.commons.state.TaskFailure;
+import com.liveramp.commons.state.TaskSummary;
 
 /**
  * Delegates actual flow operations to a flow that gets passed in, but performs some additional logging when the job
  * completes or fails.
  */
 public class LoggingFlow extends HadoopFlow {
-  private static final Pattern LOG_ERROR_PATTERN = Pattern.compile("Caused by.*?\\d\\d\\d\\d-\\d\\d-\\d\\d", Pattern.DOTALL);
   private static Logger LOG = LoggerFactory.getLogger(Flow.class);
   private static final int FAILURES_TO_QUERY = 3;
+  private final JobRecordListener jobRecordListener;
 
-  private static final Pattern MEMORY_PATTERN = Pattern.compile(".*-Xmx:?([0-9]+)([gGmMkK])?.*");
-
-  private static final Map<String, Long> quantifiers = new MapBuilder<String, Long>()
-      .put("g", 1024l * 1024l * 1024l)
-      .put("G", 1024l * 1024l * 1024l)
-      .put("m", 1024l * 1024l)
-      .put("M", 1024l * 1024l)
-      .put("k", 1024l)
-      .put("K", 1024l)
-      .get();
-
-  public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef) {
+  public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef, JobPersister persister) {
     super(platformInfo, properties, jobConf, flowDef);
+    jobRecordListener = new JobRecordListener(persister, false);
+    this.addStepListener(jobRecordListener);
   }
 
   @Override
@@ -84,7 +77,7 @@ public class LoggingFlow extends HadoopFlow {
     }
   }
 
-  private void logJobIDs() {
+  private void  logJobIDs() {
     boolean exceptions = false;
     try {
       List<FlowStepStats> stepStats = getFlowStats().getFlowStepStats();
@@ -113,40 +106,17 @@ public class LoggingFlow extends HadoopFlow {
   }
 
   private String logJobErrors() {
-    boolean exceptions = false;
     StringBuilder jobErrors = new StringBuilder();
     final String divider = StringUtils.repeat("-", 80);
     logAndAppend(jobErrors, divider);
     try {
-      List<FlowStepStats> stepStats = getFlowStats().getFlowStepStats();
-      Set<String> jobFailures = new HashSet<String>();
-      for (FlowStepStats stat : stepStats) {
-        try {
-          RunningJob job = ((HadoopStepStats)stat).getRunningJob();
-          TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
-          ArrayList<TaskCompletionEvent> failures = new ArrayList<TaskCompletionEvent>();
-          for (TaskCompletionEvent event : events) {
-            if (event.getTaskStatus() == Status.FAILED) {
-              failures.add(event);
-            }
-          }
-          // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
-          if (failures.size() > 0) {
-            Collections.shuffle(failures);
-            for (int i = 0; i < FAILURES_TO_QUERY; i++) {
-              Collections.addAll(jobFailures, job.getTaskDiagnostics((failures.get(i).getTaskAttemptId())));
-            }
-          }
-        } catch (Exception e) {
-          exceptions = true;
+      Set<String> jobFailures = new HashSet<>();
+      for (TaskSummary taskSummary : jobRecordListener.getTaskSummaries()) {
+        for (TaskFailure taskFailure : taskSummary.getTaskFailures()) {
+          jobFailures.add(taskFailure.getError());
         }
       }
-      if (exceptions) {
-        logAndAppend(jobErrors, "unable to retrieve failures from all completed steps!");
-        logAndAppend(jobErrors, "successfully retrieved job failures: " + StringUtils.join(jobFailures, ", "));
-      } else {
-        logAndAppend(jobErrors, "step attempt failures: " + StringUtils.join(jobFailures, ", "));
-      }
+      logAndAppend(jobErrors, "step attempt failures: " + StringUtils.join(jobFailures, ", "));
     } catch (Exception e) {
       logAndAppend(jobErrors, "unable to retrieve any failures from steps");
       logAndAppend(jobErrors, e.toString());

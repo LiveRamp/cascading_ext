@@ -38,8 +38,7 @@ public class JobUtil {
     );
   }
 
-  //there's a little bit of DRY to be done here and with LoggingFlow, but this is an incremental change
-  //TODO sweep soon if necessary/desired
+
   private static List<TaskFailure> getTaskFailures(JobClient client, JobID id) throws IOException {
     List<TaskFailure> jobFailures = new ArrayList<>();
     RunningJob job = client.getJob(id);

@@ -1,7 +1,10 @@
 package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.mapred.RunningJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +15,8 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.jobs.JobUtil;
+import com.liveramp.commons.collections.nested_map.ThreeNestedMap;
+import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
 import com.liveramp.commons.state.TaskSummary;
 
@@ -20,11 +25,13 @@ public class JobRecordListener implements FlowStepListener {
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
+  private final List<TaskSummary> taskSummaries;
 
   public JobRecordListener(JobPersister persister,
                            boolean failOnCounterFetch) {
     this.persister = persister;
     this.failOnCounterFetch = failOnCounterFetch;
+    taskSummaries = Lists.newArrayList();
   }
 
   @Override
@@ -76,18 +83,24 @@ public class JobRecordListener implements FlowStepListener {
     try {
 
       LOG.info("Fetching task summaries...");
-      TaskSummary summary = JobUtil.getSummary(
+      TaskSummary taskSummary = JobUtil.getSummary(
           hdStepStats.getJobClient(),
           hdStepStats.getRunningJob().getID());
 
-      persister.onTaskInfo(jobID, summary);
+      persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
+
+      taskSummaries.add(taskSummary);
 
     } catch (Exception e) {
       LOG.error("Error fetching task summaries", e);
       // getJobID on occasion throws a null pointer exception, ignore it
     }
 
+  }
+
+  public List<TaskSummary> getTaskSummaries() {
+    return taskSummaries;
   }
 
   @Override
