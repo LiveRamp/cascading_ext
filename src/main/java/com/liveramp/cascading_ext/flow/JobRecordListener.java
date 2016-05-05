@@ -76,17 +76,20 @@ public class JobRecordListener implements FlowStepListener {
       }
     }
 
-    recordTaskErrors(hdStepStats, jobID);
+    recordTaskErrors(hdStepStats, jobID, false);
   }
 
-  private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID) {
+  private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed) {
+    long start = System.currentTimeMillis();
 
     try {
 
       LOG.info("Fetching task summaries...");
       TaskSummary taskSummary = JobUtil.getSummary(
           hdStepStats.getJobClient(),
-          hdStepStats.getRunningJob().getID());
+          hdStepStats.getRunningJob().getID(),
+          failed);
+      LOG.info("Task summary collection took " + (System.currentTimeMillis() - start) + " millis: \n");
 
       persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
@@ -122,7 +125,7 @@ public class JobRecordListener implements FlowStepListener {
   @Override
   public boolean onStepThrowable(FlowStep flowStep, Throwable throwable) {
     HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
-    recordTaskErrors(hdStepStats, hdStepStats.getJobID());
+    recordTaskErrors(hdStepStats, hdStepStats.getJobID(), true);
     return false;
   }
 }

@@ -61,9 +61,7 @@ public class LoggingFlow extends HadoopFlow {
       logCounters();
     } catch (Exception e) {
       logJobIDs();
-      long start = System.currentTimeMillis();
       String jobErrors = logJobErrors();
-      LOG.info("Failure log collection took " + (System.currentTimeMillis() - start) + " millis: \n");
       // jobErrors starts with a line delimiter, so prepend it with a newline so that it aligns correctly when printing exceptions
       throw new RuntimeException("\n" + jobErrors, e);
     }
