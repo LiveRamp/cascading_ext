@@ -44,7 +44,7 @@ import com.liveramp.commons.state.TaskSummary;
  * completes or fails.
  */
 public class LoggingFlow extends HadoopFlow {
-  private static Logger LOG = LoggerFactory.getLogger(Flow.class);
+  private static Logger LOG = LoggerFactory.getLogger(LoggingFlow.class);
   private final JobRecordListener jobRecordListener;
 
   public LoggingFlow(PlatformInfo platformInfo, java.util.Map<Object, Object> properties, JobConf jobConf, FlowDef flowDef, JobPersister persister) {

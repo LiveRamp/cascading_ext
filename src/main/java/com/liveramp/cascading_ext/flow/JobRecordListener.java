@@ -54,12 +54,12 @@ public class JobRecordListener implements FlowStepListener {
   @Override
   public void onStepStopping(FlowStep flowStep) {
     LOG.info("Step stopping");
-    recordStepData(flowStep);
+    HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
+    recordStepData(hdStepStats);
   }
 
-  private void recordStepData(FlowStep step) {
+  private void recordStepData(HadoopStepStats hdStepStats) {
 
-    HadoopStepStats hdStepStats = (HadoopStepStats)step.getFlowStepStats();
     String jobID = hdStepStats.getJobID();
 
     try {
@@ -76,6 +76,10 @@ public class JobRecordListener implements FlowStepListener {
       }
     }
 
+    recordTaskErrors(hdStepStats, jobID);
+  }
+
+  private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID) {
 
     try {
 
@@ -96,7 +100,6 @@ public class JobRecordListener implements FlowStepListener {
       LOG.error("Error fetching task summaries", e);
       // getJobID on occasion throws a null pointer exception, ignore it
     }
-
   }
 
   //returns null if no task summaries have been recorded
@@ -111,12 +114,15 @@ public class JobRecordListener implements FlowStepListener {
 
   @Override
   public void onStepCompleted(FlowStep flowStep) {
-    LOG.info("Step stopping");
-    recordStepData(flowStep);
+    LOG.info("Step completed");
+    HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
+    recordStepData(hdStepStats);
   }
 
   @Override
   public boolean onStepThrowable(FlowStep flowStep, Throwable throwable) {
+    HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
+    recordTaskErrors(hdStepStats, hdStepStats.getJobID());
     return false;
   }
 }
