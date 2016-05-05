@@ -20,8 +20,9 @@ import com.liveramp.commons.state.TaskSummary;
 public class JobUtil {
 
   private static int FAILURES_TO_QUERY = 3;
+  private static int MILLIS_TO_SEARCH = 5000; //this will limit the length of searches when searchUntilFound is false
 
-  public static TaskSummary getSummary(JobClient client, JobID id) throws IOException {
+  public static TaskSummary getSummary(JobClient client, JobID id, boolean searchUntilFound) throws IOException {
     DescriptiveStatistics mapStats = getRuntimes(client.getMapTaskReports(id));
     DescriptiveStatistics reduceStats = getRuntimes(client.getReduceTaskReports(id));
     return new TaskSummary((long)mapStats.getMean(),
@@ -34,21 +35,37 @@ public class JobUtil {
         (long)reduceStats.getMax(),
         (long)reduceStats.getMin(),
         (long)reduceStats.getStandardDeviation(),
-        getTaskFailures(client, id)
+        getTaskFailures(client, id, searchUntilFound)
     );
   }
 
 
-  private static List<TaskFailure> getTaskFailures(JobClient client, JobID id) throws IOException {
+  private static List<TaskFailure> getTaskFailures(JobClient client, JobID id, boolean searchUntilFound) throws IOException {
     List<TaskFailure> jobFailures = new ArrayList<>();
     RunningJob job = client.getJob(id);
-    TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
+
+    long start = System.currentTimeMillis();
+
+    int index = 0;
+    TaskCompletionEvent[] events = job.getTaskCompletionEvents(index);
     ArrayList<TaskCompletionEvent> failures = new ArrayList<TaskCompletionEvent>();
-    for (TaskCompletionEvent event : events) {
-      if (event.getTaskStatus() == TaskCompletionEvent.Status.FAILED) {
-        failures.add(event);
+
+    //this returns either nothing (if no task exceptions at all) or a subset of the exceptions from the first
+    //index at which exceptions are found in the task completion events
+    //we also limit the time spent on it, in case a completely successful job with too many tasks
+    while (
+        events.length > 0
+            && failures.size() == 0
+            && (searchUntilFound || System.currentTimeMillis() - start < MILLIS_TO_SEARCH)) {
+      for (TaskCompletionEvent event : events) {
+        if (event.getTaskStatus() == TaskCompletionEvent.Status.FAILED) {
+          failures.add(event);
+        }
       }
+      index += 10; //hadoop is weird and caps the number of task events at 10 non-optionally
+      events = job.getTaskCompletionEvents(index);
     }
+
     // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
     if (failures.size() > 0) {
       Collections.shuffle(failures);
@@ -56,7 +73,7 @@ public class JobUtil {
         TaskAttemptID taskAttemptID = failures.get(i).getTaskAttemptId();
         String[] fails = job.getTaskDiagnostics(taskAttemptID);
         for (String failure : fails) {
-          jobFailures.add(new TaskFailure(taskAttemptID.toString(),failure));
+          jobFailures.add(new TaskFailure(taskAttemptID.toString(), failure));
         }
       }
     }
