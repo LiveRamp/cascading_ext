@@ -89,7 +89,7 @@ public class JobRecordListener implements FlowStepListener {
           hdStepStats.getJobClient(),
           hdStepStats.getRunningJob().getID(),
           failed);
-      LOG.info("Task summary collection took " + (System.currentTimeMillis() - start) + " millis: \n");
+      LOG.info("Task summary collection took " + (System.currentTimeMillis() - start) + " millis.");
 
       persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
