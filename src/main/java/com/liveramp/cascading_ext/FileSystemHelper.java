@@ -232,15 +232,22 @@ public class FileSystemHelper {
   }
 
 
+  protected static Path stripPrefix(Path path){
+    String rawPath = path.toUri().getPath();
+    return new Path(rawPath);
+  }
+
   public static void safeDeleteOnExit(FileSystem fs, Path path) throws IOException {
 
     //  if it's a viewFS, get the child FS and attach the deleteOnExit to the right child
     //  (https://issues.apache.org/jira/browse/HDFS-10323)
     if(fs instanceof ViewFileSystem) {
       ViewFileSystem viewfs = (ViewFileSystem)fs;
+      Path withoutPrefix = stripPrefix(path);
+
       for (FileSystem fileSystem : viewfs.getChildFileSystems()) {
-        if (fileSystem.exists(path)) {
-          fileSystem.deleteOnExit(path);
+        if (fileSystem.exists(withoutPrefix)) {
+          fileSystem.deleteOnExit(withoutPrefix);
         }
       }
     }
