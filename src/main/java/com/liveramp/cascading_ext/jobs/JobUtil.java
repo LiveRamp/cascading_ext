@@ -42,13 +42,24 @@ public class JobUtil {
   private static List<TaskFailure> getTaskFailures(JobClient client, JobID id) throws IOException {
     List<TaskFailure> jobFailures = new ArrayList<>();
     RunningJob job = client.getJob(id);
-    TaskCompletionEvent[] events = job.getTaskCompletionEvents(0);
+
+    int index = 0;
+    TaskCompletionEvent[] events = job.getTaskCompletionEvents(index);
     ArrayList<TaskCompletionEvent> failures = new ArrayList<TaskCompletionEvent>();
-    for (TaskCompletionEvent event : events) {
-      if (event.getTaskStatus() == TaskCompletionEvent.Status.FAILED) {
-        failures.add(event);
+
+    //this returns either nothing (if no task exceptions at all) or a subset of the exceptions from the first
+    //index at which exceptions are found in the task completion events
+    while (events.length > 0 && failures.size() == 0)
+    {
+      for (TaskCompletionEvent event : events) {
+        if (event.getTaskStatus() == TaskCompletionEvent.Status.FAILED) {
+          failures.add(event);
+        }
       }
+      index += 10; //hadoop is weird and caps the number of task events at 10 non-optionally
+      events = job.getTaskCompletionEvents(index);
     }
+
     // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
     if (failures.size() > 0) {
       Collections.shuffle(failures);
