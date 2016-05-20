@@ -81,7 +81,15 @@ public class LocalityHelper {
 
   public static String getRack(String host) {
     loadTopology();
-    return hostToRack.get(host);
+
+    if(hostToRack.containsKey(host)){
+      return hostToRack.get(host);
+    }
+
+    //  prevent NPE later, but also don't count this as as local with anything else
+    LOG.error("Did not find rack for host: "+host);
+    return host+"__RACK_NOT_FOUND";
+
   }
 
   public static String[] getHostsSortedByLocality(List<String> files, JobConf jobConf) throws IOException {
