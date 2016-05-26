@@ -69,7 +69,8 @@ public class JobUtil {
     // We limit the number of potential logs being pulled since we don't want to spend forever on these queries
     if (failures.size() > 0) {
       Collections.shuffle(failures);
-      for (int i = 0; i < FAILURES_TO_QUERY; i++) {
+      int num_queries = Math.min(FAILURES_TO_QUERY, failures.size());
+      for (int i = 0; i < num_queries; i++) {
         TaskAttemptID taskAttemptID = failures.get(i).getTaskAttemptId();
         String[] fails = job.getTaskDiagnostics(taskAttemptID);
         for (String failure : fails) {
