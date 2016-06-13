@@ -1,17 +1,17 @@
 /**
- *  Copyright 2012 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2012 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.cascading_ext.bloom;
@@ -38,6 +38,7 @@ public class BloomFilter implements Writable {
 
   private FixedSizeBitSet bits;
 
+  private HashFunctionFactory hashFactory;
   private HashFunction hashFunction;
 
   protected int numHashes;
@@ -45,6 +46,11 @@ public class BloomFilter implements Writable {
   private long numElems;
 
   public BloomFilter() {
+    this(HashFunctionFactory.DEFAULT_HASH_FACTORY);
+  }
+
+  public BloomFilter(HashFunctionFactory hashFactory) {
+    this.hashFactory = hashFactory;
   }
 
   public BloomFilter(long vectorSize, int numHashes) {
@@ -52,10 +58,15 @@ public class BloomFilter implements Writable {
   }
 
   public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems) {
+    this(vectorSize, numHashes, bits, numElems, HashFunctionFactory.DEFAULT_HASH_FACTORY);
+  }
+
+  public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems, HashFunctionFactory hashFactory) {
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;
     this.bits = bits;
-    this.hashFunction = HashFunctionFactory.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    this.hashFactory = hashFactory;
+    this.hashFunction = hashFactory.getFunction(vectorSize, numHashes);
     this.numElems = numElems;
   }
 
@@ -89,7 +100,7 @@ public class BloomFilter implements Writable {
    *
    * @param key The key to test.
    * @return boolean True if the specified key belongs to <i>this</i> filter.
-   *         False otherwise.
+   * False otherwise.
    */
   public boolean membershipTest(byte[] key) {
     long[] h = hashFunction.hash(key);
@@ -144,7 +155,7 @@ public class BloomFilter implements Writable {
     vectorSize = in.readLong();
     numElems = in.readLong();
     String serilizedHashID = in.readLine();
-    hashFunction = HashFunctionFactory.DEFAULT_HASH_FACTORY.getFunction(vectorSize, numHashes);
+    hashFunction = hashFactory.getFunction(vectorSize, numHashes);
     if (!serilizedHashID.equals(hashFunction.getHashID())) {
       throw new RuntimeException("bloom filter was written with hash type " + serilizedHashID +
           " but current hash function type is " + hashFunction.getHashID() + "!");
