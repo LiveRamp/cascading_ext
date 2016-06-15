@@ -45,6 +45,7 @@ import com.liveramp.cascading_ext.Bytes;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.FixedSizeBitSet;
+import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 
 public class BloomUtil {
   private static Logger LOG = LoggerFactory.getLogger(BloomUtil.class);
@@ -73,7 +74,12 @@ public class BloomUtil {
     return Math.pow(1.0 - Math.exp((double)-numHashes * numElements / vectorSize), numHashes);
   }
 
-  private static BloomFilter mergeBloomParts(String tapPath, long numBloomBits, long splitSize, int numBloomHashes, long numElems) throws IOException {
+  private static BloomFilter mergeBloomParts(String tapPath,
+                                             long numBloomBits,
+                                             long splitSize,
+                                             int numBloomHashes,
+                                             long numElems,
+                                             HashFunctionFactory hashFactory) throws IOException {
     FixedSizeBitSet bitSet = new FixedSizeBitSet(numBloomBits);
 
     if (FileSystemHelper.getFS().exists(new Path(tapPath))) {
@@ -92,7 +98,7 @@ public class BloomUtil {
       itr.close();
     }
 
-    return new BloomFilter(numBloomBits, numBloomHashes, bitSet, numElems);
+    return new BloomFilter(numBloomBits, numBloomHashes, bitSet, numElems, hashFactory);
   }
 
   public static void configureDistCacheForBloomFilter(Map<Object, Object> properties, String bloomFilterPath) throws URISyntaxException {
@@ -129,6 +135,28 @@ public class BloomUtil {
                                        double hllError,
                                        String bloomKeyCountsDir,
                                        String bloomTargetPath) throws IOException, CardinalityMergeException {
+    writeFilterToHdfs(
+        bloomPartsDir,
+        maxHashes,
+        minHashes,
+        bloomFilterBits,
+        numSplits,
+        hllError,
+        bloomKeyCountsDir,
+        bloomTargetPath,
+        HashFunctionFactory.DEFAULT_HASH_FACTORY
+    );
+  }
+
+  public static void writeFilterToHdfs(String bloomPartsDir,
+                                       int maxHashes,
+                                       int minHashes,
+                                       long bloomFilterBits,
+                                       int numSplits,
+                                       double hllError,
+                                       String bloomKeyCountsDir,
+                                       String bloomTargetPath,
+                                       HashFunctionFactory hashFactory) throws IOException, CardinalityMergeException {
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
     // This is the side bucket that the HyperLogLog writes to
@@ -148,7 +176,7 @@ public class BloomUtil {
     synchronized (BF_LOAD_LOCK) {
       // Load bloom filter parts and merge them.
       String path = bloomPartsDir + "/" + numBloomHashes;
-      BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples);
+      BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples, hashFactory);
 
       // Write merged bloom filter to HDFS
       LOG.info("Writing created bloom filter to FS: " + bloomTargetPath);
