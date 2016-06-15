@@ -35,9 +35,13 @@ import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 public class CreateBloomFilter extends SubAssembly {
 
   public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField) throws IOException {
+    this(keys, bloomFilterID, approxCountPartsDir, bloomPartsDir, keyBytesField, HashFunctionFactory.DEFAULT_HASH_FACTORY);
+  }
+
+  public CreateBloomFilter(Pipe keys, String bloomFilterID, String approxCountPartsDir, String bloomPartsDir, String keyBytesField, HashFunctionFactory hashFactory) throws IOException {
     super(keys);
 
-    Pipe smallPipe = new Each(keys, new Fields(keyBytesField), new GetIndices(HashFunctionFactory.DEFAULT_HASH_FACTORY), new Fields("split", "index", "hash_num"));
+    Pipe smallPipe = new Each(keys, new Fields(keyBytesField), new GetIndices(hashFactory), new Fields("split", "index", "hash_num"));
     smallPipe = new Each(smallPipe, new Fields("split", "index", "hash_num"), new Unique.FilterPartialDuplicates());
     smallPipe = new GroupBy(smallPipe, new Fields("split"));
     smallPipe = new Every(smallPipe, new Fields("index", "hash_num"), new CreateBloomFilterFromIndices(), Fields.ALL);
