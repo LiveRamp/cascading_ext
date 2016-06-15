@@ -35,7 +35,7 @@ public class LocalityHelper {
   private static transient Map<String, String> hostToRack;
   private static transient Multimap<String, String> rackToHost;
 
-  private static void loadTopology() {
+  private synchronized static void loadTopology() {
 
     if (hostToRack == null) {
       try {
