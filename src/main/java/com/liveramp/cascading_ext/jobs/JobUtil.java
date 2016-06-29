@@ -20,6 +20,9 @@ import com.liveramp.commons.state.TaskSummary;
 
 public class JobUtil {
 
+  private static int FAILURES_TO_QUERY = 3;
+  private static int MILLIS_TO_SEARCH = 5000; //this will limit the length of searches when searchUntilFound is false
+
   private static class FailureReport {
     private final int numTasksSampled;
     private final int numTasksFailed;
@@ -42,9 +45,6 @@ public class JobUtil {
       return numTasksSampled;
     }
   }
-
-  private static int FAILURES_TO_QUERY = 3;
-  private static int MILLIS_TO_SEARCH = 5000; //this will limit the length of searches when searchUntilFound is false
 
   public static TaskSummary getSummary(Job job, boolean searchUntilFound) throws IOException, InterruptedException {
     DescriptiveStatistics mapStats = getRuntimes(job.getTaskReports(TaskType.MAP));
