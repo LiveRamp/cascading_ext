@@ -23,6 +23,29 @@ public class JobUtil {
   private static int FAILURES_TO_QUERY = 3;
   private static int MILLIS_TO_SEARCH = 5000; //this will limit the length of searches when searchUntilFound is false
 
+  private static class FailureReport {
+    private final int numTasksSampled;
+    private final int numTasksFailed;
+    private final List<TaskFailure> taskFailures;
+    FailureReport(int numTasksSampled, int numTasksFailed, List<TaskFailure> taskFailures) {
+      this.numTasksSampled = numTasksSampled;
+      this.numTasksFailed = numTasksFailed;
+      this.taskFailures = taskFailures;
+    }
+
+    public int getNumTasksFailed() {
+      return numTasksFailed;
+    }
+
+    public List<TaskFailure> getTaskFailures() {
+      return taskFailures;
+    }
+
+    public int getNumTasksSampled() {
+      return numTasksSampled;
+    }
+  }
+
   public static TaskSummary getSummary(Job job, boolean searchUntilFound) throws IOException, InterruptedException {
     DescriptiveStatistics mapStats = getRuntimes(job.getTaskReports(TaskType.MAP));
     DescriptiveStatistics reduceStats = getRuntimes(job.getTaskReports(TaskType.REDUCE));
@@ -38,7 +61,7 @@ public class JobUtil {
   }
 
 
-  private static TaskSummary getSummary(DescriptiveStatistics mapStats, DescriptiveStatistics reduceStats, List<TaskFailure> taskFailures) {
+  private static TaskSummary getSummary(DescriptiveStatistics mapStats, DescriptiveStatistics reduceStats, FailureReport failureReport) {
     return new TaskSummary((long)mapStats.getMean(),
         (long)mapStats.getPercentile(50),
         (long)mapStats.getMax(),
@@ -49,7 +72,9 @@ public class JobUtil {
         (long)reduceStats.getMax(),
         (long)reduceStats.getMin(),
         (long)reduceStats.getStandardDeviation(),
-        taskFailures
+        failureReport.getNumTasksSampled(),
+        failureReport.getNumTasksFailed(),
+        failureReport.getTaskFailures()
     );
   }
 
@@ -95,7 +120,7 @@ public class JobUtil {
     }
   }
 
-  private static List<TaskFailure> getTaskFailures(Fetch job, boolean searchUntilFound) throws IOException, InterruptedException {
+  private static FailureReport getTaskFailures(Fetch job, boolean searchUntilFound) throws IOException, InterruptedException {
     List<TaskFailure> jobFailures = new ArrayList<>();
 
     long start = System.currentTimeMillis();
@@ -132,7 +157,7 @@ public class JobUtil {
         }
       }
     }
-    return jobFailures;
+    return new FailureReport(index,failures.size(),jobFailures);
   }
 
 

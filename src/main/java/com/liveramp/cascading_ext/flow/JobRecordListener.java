@@ -41,8 +41,8 @@ public class JobRecordListener implements FlowStepListener {
       RunningJob job = hdStepStats.getRunningJob();
 
       persister.onRunning(new LaunchedJob(job.getID().toString(),
-              job.getJobName(),
-              job.getTrackingURL())
+          job.getJobName(),
+          job.getTrackingURL())
       );
 
     } catch (NullPointerException | IOException e) {
@@ -89,7 +89,8 @@ public class JobRecordListener implements FlowStepListener {
           hdStepStats.getJobClient(),
           hdStepStats.getRunningJob().getID(),
           failed);
-      LOG.info("Task summary collection took " + (System.currentTimeMillis() - start) + " millis.");
+      LOG.info("Task summary collection took " + (System.currentTimeMillis() - start)
+          + " millis, sampling " + taskSummary.getNumTasksSampled() + " tasks.");
 
       persister.onTaskInfo(jobID, taskSummary);
       LOG.info("Done saving task summaries");
