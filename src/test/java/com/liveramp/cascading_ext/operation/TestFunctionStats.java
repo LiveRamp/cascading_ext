@@ -16,29 +16,35 @@
 
 package com.liveramp.cascading_ext.operation;
 
-import cascading.flow.Flow;
-import cascading.flow.FlowProcess;
-import cascading.operation.*;
-import cascading.pipe.Each;
-import cascading.pipe.Pipe;
-import cascading.stats.FlowStats;
-import cascading.tap.Tap;
-import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
-import com.liveramp.cascading_ext.BaseTestCase;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_ext.tap.NullTap;
+import java.io.IOException;
+import java.util.Arrays;
+
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
+import cascading.flow.Flow;
+import cascading.flow.FlowProcess;
+import cascading.operation.BaseOperation;
+import cascading.operation.Filter;
+import cascading.operation.FilterCall;
+import cascading.operation.Function;
+import cascading.operation.FunctionCall;
+import cascading.pipe.Each;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+
+import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.counters.Counters;
+import com.liveramp.cascading_ext.tap.NullTap;
 
 public class TestFunctionStats extends BaseTestCase {
 
   @Test
-  public void run() {
+  public void run() throws IOException {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),
@@ -54,8 +60,8 @@ public class TestFunctionStats extends BaseTestCase {
 
     System.out.println(Counters.getCounters(f));
 
-    Assert.assertEquals(2l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Input records").longValue());
-    Assert.assertEquals(4l, Counters.get(f, "TestFunctionStats.java", "49 - MyFunction - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestFunctionStats.java", "55 - MyFunction - Input records").longValue());
+    Assert.assertEquals(4l, Counters.get(f, "TestFunctionStats.java", "55 - MyFunction - Output records").longValue());
   }
 
   private static class MyFilter extends BaseOperation<NoContext> implements Filter<NoContext> {

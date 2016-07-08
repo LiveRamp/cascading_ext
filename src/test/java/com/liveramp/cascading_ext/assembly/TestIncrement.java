@@ -1,22 +1,24 @@
 package com.liveramp.cascading_ext.assembly;
 
-import cascading.flow.Flow;
-import cascading.operation.filter.FilterNull;
-import cascading.pipe.Each;
-import cascading.pipe.Pipe;
-import cascading.stats.FlowStats;
-import cascading.tap.Tap;
-import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
-import com.liveramp.cascading_ext.BaseTestCase;
-import com.liveramp.cascading_ext.CascadingUtil;
-import com.liveramp.cascading_ext.counters.Counters;
-import com.liveramp.cascading_ext.tap.NullTap;
+import java.io.IOException;
+import java.util.Arrays;
+
 import com.twitter.maple.tap.MemorySourceTap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
+import cascading.flow.Flow;
+import cascading.operation.filter.FilterNull;
+import cascading.pipe.Each;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+
+import com.liveramp.cascading_ext.BaseTestCase;
+import com.liveramp.cascading_ext.CascadingUtil;
+import com.liveramp.cascading_ext.counters.Counters;
+import com.liveramp.cascading_ext.tap.NullTap;
 
 public class TestIncrement extends BaseTestCase {
 
@@ -25,7 +27,7 @@ public class TestIncrement extends BaseTestCase {
   }
 
   @Test
-  public void run() {
+  public void run() throws IOException {
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple(1),
         new Tuple(2),

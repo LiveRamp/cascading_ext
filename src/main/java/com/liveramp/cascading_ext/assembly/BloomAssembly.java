@@ -16,10 +16,27 @@
 
 package com.liveramp.cascading_ext.assembly;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowProcess;
 import cascading.flow.planner.Scope;
-import cascading.operation.*;
-import cascading.pipe.*;
+import cascading.operation.BaseOperation;
+import cascading.operation.Function;
+import cascading.operation.FunctionCall;
+import cascading.operation.Identity;
+import cascading.operation.OperationCall;
+import cascading.pipe.CoGroup;
+import cascading.pipe.Each;
+import cascading.pipe.Merge;
+import cascading.pipe.Pipe;
+import cascading.pipe.SubAssembly;
 import cascading.pipe.assembly.Discard;
 import cascading.pipe.joiner.InnerJoin;
 import cascading.pipe.joiner.Joiner;
@@ -28,19 +45,12 @@ import cascading.pipe.joiner.RightJoin;
 import cascading.property.ConfigDef;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
 import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.TupleSerializationUtil;
 import com.liveramp.cascading_ext.bloom.BloomProps;
 import com.liveramp.cascading_ext.bloom.operation.BloomJoinFilter;
 import com.liveramp.cascading_ext.joiner.LimitJoin;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * This SubAssembly is used by BloomJoin and BloomFilter. It builds a bloom filter from the RHS, filters
@@ -65,6 +75,7 @@ public abstract class BloomAssembly extends SubAssembly {
                           Pipe smallPipe, Fields smallJoinFields,
                           Fields renameFields, Mode operationType,
                           Joiner joiner, CoGroupOrder coGroupOrder) {
+    super(largePipe, smallPipe);
 
     try {
       //  If it's a filter, we care about nothing except the join keys on the RHS -- remove the rest

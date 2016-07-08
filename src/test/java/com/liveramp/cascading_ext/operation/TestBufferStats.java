@@ -16,6 +16,13 @@
 
 package com.liveramp.cascading_ext.operation;
 
+import java.io.IOException;
+import java.util.Arrays;
+
+import com.twitter.maple.tap.MemorySourceTap;
+import junit.framework.Assert;
+import org.junit.Test;
+
 import cascading.flow.Flow;
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
@@ -24,24 +31,19 @@ import cascading.operation.BufferCall;
 import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
-import cascading.stats.FlowStats;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
+
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.tap.NullTap;
-import com.twitter.maple.tap.MemorySourceTap;
-import junit.framework.Assert;
-import org.junit.Test;
-
-import java.util.Arrays;
 
 public class TestBufferStats extends BaseTestCase {
 
   @Test
-  public void run() {
+  public void run() throws IOException {
 
     Tap source = new MemorySourceTap(Arrays.asList(
         new Tuple("A", true),
@@ -58,8 +60,8 @@ public class TestBufferStats extends BaseTestCase {
     Flow f = CascadingUtil.get().getFlowConnector().connect(source, new NullTap(), input);
     f.complete();
 
-    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "56 - MyBuffer - Output records").longValue());
-    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "56 - MyBuffer - Input groups").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "58 - MyBuffer - Output records").longValue());
+    Assert.assertEquals(2l, Counters.get(f, "TestBufferStats.java", "58 - MyBuffer - Input groups").longValue());
   }
 
   public static class MyBuffer extends BaseOperation<NoContext> implements Buffer<NoContext> {

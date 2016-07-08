@@ -25,12 +25,12 @@ import cascading.pipe.joiner.BufferJoin;
 import cascading.tuple.Fields;
 import com.liveramp.cascading_ext.multi_group_by.MultiBuffer;
 import com.liveramp.cascading_ext.multi_group_by.MultiBufferOperation;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
 public class MultiGroupBy extends SubAssembly {
-  private static final Logger LOG = Logger.getLogger(MultiGroupBy.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MultiGroupBy.class);
 
   public MultiGroupBy(Pipe p0, Pipe p1, Fields groupFields, MultiBuffer operation) {
     Pipe[] pipes = new Pipe[]{p0, p1};

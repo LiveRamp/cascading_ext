@@ -16,6 +16,13 @@
 
 package com.liveramp.cascading_ext.flow;
 
+import java.io.IOException;
+import java.io.ObjectStreamException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.hadoop.mapred.JobConf;
+
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
 import cascading.flow.FlowElement;
@@ -28,19 +35,14 @@ import cascading.flow.planner.ElementGraph;
 import cascading.operation.Operation;
 import cascading.pipe.Operator;
 import cascading.pipe.Pipe;
-import org.apache.hadoop.mapred.JobConf;
-
-import java.io.IOException;
-import java.io.ObjectStreamException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoggingHadoopPlanner extends HadoopPlanner {
   private final FlowStepStrategy<JobConf> flowStepStrategy;
   private final Map<Object, Object> properties;
   private final JobConf jobConf;
+  private final JobPersister persister;
 
-  public LoggingHadoopPlanner(FlowStepStrategy<JobConf> flowStepStrategy, Map<Object, Object> properties) {
+  public LoggingHadoopPlanner(FlowStepStrategy<JobConf> flowStepStrategy, Map<Object, Object> properties, JobPersister persister) {
     super();
     this.flowStepStrategy = flowStepStrategy;
     this.properties = new HashMap<Object, Object>(properties);
@@ -49,11 +51,12 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
     // serializers. There doesn't seem to be a cleaner way to access
     // it at this point.
     this.jobConf = createJobConf(properties);
+    this.persister = persister;
   }
 
   @Override
   protected HadoopFlow createFlow( FlowDef flowDef ){
-    LoggingFlow flow = new LoggingFlow( getPlatformInfo(), getProperties(), getConfig(), flowDef );
+    LoggingFlow flow = new LoggingFlow( getPlatformInfo(), getProperties(), getConfig(), flowDef , persister);
     flow.setFlowStepStrategy(flowStepStrategy);
     return flow;
   }
@@ -93,7 +96,7 @@ public class LoggingHadoopPlanner extends HadoopPlanner {
         objectSerializer.serialize(operation, true);
       } catch (ObjectStreamException e) {
         throw new RuntimeException("Could not serialize operation: " + operation.getClass().getCanonicalName(), e);
-      } catch (IOException e) {
+      } catch (IOException | NullPointerException e) {
         throw new RuntimeException("Error while trying to serialize: " + operation.getClass().getCanonicalName(), e);
       }
     } catch (ClassNotFoundException e) {

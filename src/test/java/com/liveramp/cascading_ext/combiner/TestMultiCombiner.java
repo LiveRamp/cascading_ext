@@ -1,5 +1,16 @@
 package com.liveramp.cascading_ext.combiner;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.twitter.maple.tap.MemorySourceTap;
+import org.junit.Before;
+import org.junit.Test;
+
 import cascading.flow.Flow;
 import cascading.pipe.Pipe;
 import cascading.pipe.SubAssembly;
@@ -8,19 +19,10 @@ import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.combiner.lib.SumExactAggregator;
-import com.twitter.maple.tap.MemorySourceTap;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -45,7 +47,7 @@ public class TestMultiCombiner extends BaseTestCase {
   @Before
   public void prepare() throws Exception {
     source = new MemorySourceTap(
-        Lists.<Tuple>newArrayList(
+        Lists.newArrayList(
             new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),
             new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),
             new Tuple(USER_A, ATTRIBUTE_1, DAY1, 1),

@@ -5,12 +5,12 @@ import com.liveramp.cascading_ext.FileSystemHelper;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Trash;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class TrashHelper {
-  private static final Logger LOG = Logger.getLogger(TrashHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TrashHelper.class);
 
   public static boolean moveToTrash(FileSystem fs, Path path) throws IOException {
     boolean move = Trash.moveToAppropriateTrash(fs, path, CascadingUtil.get().getJobConf());

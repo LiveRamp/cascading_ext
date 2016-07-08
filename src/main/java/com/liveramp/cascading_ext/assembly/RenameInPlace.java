@@ -1,5 +1,8 @@
 package com.liveramp.cascading_ext.assembly;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -9,12 +12,10 @@ import cascading.pipe.Pipe;
 import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class RenameInPlace extends SubAssembly {
 
   public RenameInPlace(Pipe input, Fields inputFields, Fields toRename, Fields newName){
+    super(input);
 
     Map<Comparable, Comparable> swap = new HashMap<Comparable, Comparable>();
     for(int i = 0; i < toRename.size(); i++){

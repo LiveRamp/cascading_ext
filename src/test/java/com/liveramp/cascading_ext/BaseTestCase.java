@@ -16,33 +16,59 @@
 
 package com.liveramp.cascading_ext;
 
-import cascading.tap.Tap;
-import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntryIterator;
-import com.google.common.collect.Lists;
-import com.liveramp.cascading_ext.bloom.BloomProps;
-import com.liveramp.cascading_ext.fs.TrashHelper;
-import junit.framework.Assert;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.junit.Before;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.junit.Before;
+
+import cascading.tap.Tap;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntryIterator;
+
+import com.liveramp.cascading_ext.bloom.BloomProps;
+import com.liveramp.cascading_ext.fs.TrashHelper;
+
+import static org.junit.Assert.assertTrue;
 
 public abstract class BaseTestCase {
   private String TEST_ROOT;
   protected static final FileSystem fs = FileSystemHelper.getFS();
 
   static {
-    Logger.getRootLogger().setLevel(Level.ALL);
+    // this prevents the default log4j.properties (hidden inside the hadoop jar)
+    // from being loaded automatically.
+    System.setProperty("log4j.defaultInitOverride", "true");
   }
 
   protected BaseTestCase() {
     TEST_ROOT = "/tmp/cascading_ext_" + this.getClass().getSimpleName() + "_AUTOGEN";
+
+    org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
+
+    rootLogger.setLevel(Level.ALL);
+    org.apache.log4j.Logger.getLogger("org.apache.hadoop").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("cascading").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("org.eclipse.jetty").setLevel(Level.ERROR);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank").setLevel(Level.DEBUG);
+
+    // Reconfigure the logger to ensure things are working
+
+    ConsoleAppender consoleAppender = new ConsoleAppender(new PatternLayout("%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n"), ConsoleAppender.SYSTEM_ERR);
+    consoleAppender.setName("test-console-appender");
+    consoleAppender.setFollow(true);
+
+    rootLogger.removeAppender("test-console-appender");
+    rootLogger.addAppender(consoleAppender);
+
+
   }
 
   @Before
@@ -52,9 +78,7 @@ public abstract class BaseTestCase {
     CascadingUtil.get().setDefaultProperty("cascading.flow.job.pollinginterval", 10);
     CascadingUtil.get().setDefaultProperty("io.sort.record.percent", 0.10);
 
-    CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 1);
-    CascadingUtil.get().setDefaultProperty(BloomProps.NUM_BLOOM_BITS, 10);
-    CascadingUtil.get().setDefaultProperty(BloomProps.BUFFER_SIZE, 5);
+    CascadingUtil.get().setDefaultProperty(BloomProps.TEST_MODE, true);
 
     TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(TEST_ROOT));
 
@@ -70,7 +94,7 @@ public abstract class BaseTestCase {
     List<Tuple> ret = Lists.newArrayList();
     TupleEntryIterator tupleEntryIterator = sink.openForRead(CascadingUtil.get().getFlowProcess());
     while (tupleEntryIterator.hasNext()) {
-      ret.add(tupleEntryIterator.next().getTuple());
+      ret.add(new Tuple(tupleEntryIterator.next().getTuple()));
     }
     return ret;
   }
@@ -82,9 +106,6 @@ public abstract class BaseTestCase {
   }
 
   protected <T> void assertCollectionEquivalent(Collection<T> expected, Collection<T> actual) {
-    Assert.assertEquals(expected.size(), actual.size());
-    for (T t : actual) {
-      Assert.assertTrue(expected.contains(t));
-    }
+    assertTrue(CollectionUtils.isEqualCollection(expected, actual));
   }
 }
