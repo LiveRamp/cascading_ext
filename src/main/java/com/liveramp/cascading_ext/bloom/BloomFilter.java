@@ -139,7 +139,7 @@ public class BloomFilter implements Writable {
       throw new IllegalArgumentException("Incompatible number of hashes " + numHashes + " and " + other.numHashes);
     }
     if (vectorSize != other.vectorSize) {
-      throw new IllegalArgumentException("Incompatible number of hashes " + numHashes + " and " + other.numHashes);
+      throw new IllegalArgumentException("Incompatible vector size " + vectorSize + " and " + other.vectorSize);
     }
 
     final FixedSizeBitSet unionedBits = new FixedSizeBitSet(vectorSize);
