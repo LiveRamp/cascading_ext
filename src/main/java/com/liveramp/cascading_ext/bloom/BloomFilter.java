@@ -57,14 +57,10 @@ public class BloomFilter implements Writable {
   }
 
   public BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems, HashFunctionFactory hashFactory) {
-    this(vectorSize, numHashes, bits, numElems, hashFactory.getFunction(vectorSize, numHashes));
-  }
-
-  private BloomFilter(long vectorSize, int numHashes, FixedSizeBitSet bits, long numElems, HashFunction hashFunction) {
     this.vectorSize = vectorSize;
     this.numHashes = numHashes;
     this.bits = bits;
-    this.hashFunction = hashFunction;
+    this.hashFunction = hashFactory.getFunction(vectorSize, numHashes);
     this.numElems = numElems;
   }
 
@@ -125,13 +121,12 @@ public class BloomFilter implements Writable {
   }
 
   /**
-   * Construct a <i>this</i> filter and another filter. Membership test returns true
+   * Absorb elements from <i>other</i> into <i>this</i>. Membership test returns true
    * if key belongs to either filter.
    *
-   * @param other The filter to merge with <i>this</i>.
-   * @return a filter that is union of <i>this</i> filter and the <i>other</i> filter.
+   * @param other The filter to absorb into <i>this</i>.
    */
-  public BloomFilter merge(BloomFilter other) {
+  public void absorb(BloomFilter other) {
     if (!hashFunction.getHashID().equals(other.hashFunction.getHashID())) {
       throw new IllegalArgumentException("Incompatible hash functions " + hashFunction.getHashID() + " and " + other.hashFunction.getHashID());
     }
@@ -141,18 +136,7 @@ public class BloomFilter implements Writable {
     if (vectorSize != other.vectorSize) {
       throw new IllegalArgumentException("Incompatible vector size " + vectorSize + " and " + other.vectorSize);
     }
-
-    final FixedSizeBitSet unionedBits = new FixedSizeBitSet(vectorSize);
-    unionedBits.or(bits);
-    unionedBits.or(other.bits);
-
-    return new BloomFilter(
-        vectorSize,
-        numHashes,
-        unionedBits,
-        numElems + other.numElems,
-        hashFunction
-    );
+    bits.or(other.bits);
   }
 
   public static BloomFilter read(FileSystem fs, Path path) throws IOException {
