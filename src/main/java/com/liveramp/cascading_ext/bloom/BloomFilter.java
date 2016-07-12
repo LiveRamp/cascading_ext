@@ -120,6 +120,25 @@ public class BloomFilter implements Writable {
     return BloomUtil.getFalsePositiveRate(numHashes, getVectorSize(), numElems);
   }
 
+  /**
+   * Absorb elements from <i>other</i> into <i>this</i>. Membership test returns true
+   * if key belongs to either filter.
+   *
+   * @param other The filter to absorb into <i>this</i>.
+   */
+  public void absorb(BloomFilter other) {
+    if (!hashFunction.getHashID().equals(other.hashFunction.getHashID())) {
+      throw new IllegalArgumentException("Incompatible hash functions " + hashFunction.getHashID() + " and " + other.hashFunction.getHashID());
+    }
+    if (numHashes != other.numHashes) {
+      throw new IllegalArgumentException("Incompatible number of hashes " + numHashes + " and " + other.numHashes);
+    }
+    if (vectorSize != other.vectorSize) {
+      throw new IllegalArgumentException("Incompatible vector size " + vectorSize + " and " + other.vectorSize);
+    }
+    bits.or(other.bits);
+  }
+
   public static BloomFilter read(FileSystem fs, Path path) throws IOException {
     FSDataInputStream inputStream = fs.open(path);
     BloomFilter bf = new BloomFilter();
