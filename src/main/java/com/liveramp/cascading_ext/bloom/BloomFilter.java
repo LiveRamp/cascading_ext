@@ -124,9 +124,25 @@ public class BloomFilter implements Writable {
    * Absorb elements from <i>other</i> into <i>this</i>. Membership test returns true
    * if key belongs to either filter.
    *
-   * @param other The filter to absorb into <i>this</i>.
+   * @param other The filter to union-absorb into <i>this</i>.
    */
-  public void absorb(BloomFilter other) {
+  public void absorbUnion(BloomFilter other) {
+    absorbCheck(other);
+    bits.or(other.bits);
+  }
+
+  /**
+   * Absorb elements only in both <i>other</i> and <i>this</i>. Membership test returns true
+   * if key belongs to both filter.
+   *
+   * @param other The filter to intersection-absorb into <i>this</i>.
+   */
+  public void absorbIntersection(BloomFilter other) {
+    absorbCheck(other);
+    bits.and(other.bits);
+  }
+
+  private void absorbCheck(final BloomFilter other) {
     if (!hashFunction.getHashID().equals(other.hashFunction.getHashID())) {
       throw new IllegalArgumentException("Incompatible hash functions " + hashFunction.getHashID() + " and " + other.hashFunction.getHashID());
     }
@@ -136,7 +152,6 @@ public class BloomFilter implements Writable {
     if (vectorSize != other.vectorSize) {
       throw new IllegalArgumentException("Incompatible vector size " + vectorSize + " and " + other.vectorSize);
     }
-    bits.or(other.bits);
   }
 
   public static BloomFilter read(FileSystem fs, Path path) throws IOException {
