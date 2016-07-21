@@ -151,9 +151,10 @@ public class JobUtil {
       int num_queries = Math.min(FAILURES_TO_QUERY, failures.size());
       for (int i = 0; i < num_queries; i++) {
         TaskAttemptID taskAttemptID = failures.get(i).getTaskAttemptId();
+        String taskAttemptHost = failures.get(i).getTaskTrackerHttp();
         String[] fails = job.getTaskDiagnostics(taskAttemptID);
         for (String failure : fails) {
-          jobFailures.add(new TaskFailure(taskAttemptID.toString(), failure));
+          jobFailures.add(new TaskFailure(taskAttemptID.toString(), taskAttemptHost, failure));
         }
       }
     }
