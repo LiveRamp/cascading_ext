@@ -14,6 +14,7 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.jobs.JobUtil;
+import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
 import com.liveramp.commons.state.TaskSummary;
 
@@ -64,10 +65,14 @@ public class JobRecordListener implements FlowStepListener {
 
     try {
 
+      TwoNestedMap<String, String, Long> counters = Counters.getCounterMap(hdStepStats).get(jobID);
+
       persister.onCounters(
           jobID,
-          Counters.getCounterMap(hdStepStats).get(jobID)
+          counters
       );
+
+      recordTaskErrors(hdStepStats, jobID, false, counters);
 
     } catch (Exception e) {
       LOG.error("Failed to capture stats for step!", e);
@@ -76,10 +81,9 @@ public class JobRecordListener implements FlowStepListener {
       }
     }
 
-    recordTaskErrors(hdStepStats, jobID, false);
   }
 
-  private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed) {
+  private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed, TwoNestedMap<String, String, Long> counters) {
     long start = System.currentTimeMillis();
 
     try {
@@ -88,7 +92,10 @@ public class JobRecordListener implements FlowStepListener {
       TaskSummary taskSummary = JobUtil.getSummary(
           hdStepStats.getJobClient(),
           hdStepStats.getRunningJob().getID(),
-          failed);
+          failed,
+          counters
+      );
+
       LOG.info("Task summary collection took " + (System.currentTimeMillis() - start)
           + " millis, sampling " + taskSummary.getNumTasksSampled() + " tasks.");
 
@@ -126,7 +133,7 @@ public class JobRecordListener implements FlowStepListener {
   @Override
   public boolean onStepThrowable(FlowStep flowStep, Throwable throwable) {
     HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
-    recordTaskErrors(hdStepStats, hdStepStats.getJobID(), true);
+    recordTaskErrors(hdStepStats, hdStepStats.getJobID(), true, new TwoNestedMap<String, String, Long>());
     return false;
   }
 }

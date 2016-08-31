@@ -13,8 +13,10 @@ import org.apache.hadoop.mapred.TIPStatus;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobCounter;
 import org.apache.hadoop.mapreduce.TaskType;
 
+import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.TaskFailure;
 import com.liveramp.commons.state.TaskSummary;
 
@@ -22,6 +24,8 @@ public class JobUtil {
 
   private static int FAILURES_TO_QUERY = 3;
   private static int MILLIS_TO_SEARCH = 5000; //this will limit the length of searches when searchUntilFound is false
+
+  private static final int MAX_TASK_FETCH = 50000;
 
   private static class FailureReport {
     private final int numTasksSampled;
@@ -53,13 +57,36 @@ public class JobUtil {
     return getSummary(mapStats, reduceStats, getTaskFailures(new JobFetch(job), searchUntilFound));
   }
 
-  public static TaskSummary getSummary(JobClient client, JobID id, boolean searchUntilFound) throws IOException, InterruptedException {
-    DescriptiveStatistics mapStats = getRuntimes(client.getMapTaskReports(id));
-    DescriptiveStatistics reduceStats = getRuntimes(client.getReduceTaskReports(id));
+  public static TaskSummary getSummary(JobClient client, JobID id, boolean searchUntilFound, TwoNestedMap<String, String, Long> counters) throws IOException, InterruptedException {
+    DescriptiveStatistics mapStats = getMapRuntimes(client, id, counters);
+    DescriptiveStatistics reduceStats = getReduceRuntimes(client, id, counters);
 
     return getSummary(mapStats, reduceStats, getTaskFailures(new RunningJobFetch(client.getJob(id)), searchUntilFound));
   }
 
+  private static boolean shouldFetch(TwoNestedMap<String, String, Long> counters, Enum counter){
+    String group = counter.getDeclaringClass().getName();
+    String name = counter.name();
+
+    if(counters.containsKey(group, name)){
+      return counters.get(group, name) < MAX_TASK_FETCH;
+    }
+    return true;
+  }
+
+  private static DescriptiveStatistics getMapRuntimes(JobClient client, JobID job, TwoNestedMap<String, String, Long> counters) throws IOException {
+    if(shouldFetch(counters, JobCounter.TOTAL_LAUNCHED_MAPS)) {
+      return getRuntimes(client.getMapTaskReports(job));
+    }
+    return new DescriptiveStatistics();
+  }
+
+  private static DescriptiveStatistics getReduceRuntimes(JobClient client, JobID job, TwoNestedMap<String, String, Long> counters) throws IOException {
+    if(shouldFetch(counters, JobCounter.TOTAL_LAUNCHED_REDUCES)) {
+      return getRuntimes(client.getReduceTaskReports(job));
+    }
+    return new DescriptiveStatistics();
+  }
 
   private static TaskSummary getSummary(DescriptiveStatistics mapStats, DescriptiveStatistics reduceStats, FailureReport failureReport) {
     return new TaskSummary((long)mapStats.getMean(),
@@ -80,8 +107,8 @@ public class JobUtil {
 
   //  this is to paper over the new vs old APIs.  feel like there should be a better way, but I don't see it.
   interface Fetch{
-    public org.apache.hadoop.mapred.TaskCompletionEvent[] getTaskCompletionEvents(int index) throws IOException;
-    public String[] getTaskDiagnostics(org.apache.hadoop.mapred.TaskAttemptID taskAttemptID) throws IOException, InterruptedException;
+    org.apache.hadoop.mapred.TaskCompletionEvent[] getTaskCompletionEvents(int index) throws IOException;
+    String[] getTaskDiagnostics(org.apache.hadoop.mapred.TaskAttemptID taskAttemptID) throws IOException, InterruptedException;
   }
 
   public static class RunningJobFetch implements Fetch{
