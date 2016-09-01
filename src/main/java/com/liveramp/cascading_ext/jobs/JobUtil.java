@@ -78,14 +78,14 @@ public class JobUtil {
     if(shouldFetch(counters, JobCounter.TOTAL_LAUNCHED_MAPS)) {
       return getRuntimes(client.getMapTaskReports(job));
     }
-    return new DescriptiveStatistics();
+    return new DescriptiveStatistics(new double[]{0});
   }
 
   private static DescriptiveStatistics getReduceRuntimes(JobClient client, JobID job, TwoNestedMap<String, String, Long> counters) throws IOException {
     if(shouldFetch(counters, JobCounter.TOTAL_LAUNCHED_REDUCES)) {
       return getRuntimes(client.getReduceTaskReports(job));
     }
-    return new DescriptiveStatistics();
+    return new DescriptiveStatistics(new double[]{0});
   }
 
   private static TaskSummary getSummary(DescriptiveStatistics mapStats, DescriptiveStatistics reduceStats, FailureReport failureReport) {
