@@ -26,7 +26,7 @@ import cascading.tuple.Tuple;
 import com.liveramp.cascading_ext.BaseTestCase;
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.tap.TapHelper;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.hadoop.mapred.JobConf;
 import org.junit.Before;
 import org.junit.Test;
