@@ -56,15 +56,17 @@ public class YarnApiHelper {
   private static String GETRequest(String urlString) throws IOException {
     URL url = new URL(urlString);
     HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+    urlConnection.setConnectTimeout(10000);
+    urlConnection.setReadTimeout(10000);
     urlConnection.setRequestMethod("GET");
     return IOUtils.toString(urlConnection.getInputStream());
   }
 
   public static Optional<ApplicationInfo> getYarnAppInfo(JobConf conf, String appId) {
     String yarnApiAddress = conf.get("yarn.resourcemanager.webapp.address", "");
-    if(!yarnApiAddress.isEmpty()) {
+    if (!yarnApiAddress.isEmpty()) {
       return getYarnAppInfo(yarnApiAddress, appId);
-    }else{
+    } else {
       return Optional.empty();
     }
   }
