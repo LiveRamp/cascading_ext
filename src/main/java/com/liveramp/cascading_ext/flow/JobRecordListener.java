@@ -73,7 +73,7 @@ public class JobRecordListener implements FlowStepListener {
       try {
         addYarnPerformanceMetrics(hdStepStats, jobID, counters);
       } catch (Exception e) {
-        LOG.info("Unable to add yarn performance stats", e);
+        LOG.error("Unable to add yarn performance stats", e);
       }
 
       persister.onCounters(
@@ -99,7 +99,7 @@ public class JobRecordListener implements FlowStepListener {
       JobConf conf = (JobConf)config;
       yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
     } catch (ClassCastException e) {
-      LOG.info("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
+      LOG.error("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
     }
 
     if (yarnAppInfo.isPresent()) {

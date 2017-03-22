@@ -70,7 +70,7 @@ public class YarnApiHelper {
   }
 
   public static Optional<ApplicationInfo> getYarnAppInfo(String yarnApiAddress, String appId) {
-    if (yarnApiAddress != null) {
+    if (yarnApiAddress != null && !yarnApiAddress.isEmpty()) {
       try {
         String urlString = "http://" + yarnApiAddress + "/ws/v1/cluster/apps/" + appId;
         String jsonResponse = GETRequest(urlString);
