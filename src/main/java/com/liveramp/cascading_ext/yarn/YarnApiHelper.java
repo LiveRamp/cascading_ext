@@ -12,13 +12,13 @@ import org.apache.hadoop.mapred.JobConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YarnPerformanceMetricsHelper {
+public class YarnApiHelper {
 
   public static final String YARN_STATS_GROUP = "YarnStats";
   public static final String YARN_MEM_SECONDS_COUNTER = "MB_SECONDS";
   public static final String YARN_VCORE_SECONDS_COUNTER = "VCORES_SECONDS";
 
-  private static Logger LOG = LoggerFactory.getLogger(YarnPerformanceMetricsHelper.class);
+  private static Logger LOG = LoggerFactory.getLogger(YarnApiHelper.class);
 
   public static class ApplicationInfo {
     Long mbSeconds;
@@ -91,6 +91,19 @@ public class YarnPerformanceMetricsHelper {
       LOG.error("YARN api address not set");
       return Optional.empty();
     }
+  }
+
+  public static Optional<String> getHistoryURLFromTrackingURL(String trackingUrl) throws IOException {
+
+    URL url = new URL(trackingUrl);
+    HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+    urlConnection.setInstanceFollowRedirects(false);
+    urlConnection.connect();
+    int responseCode = urlConnection.getResponseCode();
+    if (responseCode == 302) {
+      return Optional.of(urlConnection.getHeaderField("Location"));
+    }
+    return Optional.empty();
   }
 
 

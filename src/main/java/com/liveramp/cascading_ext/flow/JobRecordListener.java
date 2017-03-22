@@ -17,7 +17,7 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.jobs.JobUtil;
-import com.liveramp.cascading_ext.yarn.YarnPerformanceMetricsHelper;
+import com.liveramp.cascading_ext.yarn.YarnApiHelper;
 import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
 import com.liveramp.commons.state.TaskSummary;
@@ -93,20 +93,20 @@ public class JobRecordListener implements FlowStepListener {
   }
 
   private void addYarnPerformanceMetrics(HadoopStepStats hdStepStats, String jobID, TwoNestedMap<String, String, Long> counters) {
-    Optional<YarnPerformanceMetricsHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
+    Optional<YarnApiHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
     Configuration config = hdStepStats.getJobClient().getConf();
     try {
       JobConf conf = (JobConf)config;
-      yarnAppInfo = YarnPerformanceMetricsHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
+      yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
     } catch (ClassCastException e) {
       LOG.info("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
     }
 
     if (yarnAppInfo.isPresent()) {
-      counters.put(YarnPerformanceMetricsHelper.YARN_STATS_GROUP,
-          YarnPerformanceMetricsHelper.YARN_MEM_SECONDS_COUNTER, yarnAppInfo.get().getMbSeconds());
-      counters.put(YarnPerformanceMetricsHelper.YARN_STATS_GROUP,
-          YarnPerformanceMetricsHelper.YARN_VCORE_SECONDS_COUNTER, yarnAppInfo.get().getVcoreSeconds());
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_MEM_SECONDS_COUNTER, yarnAppInfo.get().getMbSeconds());
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_VCORE_SECONDS_COUNTER, yarnAppInfo.get().getVcoreSeconds());
     }
   }
 
