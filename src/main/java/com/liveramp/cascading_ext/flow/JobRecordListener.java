@@ -2,8 +2,11 @@ package com.liveramp.cascading_ext.flow;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Maps;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RunningJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,7 @@ import cascading.stats.hadoop.HadoopStepStats;
 
 import com.liveramp.cascading_ext.counters.Counters;
 import com.liveramp.cascading_ext.jobs.JobUtil;
+import com.liveramp.cascading_ext.yarn.YarnApiHelper;
 import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 import com.liveramp.commons.state.LaunchedJob;
 import com.liveramp.commons.state.TaskSummary;
@@ -66,6 +70,11 @@ public class JobRecordListener implements FlowStepListener {
     try {
 
       TwoNestedMap<String, String, Long> counters = Counters.getCounterMap(hdStepStats).get(jobID);
+      try {
+        addYarnPerformanceMetrics(hdStepStats, jobID, counters);
+      } catch (Exception e) {
+        LOG.error("Unable to add yarn performance stats", e);
+      }
 
       persister.onCounters(
           jobID,
@@ -81,6 +90,24 @@ public class JobRecordListener implements FlowStepListener {
       }
     }
 
+  }
+
+  private void addYarnPerformanceMetrics(HadoopStepStats hdStepStats, String jobID, TwoNestedMap<String, String, Long> counters) {
+    Optional<YarnApiHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
+    Configuration config = hdStepStats.getJobClient().getConf();
+    try {
+      JobConf conf = (JobConf)config;
+      yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
+    } catch (ClassCastException e) {
+      LOG.error("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
+    }
+
+    if (yarnAppInfo.isPresent()) {
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_MEM_SECONDS_COUNTER, yarnAppInfo.get().getMbSeconds());
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_VCORE_SECONDS_COUNTER, yarnAppInfo.get().getVcoreSeconds());
+    }
   }
 
   private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed, TwoNestedMap<String, String, Long> counters) {
