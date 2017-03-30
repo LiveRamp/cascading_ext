@@ -79,8 +79,8 @@ public class YarnApiHelper {
         JsonObject parsed = (JsonObject)new JsonParser().parse(jsonResponse);
         JsonObject app = parsed.getAsJsonObject("app");
         ApplicationInfo info = new ApplicationInfo(
-            app.get("vcoreSeconds").getAsLong(),
             app.get("memorySeconds").getAsLong(),
+            app.get("vcoreSeconds").getAsLong(),
             app.get("trackingUrl").getAsString()
         );
         LOG.info("Got YARN info: " + info);
