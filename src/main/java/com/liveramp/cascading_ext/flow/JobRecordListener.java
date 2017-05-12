@@ -103,12 +103,10 @@ public class JobRecordListener implements FlowStepListener {
     }
 
     if (yarnAppInfo.isPresent()) {
-      counters.put(YarnApiHelper.YARN_STATS_GROUP,
-          YarnApiHelper.YARN_MEM_SECONDS_COUNTER, yarnAppInfo.get().getMbSeconds());
-      counters.put(YarnApiHelper.YARN_STATS_GROUP,
-          YarnApiHelper.YARN_VCORE_SECONDS_COUNTER, yarnAppInfo.get().getVcoreSeconds());
+      counters.putAll(yarnAppInfo.get().asCounterMap());
     }
   }
+
 
   private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed, TwoNestedMap<String, String, Long> counters) {
     long start = System.currentTimeMillis();

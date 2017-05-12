@@ -8,9 +8,12 @@ import java.util.Optional;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.liveramp.commons.collections.nested_map.TwoNestedMap;
 
 public class YarnApiHelper {
 
@@ -43,6 +46,16 @@ public class YarnApiHelper {
       return trackingUrl;
     }
 
+    public TwoNestedMap<String, String, Long> asCounterMap(){
+      TwoNestedMap<String, String, Long> counters = new TwoNestedMap<>();
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_MEM_SECONDS_COUNTER, getMbSeconds());
+      counters.put(YarnApiHelper.YARN_STATS_GROUP,
+          YarnApiHelper.YARN_VCORE_SECONDS_COUNTER, getVcoreSeconds());
+
+      return counters;
+    }
+
     @Override
     public String toString() {
       return "ApplicationInfo{" +
@@ -62,7 +75,7 @@ public class YarnApiHelper {
     return IOUtils.toString(urlConnection.getInputStream());
   }
 
-  public static Optional<ApplicationInfo> getYarnAppInfo(JobConf conf, String appId) {
+  public static Optional<ApplicationInfo> getYarnAppInfo(Configuration conf, String appId) {
     String yarnApiAddress = conf.get("yarn.resourcemanager.webapp.address", "");
     if (!yarnApiAddress.isEmpty()) {
       return getYarnAppInfo(yarnApiAddress, appId);
