@@ -46,7 +46,7 @@ public class Counter implements Comparable<Counter> {
   @Override
   public String toString() {
     return padSpaces(name, 19) + ": "
-        + padSpaces(prettyValue(), 11)
+        + padSpaces(getPrettyValue(), 11)
         + " (" + group + ")";
   }
 
@@ -67,7 +67,7 @@ public class Counter implements Comparable<Counter> {
     return result;
   }
 
-  private String prettyValue() {
+  public String getPrettyValue() {
     if (value == null) {
       return "null";
     }
