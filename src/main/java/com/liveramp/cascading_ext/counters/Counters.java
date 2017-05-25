@@ -1,17 +1,17 @@
 /**
- *  Copyright 2012 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2012 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.cascading_ext.counters;
@@ -20,10 +20,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -35,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cascading.flow.Flow;
+import cascading.stats.CascadingStats;
 import cascading.stats.FlowStats;
 import cascading.stats.FlowStepStats;
 import cascading.stats.hadoop.HadoopStepStats;
@@ -138,19 +143,40 @@ public class Counters {
     return builder.toString();
   }
 
-  public static String prettyCountersString(Flow<?> flow) {
-    Map<FlowStepStats, List<Counter>> counters = Counters.getCountersByStep(flow);
-    StringBuilder builder = new StringBuilder("\n").append(StringUtils.repeat("=", 90)).append("\n");
+  private static int getLongestCounterField(Map<FlowStepStats, List<Counter>> counters, Function<? super Counter, String> fieldSupplier) {
+    return counters.entrySet().stream()
+        .map(Map.Entry::getValue)
+        .flatMap(List::stream)
+        .map(fieldSupplier)
+        .mapToInt(String::length)
+        .max().orElse(0);
+  }
 
-    builder.append("Counters for ").append(flow.getName() == null ? "unnamed flow" : "flow " + flow.getName()).append("\n")
-        .append("  with input ").append(prettyTaps(flow.getSources())).append("\n")
-        .append("  and output ").append(prettyTaps(flow.getSinks())).append("\n");
+  private static String getFormatString(Map<FlowStepStats, List<Counter>> counters) {
+    int longestCounterName = getLongestCounterField(counters, Counter::getName);
+    int longestCounterValue = getLongestCounterField(counters, Counter::getPrettyValue);
+    int spaceBetweenFields = 2;
+    return "    %-" + (longestCounterName + spaceBetweenFields) + "s%-" + (longestCounterValue + spaceBetweenFields) + "s(%s)\n";
+  }
+
+  public static String prettyCountersString(Flow<?> flow) {
+    Map<FlowStepStats, List<Counter>> counters = new TreeMap<>(Comparator.comparing(CascadingStats::getName));
+    counters.putAll(Counters.getCountersByStep(flow));
+    String formatString = getFormatString(counters);
+
+    Formatter formatter = new Formatter();
+    formatter.format("\n").format(StringUtils.repeat("=", 90)).format("\n");
+
+    formatter.format("Counters for ").format(flow.getName() == null ? "unnamed flow" : "flow " + flow.getName()).format("\n")
+        .format("  with input ").format(prettyTaps(flow.getSources())).format("\n")
+        .format("  and output ").format(prettyTaps(flow.getSinks())).format("\n");
+
 
     for (Map.Entry<FlowStepStats, List<Counter>> entry : counters.entrySet()) {
-      builder.append("  Step: ").append(entry.getKey().getName()).append("\n");
+      formatter.format("  Step: ").format(entry.getKey().getName()).format("\n");
 
       if (entry.getValue().isEmpty()) {
-        builder.append("    No counters found.\n");
+        formatter.format("    No counters found.\n");
         continue;
       }
 
@@ -158,7 +184,7 @@ public class Counters {
       boolean anyTuplesWritten = false;
       for (Counter counter : entry.getValue()) {
         if (counter.getValue() != null && counter.getValue() > 0) {
-          builder.append("    ").append(counter).append("\n");
+          formatter.format(formatString, counter.getName(), counter.getPrettyValue(), counter.getGroup());
 
           if (counter.getName().equals("Tuples_Read")) {
             anyTuplesRead = true;
@@ -170,11 +196,11 @@ public class Counters {
       }
 
       if (anyTuplesRead && !anyTuplesWritten) {
-        builder.append("  *** BLACK HOLE WARNING *** The above step had input but no output\n");
+        formatter.format("  *** BLACK HOLE WARNING *** The above step had input but no output\n");
       }
     }
-    builder.append(StringUtils.repeat("=", 90)).append("\n");
-    return builder.toString();
+    formatter.format(StringUtils.repeat("=", 90));
+    return formatter.toString();
   }
 
   public static List<Counter> getCountersList(RunningJob job) throws IOException {
@@ -201,13 +227,13 @@ public class Counters {
 
     if (counters != null) {
       return getCounterMap(counters);
-    }else{
+    } else {
       LOG.error("Could not retrieve counters from job " + job.getJobID());
       return new TwoNestedMap<>();
     }
   }
 
-  public static <C extends org.apache.hadoop.mapreduce.Counter,G extends CounterGroupBase<C>> TwoNestedMap<String, String, Long> getCounterMap(AbstractCounters<C, G> allCounters) {
+  public static <C extends org.apache.hadoop.mapreduce.Counter, G extends CounterGroupBase<C>> TwoNestedMap<String, String, Long> getCounterMap(AbstractCounters<C, G> allCounters) {
     TwoNestedMap<String, String, Long> counterMap = new TwoNestedMap<>();
     for (String groupName : allCounters.getGroupNames()) {
       G group = allCounters.getGroup(groupName);
