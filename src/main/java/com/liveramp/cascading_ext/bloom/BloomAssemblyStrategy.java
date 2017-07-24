@@ -19,6 +19,7 @@ package com.liveramp.cascading_ext.bloom;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.mapred.JobConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,6 @@ public class BloomAssemblyStrategy implements FlowStepStrategy<JobConf> {
       currentStepConf.set("mapred.job.reuse.jvm.num.tasks", "-1");
 
       String requiredBloomPath = currentStepConf.get(BloomProps.REQUIRED_BLOOM_FILTER_PATH);
-
       for (FlowStep<JobConf> step : predecessorSteps) {
         JobConf prevStepConf = step.getConfig();
         String targetBloomID = prevStepConf.get(BloomProps.TARGET_BLOOM_FILTER_ID);

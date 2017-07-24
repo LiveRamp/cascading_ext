@@ -199,7 +199,7 @@ public abstract class BloomAssembly extends SubAssembly {
     }
   }
 
-  private static class NaiveMerge extends Merge {
+  static class NaiveMerge extends Merge {
     String toAccept;
 
     public NaiveMerge(String toAccept, Pipe... pipes) {
@@ -227,7 +227,7 @@ public abstract class BloomAssembly extends SubAssembly {
     }
   }
 
-  private static class GetSerializedTuple extends BaseOperation implements Function {
+  public static class GetSerializedTuple extends BaseOperation implements Function {
 
     private transient TupleSerializationUtil tupleSerializationUtil;
 
