@@ -227,7 +227,7 @@ public abstract class BloomAssembly extends SubAssembly {
     }
   }
 
-  private static class GetSerializedTuple extends BaseOperation implements Function {
+  public static class GetSerializedTuple extends BaseOperation implements Function {
 
     private transient TupleSerializationUtil tupleSerializationUtil;
 
