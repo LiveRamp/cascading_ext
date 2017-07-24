@@ -199,7 +199,7 @@ public abstract class BloomAssembly extends SubAssembly {
     }
   }
 
-  private static class NaiveMerge extends Merge {
+  static class NaiveMerge extends Merge {
     String toAccept;
 
     public NaiveMerge(String toAccept, Pipe... pipes) {

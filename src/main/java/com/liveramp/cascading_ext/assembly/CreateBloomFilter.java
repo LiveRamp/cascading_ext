@@ -18,13 +18,19 @@ package com.liveramp.cascading_ext.assembly;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
 
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
+import cascading.flow.FlowListener;
+import cascading.flow.FlowStep;
+import cascading.operation.NoOp;
 import cascading.pipe.Each;
 import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
@@ -43,6 +49,7 @@ import com.liveramp.cascading_ext.bloom.operation.CreateBloomFilterFromIndices;
 import com.liveramp.cascading_ext.bloom.operation.GetIndices;
 import com.liveramp.cascading_ext.hash.HashFunctionFactory;
 import com.liveramp.cascading_ext.tap.NullTap;
+import com.liveramp.commons.Accessors;
 
 public class CreateBloomFilter extends SubAssembly {
 
@@ -67,7 +74,7 @@ public class CreateBloomFilter extends SubAssembly {
   }
 
   // Returns a Flow which should be executed. Once the Flow is complete, the bloomfilter can be retrieved from the Supplier
-  public static Pair<Flow, Supplier<BloomFilter>> createBloomForKeys(Tap source, Pipe keys, Fields keyFields, FlowConnector connector) throws IOException {
+  public static Pair<Flow, Supplier<BloomFilter>> createBloomFlowForKeys(Tap source, Pipe keys, String keyField, FlowConnector connector) throws IOException {
     String bloomJobID = UUID.randomUUID().toString();
     Path bloomTempDir = FileSystemHelper.getRandomTemporaryPath("/tmp/bloom_tmp/");
     String bloomPartsDir = bloomTempDir + "/parts";
@@ -75,23 +82,24 @@ public class CreateBloomFilter extends SubAssembly {
     String approxCountPartsDir = bloomTempDir + "/approx_distinct_keys_parts/";
 
     // These pipes write the bloom filter to 100 part files, representing the first 1/100 of the bits in the filter, then
-    // the second 1/100 etc. These splits are the concatenated in BloomAssemblyStrategy, which is required for BloomJoin
-    // because otherwise we can't insert client-side code in the middle of a Flow.
+    // the second 1/100 etc. These splits are the concatenated in in BloomUtil.writeFilterToHdfs.
 
-    // The end result is that we run this pipe without any apprent output, then read the assembled filter from the side file
+    // The end result is that we run this pipe without any apparent output, then read the assembled filter from the side file
     // on HDFS and return it to the user
-    Pipe filterPipe = new Each(keys, keyFields, new BloomAssembly.GetSerializedTuple());
-    filterPipe = new CreateBloomFilter(filterPipe, bloomJobID, approxCountPartsDir, bloomPartsDir, "serialized-tuple-key");
+    Pipe filterPipe = new CreateBloomFilter(keys, bloomJobID, approxCountPartsDir, bloomPartsDir, keyField);
+    Flow flow = connector.connect(source, new NullTap(), filterPipe);
 
-    Flow flow = connector.connect(source, new NullTap(), keys);
+    FlowStep<JobConf> last = Accessors.<FlowStep<JobConf>>last(flow.getFlowSteps());
+    JobConf conf = last.getConfig();
 
     Supplier<BloomFilter> filterSupplier = () -> {
-      Path bloomFinalFilterPath = new Path(bloomFinalFilter);
       try {
+        BloomUtil.writeFilterToHdfs(conf, bloomFinalFilter);
+        Path bloomFinalFilterPath = new Path(bloomFinalFilter);
         return BloomFilter.read(
             FileSystemHelper.getFileSystemForPath(bloomFinalFilterPath),
             bloomFinalFilterPath);
-      } catch (IOException e) {
+      } catch (IOException | CardinalityMergeException e) {
         throw new RuntimeException(e);
       }
     };
@@ -99,7 +107,21 @@ public class CreateBloomFilter extends SubAssembly {
     return Pair.of(flow, filterSupplier);
   }
 
-  public static Pair<Flow, Supplier<BloomFilter>> createBloomForKeys(Tap source, Pipe keys, Fields keyFields) throws IOException {
-    return createBloomForKeys(source, keys, keyFields, CascadingUtil.get().getFlowConnector());
+  public static BloomFilter createBloomForKeys(Tap source, Pipe keys, String keyField, FlowConnector connector, Consumer<Flow> flowRunner) throws IOException {
+    Pair<Flow, Supplier<BloomFilter>> bloomFlowForKeys = createBloomFlowForKeys(source, keys, keyField, connector);
+    flowRunner.accept(bloomFlowForKeys.getLeft());
+    return bloomFlowForKeys.getRight().get();
+  }
+
+  public static BloomFilter createBloomForKeys(Tap source, Pipe keys, String keyField, FlowConnector connector) throws IOException {
+    return createBloomForKeys(source, keys, keyField, connector, Flow::complete);
+  }
+
+  public static BloomFilter createBloomForKeys(Tap source, Pipe keys, String keyField) throws IOException {
+    return createBloomForKeys(source, keys, keyField, CascadingUtil.get().getFlowConnector());
+  }
+
+  public static Pair<Flow, Supplier<BloomFilter>> createBloomFlowForKeys(Tap source, Pipe keys, String keyField) throws IOException {
+    return createBloomFlowForKeys(source, keys, keyField, CascadingUtil.get().getFlowConnector());
   }
 }
