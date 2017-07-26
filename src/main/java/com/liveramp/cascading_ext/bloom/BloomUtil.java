@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.clearspring.analytics.stream.cardinality.CardinalityMergeException;
 import com.clearspring.analytics.stream.cardinality.HyperLogLog;
@@ -127,6 +128,58 @@ public class BloomUtil {
     );
   }
 
+  public static BloomFilter retrieveFilter(JobConf stepConf) throws IOException, CardinalityMergeException {
+    return retrieveFilter(
+        stepConf.get(BloomProps.BLOOM_FILTER_PARTS_DIR),
+        BloomProps.getMaxBloomHashes(stepConf),
+        BloomProps.getMinBloomHashes(stepConf),
+        BloomProps.getNumBloomBits(stepConf),
+        BloomProps.getNumSplits(stepConf),
+        BloomProps.getHllErr(stepConf),
+        stepConf.get(BloomProps.BLOOM_KEYS_COUNTS_DIR)
+    );
+  }
+
+  public static BloomFilter retrieveFilter(String bloomPartsDir,
+                                           int maxHashes,
+                                           int minHashes,
+                                           long bloomFilterBits,
+                                           int numSplits,
+                                           double hllError,
+                                           String bloomKeyCountsDir) throws IOException, CardinalityMergeException {
+    return retrieveFilter(
+        bloomPartsDir,
+        maxHashes,
+        minHashes,
+        bloomFilterBits,
+        numSplits,
+        hllError,
+        bloomKeyCountsDir,
+        HashFunctionFactory.DEFAULT_HASH_FACTORY
+    );
+  }
+
+  public static BloomFilter retrieveFilter(String bloomPartsDir,
+                                           int maxHashes,
+                                           int minHashes,
+                                           long bloomFilterBits,
+                                           int numSplits,
+                                           double hllError,
+                                           String bloomKeyCountsDir,
+                                           HashFunctionFactory factory) throws IOException, CardinalityMergeException {
+    return createAndConsumeFilter(
+        bloomPartsDir,
+        maxHashes,
+        minHashes,
+        bloomFilterBits,
+        numSplits,
+        hllError,
+        bloomKeyCountsDir,
+        factory,
+        filter -> {}
+    );
+  }
+
   public static void writeFilterToHdfs(String bloomPartsDir,
                                        int maxHashes,
                                        int minHashes,
@@ -157,6 +210,36 @@ public class BloomUtil {
                                        String bloomKeyCountsDir,
                                        String bloomTargetPath,
                                        HashFunctionFactory hashFactory) throws IOException, CardinalityMergeException {
+
+    createAndConsumeFilter(
+        bloomPartsDir,
+        maxHashes,
+        minHashes,
+        bloomFilterBits,
+        numSplits,
+        hllError,
+        bloomKeyCountsDir,
+        hashFactory,
+        filter -> {
+          // Write merged bloom filter to HDFS
+          LOG.info("Writing created bloom filter to FS: " + bloomTargetPath);
+          filter.writeOut(FileSystemHelper.getFS(), new Path(bloomTargetPath));
+        });
+  }
+
+  public interface FilterConsumer {
+    void accept(BloomFilter filter) throws IOException;
+  }
+
+  public static BloomFilter createAndConsumeFilter(String bloomPartsDir,
+                                                   int maxHashes,
+                                                   int minHashes,
+                                                   long bloomFilterBits,
+                                                   int numSplits,
+                                                   double hllError,
+                                                   String bloomKeyCountsDir,
+                                                   HashFunctionFactory hashFactory,
+                                                   FilterConsumer filterConsumer) throws IOException, CardinalityMergeException {
     LOG.info("Bloom filter parts located in: " + bloomPartsDir);
 
     // This is the side bucket that the HyperLogLog writes to
@@ -173,16 +256,16 @@ public class BloomUtil {
     long splitSize = getSplitSize(bloomFilterBits, numSplits);
     int numBloomHashes = optimal.getRhs();
 
+    BloomFilter filter;
     synchronized (BF_LOAD_LOCK) {
       // Load bloom filter parts and merge them.
       String path = bloomPartsDir + "/" + numBloomHashes;
-      BloomFilter filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples, hashFactory);
-
-      // Write merged bloom filter to HDFS
-      LOG.info("Writing created bloom filter to FS: " + bloomTargetPath);
-      filter.writeOut(FileSystemHelper.getFS(), new Path(bloomTargetPath));
+      filter = mergeBloomParts(path, bloomFilterBits, splitSize, numBloomHashes, prevJobTuples, hashFactory);
+      filterConsumer.accept(filter);
     }
+    return filter;
   }
+
 
   /**
    * Read from the side bucket that HyperLogLog wrote to, merge the HLL estimators, and return the
