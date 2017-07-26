@@ -94,11 +94,7 @@ public class CreateBloomFilter extends SubAssembly {
 
     Supplier<BloomFilter> filterSupplier = () -> {
       try {
-        BloomUtil.writeFilterToHdfs(conf, bloomFinalFilter);
-        Path bloomFinalFilterPath = new Path(bloomFinalFilter);
-        return BloomFilter.read(
-            FileSystemHelper.getFileSystemForPath(bloomFinalFilterPath),
-            bloomFinalFilterPath);
+        return BloomUtil.retrieveFilter(conf);
       } catch (IOException | CardinalityMergeException e) {
         throw new RuntimeException(e);
       }

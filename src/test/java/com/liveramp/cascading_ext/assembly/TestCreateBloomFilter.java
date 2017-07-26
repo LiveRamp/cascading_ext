@@ -1,12 +1,17 @@
 package com.liveramp.cascading_ext.assembly;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.hadoop.io.BytesWritable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +38,6 @@ public class TestCreateBloomFilter extends BaseTestCase {
   public void testSingle() throws IOException {
 
     Hfs keyStore = new Hfs(new SequenceFile(new Fields("key")), getTestRoot() + "/keys");
-
 
     TapHelper.writeToTap(keyStore,
         new Tuple(bytes("1")),
