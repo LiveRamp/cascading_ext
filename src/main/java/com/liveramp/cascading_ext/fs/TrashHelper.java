@@ -2,10 +2,12 @@ package com.liveramp.cascading_ext.fs;
 
 import com.liveramp.cascading_ext.CascadingUtil;
 import com.liveramp.cascading_ext.FileSystemHelper;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Trash;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -14,19 +16,23 @@ public class TrashHelper {
 
   public static boolean moveToTrash(FileSystem fs, Path path) throws IOException {
     boolean move = Trash.moveToAppropriateTrash(fs, path, CascadingUtil.get().getJobConf());
-    if(!move){
+    if (!move) {
       throw new RuntimeException("Trash disabled or path already in trash: " + path);
     }
 
     return true;
   }
 
+  public static boolean deleteUsingTrashIfEnabled(Path path) throws IOException {
+    return deleteUsingTrashIfEnabled(FileSystemHelper.getFileSystemForPath(path), path);
+  }
+
   public static boolean deleteUsingTrashIfEnabled(FileSystem fs, Path path) throws IOException {
-    if(fs.exists(path)){
-      if(isEnabled()){
+    if (fs.exists(path)) {
+      if (isEnabled()) {
         LOG.info("Moving to trash: " + path);
         return moveToTrash(fs, path);
-      }else{
+      } else {
         LOG.info("Deleting: " + path);
         return fs.delete(path, true);
       }
