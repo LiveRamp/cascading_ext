@@ -26,6 +26,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
+import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.commons.collections.CountingMap;
 
 public class LocalityHelper {
@@ -99,9 +100,12 @@ public class LocalityHelper {
   public static String[] getHostsSortedByLocality(List<String> files, JobConf jobConf, int maxBlockLocationsPerSplit) throws IOException {
 
     List<BlockLocation> allLocations = Lists.newArrayList();
-    FileSystem fileSystem = FileSystem.get(jobConf);
+    FileSystem fileSystem = null;
 
     for (String file : files) {
+      if(fileSystem == null){
+        fileSystem = FileSystemHelper.getFileSystemForPath(file);
+      }
       Path path = new Path(file);
       FileStatus status = fileSystem.getFileStatus(path);
       allLocations.addAll(Arrays.asList(fileSystem.getFileBlockLocations(status, 0, status.getLen())));
@@ -111,7 +115,7 @@ public class LocalityHelper {
   }
 
   public static String[] getHostsSortedByLocality(String file, long pos, long length, JobConf jobConf, int maxBlockLocationsPerSplit) throws IOException {
-    FileSystem fs = FileSystem.get(jobConf);
+    FileSystem fs = FileSystemHelper.getFileSystemForPath(file);
     BlockLocation[] locations = fs.getFileBlockLocations(fs.getFileStatus(new Path(file)), pos, length);
     return getHostsSortedByLocalityForBlocks(Arrays.asList(locations), maxBlockLocationsPerSplit);
   }
