@@ -237,7 +237,6 @@ public class CascadingUtil {
     return strategies;
   }
 
-
   public static FlowConnector buildFlowConnector(JobConf jobConf,
                                                  Map<Object, Object> properties,
                                                  Class<? extends Scheme> intermediateSchemeClass,
@@ -250,6 +249,16 @@ public class CascadingUtil {
         intermediateSchemeClass,
         flowStepStrategies,
         invalidPropertyValues);
+  }
+
+
+  @Deprecated //  just exists for migration
+  public static FlowConnector buildFlowConnector(JobConf jobConf,
+                                                 JobPersister persister,
+                                                 Map<Object, Object> properties,
+                                                 List<FlowStepStrategy<JobConf>> flowStepStrategies,
+                                                 Multimap<String, String> invalidPropertyValues) {
+    return buildFlowConnector(jobConf, persister, properties, SequenceFile.class, flowStepStrategies, invalidPropertyValues);
   }
 
   // We extract this method so that the default name based on the stack position makes sense
