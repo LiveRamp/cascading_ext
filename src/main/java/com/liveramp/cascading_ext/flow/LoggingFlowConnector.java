@@ -22,6 +22,7 @@ import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.scheme.Scheme;
+import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.Tap;
 import com.liveramp.cascading_ext.CascadingUtil;
 import org.apache.hadoop.mapred.JobConf;
@@ -37,6 +38,12 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
   private final String defaultFlowName;
   private final Class<? extends Scheme> intermediateSchemeClass;
   private final JobPersister persister;
+
+  public LoggingFlowConnector(Map<Object, Object> properties,
+                              FlowStepStrategy<JobConf> flowStepStrategy,
+                              JobPersister persister) {
+    this(properties, flowStepStrategy, persister, SequenceFile.class, null);
+  }
 
   public LoggingFlowConnector(Map<Object, Object> properties,
                               FlowStepStrategy<JobConf> flowStepStrategy,
