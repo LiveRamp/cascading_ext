@@ -40,6 +40,8 @@ import cascading.flow.FlowConnector;
 import cascading.flow.FlowProcess;
 import cascading.flow.FlowStepStrategy;
 import cascading.flow.hadoop.HadoopFlowProcess;
+import cascading.scheme.Scheme;
+import cascading.scheme.hadoop.SequenceFile;
 
 import com.liveramp.cascading_ext.bloom.BloomAssemblyStrategy;
 import com.liveramp.cascading_ext.bloom.BloomProps;
@@ -67,11 +69,13 @@ public class CascadingUtil {
     defaultProperties.putAll(BloomProps.getDefaultProperties());
   }
 
-  private final Map<Object, Object> defaultProperties = new HashMap<Object, Object>();
-  private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<FlowStepStrategyFactory<JobConf>>();
-  private final Set<Class<? extends Serialization>> serializations = new HashSet<Class<? extends Serialization>>();
-  private final Map<Integer, Class<?>> serializationTokens = new HashMap<Integer, Class<?>>();
+  private final Map<Object, Object> defaultProperties = new HashMap<>();
+  private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<>();
+  private final Set<Class<? extends Serialization>> serializations = new HashSet<>();
+  private final Map<Integer, Class<?>> serializationTokens = new HashMap<>();
   private final Multimap<String, String> invalidPropertyValues = HashMultimap.create();
+
+  private Class<? extends Scheme> intermediateSchemeClass = SequenceFile.class;
 
   private transient JobConf conf = null;
 
@@ -86,6 +90,10 @@ public class CascadingUtil {
 
   public void addDefaultFlowStepStrategy(Class<? extends FlowStepStrategy<JobConf>> klass) {
     defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
+  }
+
+  protected void setIntermediateSchemeClass(Class<? extends Scheme> schemeClass){
+    this.intermediateSchemeClass = schemeClass;
   }
 
   public void clearDefaultFlowStepStrategies() {
@@ -212,6 +220,7 @@ public class CascadingUtil {
 
     return buildFlowConnector(getJobConf(),
         combineProperties(getDefaultProperties(), properties),
+        intermediateSchemeClass,
         strategies,
         invalidPropertyValues);
   }
@@ -231,12 +240,14 @@ public class CascadingUtil {
 
   public static FlowConnector buildFlowConnector(JobConf jobConf,
                                                  Map<Object, Object> properties,
+                                                 Class<? extends Scheme> intermediateSchemeClass,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
                                                  Multimap<String, String> invalidPropertyValues) {
 
     return buildFlowConnector(jobConf,
         new JobPersister.NoOp(),
         properties,
+        intermediateSchemeClass,
         flowStepStrategies,
         invalidPropertyValues);
   }
@@ -245,7 +256,9 @@ public class CascadingUtil {
   public static FlowConnector buildFlowConnector(JobConf jobConf,
                                                  JobPersister persister,
                                                  Map<Object, Object> properties,
+                                                 Class<? extends Scheme> intermediateSchemeClass,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
+
                                                  Multimap<String, String> invalidPropertyValues) {
 
     //  check required against stuff loaded from app-site.xml
@@ -262,6 +275,7 @@ public class CascadingUtil {
     return new LoggingFlowConnector(properties,
         new MultiFlowStepStrategy(flowStepStrategies),
         persister,
+        intermediateSchemeClass,
         OperationStatsUtils.formatStackPosition(OperationStatsUtils.getStackPosition(2)));
   }
 
