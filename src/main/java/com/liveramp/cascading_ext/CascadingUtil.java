@@ -237,6 +237,10 @@ public class CascadingUtil {
     return strategies;
   }
 
+  public Class<? extends Scheme> getIntermediateSchemeClass() {
+    return intermediateSchemeClass;
+  }
+
   public static FlowConnector buildFlowConnector(JobConf jobConf,
                                                  Map<Object, Object> properties,
                                                  Class<? extends Scheme> intermediateSchemeClass,
