@@ -92,7 +92,7 @@ public class CascadingUtil {
     defaultFlowStepStrategies.add(new SimpleFlowStepStrategyFactory(klass));
   }
 
-  protected void setIntermediateSchemeClass(Class<? extends Scheme> schemeClass){
+  public void setIntermediateSchemeClass(Class<? extends Scheme> schemeClass){
     this.intermediateSchemeClass = schemeClass;
   }
 
