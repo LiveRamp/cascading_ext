@@ -24,6 +24,7 @@ import com.liveramp.commons.state.TaskSummary;
 
 public class JobRecordListener implements FlowStepListener {
   private static final Logger LOG = LoggerFactory.getLogger(JobRecordListener.class);
+  public static final String YARN_API_HELPER_ENABLED_PROP = "job.record.listener.enable.yarn.api";
 
   private final boolean failOnCounterFetch;
   private final JobPersister persister;
@@ -95,15 +96,17 @@ public class JobRecordListener implements FlowStepListener {
   private void addYarnPerformanceMetrics(HadoopStepStats hdStepStats, String jobID, TwoNestedMap<String, String, Long> counters) {
     Optional<YarnApiHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
     Configuration config = hdStepStats.getJobClient().getConf();
-    try {
-      JobConf conf = (JobConf)config;
-      yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
-    } catch (ClassCastException e) {
-      LOG.error("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
-    }
+    if (config.getBoolean(YARN_API_HELPER_ENABLED_PROP, true)) {
+      try {
+        JobConf conf = (JobConf)config;
+        yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
+      } catch (ClassCastException e) {
+        LOG.error("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
+      }
 
-    if (yarnAppInfo.isPresent()) {
-      counters.putAll(yarnAppInfo.get().asCounterMap());
+      if (yarnAppInfo.isPresent()) {
+        counters.putAll(yarnAppInfo.get().asCounterMap());
+      }
     }
   }
 
