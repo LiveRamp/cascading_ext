@@ -77,8 +77,7 @@ public class YarnApiHelper {
 
   public static Optional<ApplicationInfo> getYarnAppInfo(Configuration conf, String appId) {
     String yarnApiAddress = conf.get("yarn.resourcemanager.webapp.address", "");
-    String mapredJobTracker = conf.get("mapred.job.tracker");
-    if (!"local".equals(mapredJobTracker) && !yarnApiAddress.isEmpty()) {
+    if ( !yarnApiAddress.isEmpty()) {
       return getYarnAppInfo(yarnApiAddress, appId);
     } else {
       return Optional.empty();
