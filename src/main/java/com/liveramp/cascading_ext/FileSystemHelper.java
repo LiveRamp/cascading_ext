@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
@@ -52,13 +53,31 @@ public class FileSystemHelper {
     }
   }
 
+  /**
+   * @deprecated Use the forms that accept a Configuration object so that filesystems
+   * with authentication can be used
+   */
+  @Deprecated
   public static FileSystem getFileSystemForPath(String path) {
     return getFileSystemForPath(new Path(path));
   }
 
+  @Deprecated
   public static FileSystem getFileSystemForPath(Path path) {
     try {
       return path.getFileSystem(new Configuration());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static FileSystem getFileSystemForPath(String path, Configuration config) {
+    return getFileSystemForPath(new Path(path), config);
+  }
+
+  public static FileSystem getFileSystemForPath(Path path, Configuration config) {
+    try {
+      return path.getFileSystem(config);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -83,6 +102,7 @@ public class FileSystemHelper {
   /**
    * merge all files in <code>sourceDir</code> into local <code>targetFile</code>, retrying a few times on failure
    */
+  @Deprecated
   public static void copyMergeToLocal(String srcDir, String dstFile) throws IOException {
     copyMergeToLocal(srcDir, dstFile, DEFAULT_FS_OP_NUM_TRIES, DEFAULT_FS_OP_DELAY_BETWEEN_TRIES);
   }
@@ -90,6 +110,7 @@ public class FileSystemHelper {
   /**
    * merge all files in <code>sourceDir</code> into local <code>targetFile</code>, retrying on failure
    */
+  @Deprecated
   public static void copyMergeToLocal(String srcDir, String dstFile, int numTries, long delayBetweenTries) throws IOException {
     Configuration conf = new Configuration();
     FileSystem hdfs = getFS();
