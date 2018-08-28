@@ -73,7 +73,7 @@ public class CascadingUtil {
   private final List<FlowStepStrategyFactory<JobConf>> defaultFlowStepStrategies = new ArrayList<>();
   private final Set<Class<? extends Serialization>> serializations = new HashSet<>();
   private final Map<Integer, Class<?>> serializationTokens = new HashMap<>();
-  private final Multimap<String, String> invalidPropertyValues = HashMultimap.create();
+  private final Multimap<String, Object> invalidPropertyValues = HashMultimap.create();
 
   private Class<? extends Scheme> intermediateSchemeClass = SequenceFile.class;
 
@@ -112,11 +112,11 @@ public class CascadingUtil {
     conf = null;
   }
 
-  protected void addRequiredProperty(String property){
+  protected void addRequiredProperty(String property) {
     addInvalidPropertyValue(property, null);
   }
 
-  protected void addInvalidPropertyValue(String property, String value) {
+  protected void addInvalidPropertyValue(String property, Object value) {
     invalidPropertyValues.put(property, value);
   }
 
@@ -225,11 +225,11 @@ public class CascadingUtil {
         invalidPropertyValues);
   }
 
-  public Multimap<String, String> getInvalidPropertyValues() {
+  public Multimap<String, Object> getInvalidPropertyValues() {
     return invalidPropertyValues;
   }
 
-  public List<FlowStepStrategy<JobConf>> resolveFlowStepStrategies(){
+  public List<FlowStepStrategy<JobConf>> resolveFlowStepStrategies() {
     List<FlowStepStrategy<JobConf>> strategies = Lists.newArrayList();
     for (FlowStepStrategyFactory<JobConf> factory : defaultFlowStepStrategies) {
       strategies.add(factory.getFlowStepStrategy());
@@ -245,7 +245,7 @@ public class CascadingUtil {
                                                  Map<Object, Object> properties,
                                                  Class<? extends Scheme> intermediateSchemeClass,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
-                                                 Multimap<String, String> invalidPropertyValues) {
+                                                 Multimap<String, Object> invalidPropertyValues) {
 
     return buildFlowConnector(jobConf,
         new JobPersister.NoOp(),
@@ -261,7 +261,7 @@ public class CascadingUtil {
                                                  JobPersister persister,
                                                  Map<Object, Object> properties,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
-                                                 Multimap<String, String> invalidPropertyValues) {
+                                                 Multimap<String, Object> invalidPropertyValues) {
     return buildFlowConnector(jobConf, persister, properties, SequenceFile.class, flowStepStrategies, invalidPropertyValues);
   }
 
@@ -272,16 +272,16 @@ public class CascadingUtil {
                                                  Class<? extends Scheme> intermediateSchemeClass,
                                                  List<FlowStepStrategy<JobConf>> flowStepStrategies,
 
-                                                 Multimap<String, String> invalidPropertyValues) {
+                                                 Multimap<String, Object> invalidPropertyValues) {
 
     //  check required against stuff loaded from app-site.xml
-    for (Map.Entry<String, String> entry : invalidPropertyValues.entries()) {
+    for (Map.Entry<String, Object> entry : invalidPropertyValues.entries()) {
       String property = entry.getKey();
-      String value = entry.getValue();
+      Object value = entry.getValue();
 
       if (ObjectUtils.equals(resolveProperty(property, properties, jobConf), value)) {
-        LOG.error("Property "+property+" set to invalid value "+value+" with properties map: "+properties);
-        throw new RuntimeException("Cannot build flow without setting property: " + property +" to a value which is not "+value);
+        LOG.error("Property " + property + " set to invalid value " + value + " with properties map: " + properties);
+        throw new RuntimeException("Cannot build flow without setting property: " + property + " to a value which is not " + value);
       }
     }
 
