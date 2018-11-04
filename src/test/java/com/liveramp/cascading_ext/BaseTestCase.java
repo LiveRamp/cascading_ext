@@ -71,6 +71,10 @@ public abstract class BaseTestCase {
 
   }
 
+  protected Path getTestRootPath() {
+    return new Path(TEST_ROOT);
+  }
+
   @Before
   public void baseSetUp() throws Exception {
 
