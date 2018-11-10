@@ -8,11 +8,6 @@ import cascading.flow.FlowProcess;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 
-import com.rapleaf.cascading_ext.tap.bucket2.batch.BatchBucketTapProps;
-
-import static com.rapleaf.cascading_ext.tap.bucket2.batch.BatchBucketTap.DEFAULT_MAX_SPLIT_SIZE;
-import static com.rapleaf.cascading_ext.tap.bucket2.batch.BatchBucketTap.DEFAULT_MIN_SPLIT_SIZE;
-
 public class BatchedSequenceFileScheme extends cascading.scheme.hadoop.SequenceFile {
 
   public static final long DEFAULT_BLOCK_SIZE = 255L * 1024 * 1024;
