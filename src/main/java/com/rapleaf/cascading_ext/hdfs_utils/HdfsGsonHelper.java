@@ -14,6 +14,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
@@ -72,7 +73,11 @@ public class HdfsGsonHelper {
   }
 
   public static <T> HdfsGsonFileWriter<T> openForWrite(FileSystem fs, Gson gson, Path path, Class<T> tClass, String... pathToObject) throws IOException {
-    OutputStream metaStream = createHDFSFile(fs, path);
+    return openForWrite(fs, gson, path, tClass, false, pathToObject);
+  }
+
+  public static <T> HdfsGsonFileWriter<T> openForWrite(FileSystem fs, Gson gson, Path path, Class<T> tClass, boolean shouldGzipCompress, String... pathToObject) throws IOException {
+    OutputStream metaStream = createHDFSFile(fs, path, shouldGzipCompress);
     OutputStreamWriter writer = new OutputStreamWriter(metaStream);
     JsonWriter jsonWriter = new JsonWriter(writer);
 
@@ -87,7 +92,15 @@ public class HdfsGsonHelper {
 
 
   private static OutputStream createHDFSFile(FileSystem fs, Path path) throws IOException {
-    return fs.create(path);
+    return createHDFSFile(fs, path, false);
+  }
+
+  private static OutputStream createHDFSFile(FileSystem fs, Path path, boolean shouldCompress) throws IOException {
+    if (shouldCompress) {
+      return new GZIPOutputStream(fs.create(path));
+    } else {
+      return fs.create(path);
+    }
   }
 
   private static InputStream openStreamToHDFS(FileSystem fs, Path path) throws IOException {
