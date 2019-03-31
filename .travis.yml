@@ -1,3 +1,17 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_5825b32d8f91_key -iv $encrypted_5825b32d8f91_iv -in .travis/gpg.asc.enc -out .travis/gpg.asc -d
+env:
+  global:
+  - secure: O+rqmegkkHgsLCdBJ9ITsG829xViNHf6lFit+QOkioTJu9whCZKr2ISCrNYrZ2q5mxAsOL2QJD4L3yT6MURqe8uiG6ZqWhWxBeaUbnk8Ry8vg5mksyvsQ6YZtkj6aAK30Q2BPIaj+b2uWLpt+M1jOpZlHJ4QY2T1ETmH7kS3cdY=
+  - secure: N9dqo5KGt2XX2vy6Er0auYsgWZJddY5xhQTNwN0KjGLVvsMlxUNYDraEhU3C+Bl2mHeR+RM59uKjVRYtg46jvWaAnNKXxoCJgWMbuG/58CWYx5S89/pZrhF8QTPe6lUNCRm4v2++I/z4Yu4zBDu15iAGOIcqr/4bdtLut+S2sg4=
+  - secure: cvQjf9y98A/Wkhc54Xh7912XcoJuHcyhgg1Le3zeNU9mjq8OZLm32mwFJd0fFexV2HTCMZfwOvMk7VBXfvyM5/RF5Fv+6tZz5tgb/Xfvm0/K9ZsUaWTDAq4DLh6IdDZY7JxAx4RLLj/Ji9k+zCn5YFx8uadmr1C8w/vE2DfnMTc=
+  - secure: OePDO73gWHY0ezGmMSQ3z3J+E+gLhdyHG5F+a+13qhuogYEjclOjSh/+lD9uqdA4vnJItCCHuJFNMGlN6Xqiz2azS+98eCy6Xjne0at4g8ZtMtuEYP0jneCzlrpjiCckRLu6+0FslRsF+uZQY/v3nGl1vcE4Op5cgTXCtxjFYhc=
+deploy:
+  skip_cleanup: true
+  on:
+    branch: sonatype # TODO(joshk) change to master before merge
+  provider: script
+  script: ./deploy
