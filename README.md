@@ -1,10 +1,10 @@
-Project cascading_ext
-========
+# cascading_ext
+
+[![Build Status](https://api.travis-ci.com/LiveRamp/cascading_ext.svg?branch=master)](https://travis-ci.com/LiveRamp/cascading_ext)
 
 cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows.
 
-Features
-====
+## Features
 
 Some of the most interesting public classes in the project (so far).
 
@@ -152,20 +152,11 @@ The tails of the MultiCombiner assembly will give access to the results for each
 <b>Things to Watch Out For</b>
 <p>The ability to run arbitrary aggregators over a single stream is pretty useful, but there’s nothing magical going on in the background. Each aggregator used in a  MultiCombiner emits roughly the same number of tuples as if it were being used on its own. Because the sorting involved in the shuffle is an n*log(n) operation, shuffling the output of many aggregators all at once is less efficient than shuffling their outputs separately. This is usually not an issue because of the time saved reading the data set only once, but may matter if the number of tuples being shuffled is much larger than the data being read from disk. Additionally, each aggregator must keep its own map in memory for its combiner. Because of the additional memory pressure, combining for many aggregators can potentially be less efficient. All of that being said, we've seen significant performance increases for every set of aggregation operations we've merged using this tool.
 
-Download
-====
-You can either build cascading_ext from source as described below, or pull the latest jar from the Liveramp Maven repository:
+## Download
 
-```xml
-
-<repository>
-  <id>repository.liveramp.com</id>
-  <name>liveramp-repositories</name>
-  <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
-</repository>
-```
-
-Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot version (1.6) is built against CDH4.1.2.  Both are available via Maven:
+You can either build cascading_ext from source as described below, or pull the
+latest jar from Maven Central. Version 0.1 is built off of Cloudera Hadoop 3,
+(CDH3u3).  The current snapshot version (1.6) is built against CDH4.1.2.
 
 ```xml
 
@@ -182,8 +173,26 @@ Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot v
 </dependency>
 ```
 
-Building
-====
+To use the snapshot version, make sure to import Sonatype Snapshots:
+
+```xml
+  <repositories>
+    <repository>
+      <id>maven-snapshots</id>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+```
+
+## Building
 
 To build cascading_ext.jar from source,
 
@@ -197,8 +206,7 @@ will generate build/cascading_ext.jar.  To run the test suite locally,
 > mvn test
 ```
 
-Usage
-====
+## Usage
 
 See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/README.md) for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext.jar and all third-party jars in lib/ are in your jobjar.
 
@@ -208,15 +216,13 @@ To try out any of the code in the com.liveramp.cascading_ext.example package in 
 > mvn assembly:single
 ```
 
-Bugs, features, pull requests
-====
+## Bugs, features, pull requests
 
 Bug reports or feature requests are welcome: https://github.com/liveramp/cascading_ext/issues
 
 Changes you'd like us to merge in?  We love [pull requests](https://github.com/LiveRamp/cascading_ext/pulls).
 
-Contributors
-====
+# Contributors
 
 Most of the code here has been moved from our internal repositories so much of the original authorship has been lost in the git history.  Contributors include:
 
@@ -235,8 +241,8 @@ Most of the code here has been moved from our internal repositories so much of t
 - [Takashi Yonebayashi](https://github.com/takashiyonebayashi)
 - [Thomas Kielbus](https://github.com/thomas-kielbus)
 
-License
-====
+## License
+
 Copyright 2013 LiveRamp
 
 Licensed under the Apache License, Version 2.0

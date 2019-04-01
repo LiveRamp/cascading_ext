@@ -12,7 +12,7 @@
   <version>1.7-SNAPSHOT</version>
 
   <name>Cascading Extensions</name>
-  <description>cascading_ext is a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run simple and high-performance data workflows.</description>
+  <description>a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run simple and high-performance data workflows.</description>
 
   <developers>
     <developer>
