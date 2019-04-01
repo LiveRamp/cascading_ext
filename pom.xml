@@ -11,6 +11,16 @@
   <artifactId>cascading_ext</artifactId>
   <version>1.7-SNAPSHOT</version>
 
+  <name>Cascading Extensions</name>
+  <description>cascading_ext is a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run simple and high-performance data workflows.</description>
+
+  <developers>
+    <developer>
+      <name>LiveRamp Engineering</name>
+      <email>info@liveramp.com</email>
+    </developer>
+  </developers>
+
   <scm>
     <connection>scm:git:git@github.com:LiveRamp/cascading_ext.git</connection>
     <url>scm:git:git@github.com:LiveRamp/cascading_ext.git</url>
@@ -20,7 +30,7 @@
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/LiveRamp/daemon_lib/issues</url>
+    <url>https://github.com/LiveRamp/cascading_ext/issues</url>
   </issueManagement>
 
   <url>https://liveramp.com</url>
