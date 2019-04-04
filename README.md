@@ -1,11 +1,11 @@
-Project cascading_ext
-========
-       
-cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows. 
-   
-Features
-====
- 
+# cascading_ext
+
+[![Build Status](https://api.travis-ci.com/LiveRamp/cascading_ext.svg?branch=master)](https://travis-ci.com/LiveRamp/cascading_ext)
+
+cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows.
+
+## Features
+
 Some of the most interesting public classes in the project (so far).
 
 ### SubAssemblies ###
@@ -52,7 +52,7 @@ Another feature of BloomFilter is the ability to perform an inexact filter, and 
 
 ##### MultiGroupBy
 
-[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The [MultiBuffer](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/multi_group_by/MultiBuffer.java) interface gives a user-defined function access to all tuples sharing a common key, across all input pipes:  
+[MultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/assembly/MultiGroupBy.java) allows the user to easily GroupBy two or more pipes on a common field without performing a full Inner/OuterJoin first (which can lead to an explosion in the number of tuples, if keys are not distinct.)  The [MultiBuffer](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/multi_group_by/MultiBuffer.java) interface gives a user-defined function access to all tuples sharing a common key, across all input pipes:
 
 ```java
 Pipe s1 = new Pipe("s1");
@@ -68,7 +68,7 @@ see [TestMultiGroupBy](https://github.com/LiveRamp/cascading_ext/blob/master/src
 
 ### Tools ###
 
-##### CascadingUtil 
+##### CascadingUtil
 [CascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/CascadingUtil.java) is a utility class which makes it easy to add default properties and strategies to all jobs which are run in a codebase, and which adds some useful logging and debugging information.  For a simple example of how to use this class, see [SimpleFlowExample](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/SimpleFlowExample.java):
 
 ```java
@@ -81,7 +81,7 @@ By default CascadingUtil will
   - retrieve and log map or reduce task errors if the job fails
   - extend Cascading's job naming scheme with improved naming for some taps which use UUID identifiers.
 
-See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/FlowWithCustomCascadingUtil.java) to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily: 
+See [FlowWithCustomCascadingUtil](https://github.com/LiveRamp/cascading_ext/blob/master/src/main/java/com/liveramp/cascading_ext/example/FlowWithCustomCascadingUtil.java) to see examples of how CascadingUtil can be extended to include custom default properties.  Subclasses can easily:
 
   - set default properties in the job Configuration
   - add serialization classes
@@ -100,7 +100,7 @@ Combiners are a useful tool for optimizing Hadoop jobs by reducing the number of
 
 Combiners are an integral part of Hadoop, and are supported by Cascading through AggregateBy and the Functor and Aggregator interfaces, which implement the combiner and reducer logic respectively. What Cascading's and Hadoop's implementations both lack is a way to run many combiner-backed aggregation operations over a single stream using different grouping fields in an efficient way. In both Hadoop and Cascading, such a computation would require a full read and shuffle of the data set for each of the different grouping fields. This can make it prohibitively expensive to add new stats or aggregates to a workflow. The MultiCombiner tool allows developers to define many entirely independent aggregation operations over the same data set and run them simultaneously, even if they use different grouping keys.
 
-<b> An Example Usage </b> 
+<b> An Example Usage </b>
 
 Suppose that it is your job to compute stats for a large retailer. The retailer stores records of purchase events in an HDFS file with the following format:
     user_id , item_id, item_amount, timestamp
@@ -115,10 +115,10 @@ Using the features built into Cascading, we might build the flow this way:
 ```java
 Pipe purchaseEvents = new Pipe("purchase_events");
 
-Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"), 
+Pipe countByUser = new SumBy( purchaseEvents , new Fields("user_id"),
   new Fields("item_amount"), new Fields("total_items_by_user"));
 
-Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"), 
+Pipe countByItem = new SumBy( purchaseEvents , new Fields("item_id"),
   new Fields("item_amount"), new Fields("total_items_by_item"));
 ```
 
@@ -133,7 +133,7 @@ CombinerDefinition countByUserDef = new CombinerDefinitionBuilder()
         .setOutputFields(new Fields("total_items_by_user"))
         .setExactAggregator(new SumExactAggregator(1))
         .get();
-        
+
 CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
         .setGroupFields(new Fields("item_id"))
         .setInputFields(new Fields("item_amount"))
@@ -141,7 +141,7 @@ CombinerDefinition countByItemDef = new CombinerDefinitionBuilder()
         .setExactAggregator(new SumExactAggregator(1))
         .get();
 
-MultiCombiner  combiner = MultiCombiner.assembly(purchaseEvents, 
+MultiCombiner  combiner = MultiCombiner.assembly(purchaseEvents,
   countByItemDef, countByUserDef);
 
 Pipe countsByUser = combiner.getTailsByName().get(countByUserDef.getName())
@@ -152,20 +152,11 @@ The tails of the MultiCombiner assembly will give access to the results for each
 <b>Things to Watch Out For</b>
 <p>The ability to run arbitrary aggregators over a single stream is pretty useful, but there’s nothing magical going on in the background. Each aggregator used in a  MultiCombiner emits roughly the same number of tuples as if it were being used on its own. Because the sorting involved in the shuffle is an n*log(n) operation, shuffling the output of many aggregators all at once is less efficient than shuffling their outputs separately. This is usually not an issue because of the time saved reading the data set only once, but may matter if the number of tuples being shuffled is much larger than the data being read from disk. Additionally, each aggregator must keep its own map in memory for its combiner. Because of the additional memory pressure, combining for many aggregators can potentially be less efficient. All of that being said, we've seen significant performance increases for every set of aggregation operations we've merged using this tool.
 
-Download
-====
-You can either build cascading_ext from source as described below, or pull the latest jar from the Liveramp Maven repository:
+## Download
 
-```xml
-
-<repository>
-  <id>repository.liveramp.com</id>
-  <name>liveramp-repositories</name>
-  <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
-</repository>
-```
-
-Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot version (1.6) is built against CDH4.1.2.  Both are available via Maven:
+You can either build cascading_ext from source as described below, or pull the
+latest snapshot from Sonatype. The current snapshot version (1.6) is built
+against CDH4.1.2.
 
 ```xml
 
@@ -182,8 +173,26 @@ Version 0.1 is built off of Cloudera Hadoop 3, (CDH3u3).  The current snapshot v
 </dependency>
 ```
 
-Building
-====  
+To use the snapshot version, make sure to import Sonatype Snapshots:
+
+```xml
+  <repositories>
+    <repository>
+      <id>maven-snapshots</id>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+```
+
+## Building
 
 To build cascading_ext.jar from source,
 
@@ -191,14 +200,13 @@ To build cascading_ext.jar from source,
 > mvn package
 ```
 
-will generate build/cascading_ext.jar.  To run the test suite locally, 
+will generate build/cascading_ext.jar.  To run the test suite locally,
 
 ```bash
 > mvn test
 ```
 
-Usage
-====
+## Usage
 
 See usage instructions [here](https://github.com/cwensel/cascading/blob/wip-2.1/README.md) for running Cascading with Apache Hadoop.  Everything should work fine if cascading_ext.jar and all third-party jars in lib/ are in your jobjar.
 
@@ -208,15 +216,13 @@ To try out any of the code in the com.liveramp.cascading_ext.example package in 
 > mvn assembly:single
 ```
 
-Bugs, features, pull requests
-====
+## Bugs, features, pull requests
 
 Bug reports or feature requests are welcome: https://github.com/liveramp/cascading_ext/issues
 
 Changes you'd like us to merge in?  We love [pull requests](https://github.com/LiveRamp/cascading_ext/pulls).
 
-Contributors
-====
+# Contributors
 
 Most of the code here has been moved from our internal repositories so much of the original authorship has been lost in the git history.  Contributors include:
 
@@ -235,8 +241,8 @@ Most of the code here has been moved from our internal repositories so much of t
 - [Takashi Yonebayashi](https://github.com/takashiyonebayashi)
 - [Thomas Kielbus](https://github.com/thomas-kielbus)
 
-License
-====
+## License
+
 Copyright 2013 LiveRamp
 
 Licensed under the Apache License, Version 2.0
