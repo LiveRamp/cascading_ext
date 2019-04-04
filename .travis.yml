@@ -12,6 +12,6 @@ env:
 deploy:
   skip_cleanup: true
   on:
-    branch: sonatype # TODO(joshk) change to master before merge
+    branch: master
   provider: script
   script: ./deploy
