@@ -155,8 +155,8 @@ The tails of the MultiCombiner assembly will give access to the results for each
 ## Download
 
 You can either build cascading_ext from source as described below, or pull the
-latest jar from Maven Central. Version 0.1 is built off of Cloudera Hadoop 3,
-(CDH3u3).  The current snapshot version (1.6) is built against CDH4.1.2.
+latest snapshot from Sonatype. The current snapshot version (1.6) is built
+against CDH4.1.2.
 
 ```xml
 
