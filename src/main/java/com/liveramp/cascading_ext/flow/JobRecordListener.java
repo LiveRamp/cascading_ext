@@ -71,7 +71,7 @@ public class JobRecordListener implements FlowStepListener {
 
       TwoNestedMap<String, String, Long> counters = Counters.getCounterMap(hdStepStats).get(jobID);
       try {
-        addYarnPerformanceMetrics(hdStepStats, jobID, counters);
+        addYarnPerformanceMetrics(hdStepStats.getJobClient().getConf(), jobID, counters);
       } catch (Exception e) {
         LOG.error("Unable to add yarn performance stats", e);
       }
@@ -92,9 +92,8 @@ public class JobRecordListener implements FlowStepListener {
 
   }
 
-  private void addYarnPerformanceMetrics(HadoopStepStats hdStepStats, String jobID, TwoNestedMap<String, String, Long> counters) {
+  public static void addYarnPerformanceMetrics(Configuration config, String jobID, TwoNestedMap<String, String, Long> counters) {
     Optional<YarnApiHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
-    Configuration config = hdStepStats.getJobClient().getConf();
     try {
       JobConf conf = (JobConf)config;
       yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
