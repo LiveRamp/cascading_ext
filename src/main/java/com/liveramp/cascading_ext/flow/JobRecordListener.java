@@ -93,19 +93,8 @@ public class JobRecordListener implements FlowStepListener {
   }
 
   public static void addYarnPerformanceMetrics(Configuration config, String jobID, TwoNestedMap<String, String, Long> counters) {
-    Optional<YarnApiHelper.ApplicationInfo> yarnAppInfo = Optional.empty();
-    try {
-      JobConf conf = (JobConf)config;
-      yarnAppInfo = YarnApiHelper.getYarnAppInfo(conf, jobID.replace("job", "application"));
-    } catch (ClassCastException e) {
-      LOG.error("The class of the configuration is not JobConf - instead it is " + config.getClass().getCanonicalName(), e);
-    }
-
-    if (yarnAppInfo.isPresent()) {
-      counters.putAll(yarnAppInfo.get().asCounterMap());
-    }
+    YarnApiHelper.getYarnAppInfo(config, jobID.replace("job", "application")).ifPresent(applicationInfo -> counters.putAll(applicationInfo.asCounterMap()));
   }
-
 
   private void recordTaskErrors(HadoopStepStats hdStepStats, String jobID, boolean failed, TwoNestedMap<String, String, Long> counters) {
     long start = System.currentTimeMillis();
