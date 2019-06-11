@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,7 +13,9 @@
   <version>1.7-SNAPSHOT</version>
 
   <name>Cascading Extensions</name>
-  <description>a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run simple and high-performance data workflows.</description>
+  <description>a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run
+    simple and high-performance data workflows.
+  </description>
 
   <developers>
     <developer>
@@ -47,8 +50,12 @@
     <repository>
       <id>sonatype-snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases><enabled>false</enabled></releases>
-      <snapshots><enabled>true</enabled></snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
@@ -68,18 +75,17 @@
     <!--set hadoop to provided scopes since it will be provided by the platform (and to make life easier for people -->
     <!--using this lib who use a different distribution)-->
 
-
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-      <version>2.5.0-cdh5.3.3</version>
+      <version>2.6.5</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>2.5.0-cdh5.3.3</version>
+      <version>2.6.5</version>
       <scope>provided</scope>
     </dependency>
 
@@ -158,17 +164,17 @@
         <plugins>
           <!-- Used to build a JAR containing the source code from this project -->
           <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-source-plugin</artifactId>
-              <version>2.4</version>
-              <executions>
-                  <execution>
-                      <id>attach-sources</id>
-                      <goals>
-                          <goal>jar-no-fork</goal>
-                      </goals>
-                  </execution>
-              </executions>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
 
           <!-- Used to generate javadocs for this project -->
@@ -178,8 +184,8 @@
             <version>3.0.0</version>
             <executions>
               <execution>
-              <!-- Disable javadoc linting until CD is setup, then you
-                        can enable it if you'd like -->
+                <!-- Disable javadoc linting until CD is setup, then you
+                          can enable it if you'd like -->
                 <configuration>
                   <doclint>none</doclint>
                 </configuration>
