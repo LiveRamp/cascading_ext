@@ -77,8 +77,7 @@ public class HyperLogLogExactAggregator implements ExactAggregator<ICardinality>
   public ICardinality finalAggregate(ICardinality aggregate, TupleEntry partialAggregate) {
     try {
       ICardinality hll = HyperLogLogPlus.Builder.build(Bytes.getBytes((BytesWritable) partialAggregate.getObject(0)));
-      aggregate.merge(hll);
-      return aggregate;
+      return aggregate.merge(hll);
     } catch (CardinalityMergeException cme) {
       throw new RuntimeException(cme);
     } catch (IOException e) {

@@ -79,6 +79,10 @@ public class CascadingUtil {
 
   private transient JobConf conf = null;
 
+  public void clearCachedConf() {
+    this.conf = null;
+  }
+
   public void setDefaultProperty(Object key, Object value) {
     defaultProperties.put(key, value);
     conf = null;
