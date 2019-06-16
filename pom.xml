@@ -4,7 +4,7 @@
 
   <groupId>com.liveramp</groupId>
   <artifactId>cascading_ext</artifactId>
-  <version>1.7-SNAPSHOT</version>
+  <version>1.8-SNAPSHOT</version>
 
   <name>Cascading Extensions</name>
   <description>a collection of tools built on top of the Cascading platform which make it easy to build, debug, and run
