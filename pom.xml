@@ -40,6 +40,13 @@
     </license>
   </licenses>
 
+  <repositories>
+    <repository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <!--set hadoop to provided scopes since it will be provided by the platform (and to make life easier for people -->
