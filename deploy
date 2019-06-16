@@ -43,4 +43,4 @@ else
 fi
 
 # Run the maven deploy steps
-mvn deploy -q -P publish -DskipTests=true --settings "${TRAVIS_BUILD_DIR}/.travis/mvn-settings.xml"
+mvn deploy -P publish -DskipTests=true --settings "${TRAVIS_BUILD_DIR}/.travis/mvn-settings.xml"
