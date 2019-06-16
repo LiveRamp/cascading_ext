@@ -2,12 +2,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.liveramp</groupId>
-    <artifactId>pom-common</artifactId>
-    <version>1.1-SNAPSHOT</version>
-  </parent>
-
   <groupId>com.liveramp</groupId>
   <artifactId>cascading_ext</artifactId>
   <version>1.7-SNAPSHOT</version>
@@ -46,30 +40,6 @@
     </license>
   </licenses>
 
-  <repositories>
-    <repository>
-      <id>sonatype-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>sonatype-releases</id>
-      <url>http://oss.sonatype.org/content/repositories/releases</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
 
     <!--set hadoop to provided scopes since it will be provided by the platform (and to make life easier for people -->
@@ -92,7 +62,7 @@
     <dependency>
       <groupId>com.liveramp</groupId>
       <artifactId>commons</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.4</version>
     </dependency>
 
     <dependency>
@@ -152,7 +122,7 @@
     <dependency>
       <groupId>com.liveramp.generative</groupId>
       <artifactId>generative_thrift</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.1</version>
     </dependency>
 
   </dependencies>

@@ -10,8 +10,15 @@ env:
   - secure: cvQjf9y98A/Wkhc54Xh7912XcoJuHcyhgg1Le3zeNU9mjq8OZLm32mwFJd0fFexV2HTCMZfwOvMk7VBXfvyM5/RF5Fv+6tZz5tgb/Xfvm0/K9ZsUaWTDAq4DLh6IdDZY7JxAx4RLLj/Ji9k+zCn5YFx8uadmr1C8w/vE2DfnMTc=
   - secure: OePDO73gWHY0ezGmMSQ3z3J+E+gLhdyHG5F+a+13qhuogYEjclOjSh/+lD9uqdA4vnJItCCHuJFNMGlN6Xqiz2azS+98eCy6Xjne0at4g8ZtMtuEYP0jneCzlrpjiCckRLu6+0FslRsF+uZQY/v3nGl1vcE4Op5cgTXCtxjFYhc=
 deploy:
+-
   skip_cleanup: true
-  on:
-    branch: master
   provider: script
   script: ./deploy
+  on:
+    branch: master
+-
+  skip_cleanup: true
+  provider: script
+  script: ./deploy
+  on:
+    tags: true
