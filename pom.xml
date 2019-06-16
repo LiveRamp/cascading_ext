@@ -42,8 +42,9 @@
 
   <repositories>
     <repository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
+      <id>conjars.org</id>
+      <name>Conjars</name>
+      <url>http://conjars.org/repo</url>
     </repository>
   </repositories>
 
