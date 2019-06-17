@@ -76,11 +76,15 @@ public class FileSystemHelper {
     return getFileSystemForPath(new Path(path), config);
   }
 
+  /**
+   * Note, this **does** retry to avoid issues if the XML config files are swapped out while
+   * loading.
+   */
   public static FileSystem getFileSystemForPath(Path path, Configuration config) {
     try {
 
       Callable<RetryResult<FileSystem, NumTries>> callable = RetryBuilders
-          .fixedTriesFixedDelay(3, 5000)
+          .fixedTriesFixedDelay(10, 1000)
           .annotate(() -> path.getFileSystem(config));
 
       return callable.call().getReturnValue();
