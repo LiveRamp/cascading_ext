@@ -23,7 +23,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
+import com.arjie.groundhog.RetryBuilders;
+import com.arjie.groundhog.RetryResult;
+import com.arjie.groundhog.impl.NumTries;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -32,6 +36,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.viewfs.ViewFileSystem;
+import org.apache.hadoop.io.retry.RetryUtils;
 
 /**
  * This class contains helper methods for working with files, filepaths, and
@@ -64,11 +69,7 @@ public class FileSystemHelper {
 
   @Deprecated
   public static FileSystem getFileSystemForPath(Path path) {
-    try {
-      return path.getFileSystem(new Configuration());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return getFileSystemForPath(path, new Configuration());
   }
 
   public static FileSystem getFileSystemForPath(String path, Configuration config) {
@@ -77,10 +78,17 @@ public class FileSystemHelper {
 
   public static FileSystem getFileSystemForPath(Path path, Configuration config) {
     try {
-      return path.getFileSystem(config);
-    } catch (IOException e) {
+
+      Callable<RetryResult<FileSystem, NumTries>> callable = RetryBuilders
+          .fixedTriesFixedDelay(3, 5000)
+          .annotate(() -> path.getFileSystem(config));
+
+      return callable.call().getReturnValue();
+
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
+
   }
 
   public static void createLocalFile(String path, String content) {
@@ -253,7 +261,7 @@ public class FileSystemHelper {
   }
 
 
-  protected static Path stripPrefix(Path path){
+  protected static Path stripPrefix(Path path) {
     String rawPath = path.toUri().getPath();
     return new Path(rawPath);
   }
@@ -262,7 +270,7 @@ public class FileSystemHelper {
 
     //  if it's a viewFS, get the child FS and attach the deleteOnExit to the right child
     //  (https://issues.apache.org/jira/browse/HDFS-10323)
-    if(fs instanceof ViewFileSystem) {
+    if (fs instanceof ViewFileSystem) {
       ViewFileSystem viewfs = (ViewFileSystem)fs;
       Path withoutPrefix = stripPrefix(path);
 
@@ -271,9 +279,7 @@ public class FileSystemHelper {
           fileSystem.deleteOnExit(withoutPrefix);
         }
       }
-    }
-
-    else{
+    } else {
       fs.deleteOnExit(path);
     }
 
