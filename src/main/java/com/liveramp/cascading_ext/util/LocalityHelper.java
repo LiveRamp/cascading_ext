@@ -104,7 +104,7 @@ public class LocalityHelper {
 
     for (String file : files) {
       if(fileSystem == null){
-        fileSystem = FileSystemHelper.getFileSystemForPath(file);
+        fileSystem = FileSystemHelper.getFileSystemForPath(file, jobConf);
       }
       Path path = new Path(file);
       FileStatus status = fileSystem.getFileStatus(path);
@@ -115,7 +115,7 @@ public class LocalityHelper {
   }
 
   public static String[] getHostsSortedByLocality(String file, long pos, long length, JobConf jobConf, int maxBlockLocationsPerSplit) throws IOException {
-    FileSystem fs = FileSystemHelper.getFileSystemForPath(file);
+    FileSystem fs = FileSystemHelper.getFileSystemForPath(file, jobConf);
     BlockLocation[] locations = fs.getFileBlockLocations(fs.getFileStatus(new Path(file)), pos, length);
     return getHostsSortedByLocalityForBlocks(Arrays.asList(locations), maxBlockLocationsPerSplit);
   }
