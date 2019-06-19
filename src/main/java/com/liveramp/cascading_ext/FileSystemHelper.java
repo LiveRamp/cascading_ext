@@ -84,7 +84,7 @@ public class FileSystemHelper {
     try {
 
       Callable<RetryResult<FileSystem, NumTries>> callable = RetryBuilders
-          .fixedTriesFixedDelay(10, 1000)
+          .fixedTriesFixedDelay(10, 6000)
           .annotate(() -> path.getFileSystem(config));
 
       return callable.call().getReturnValue();
