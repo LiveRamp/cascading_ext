@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import com.arjie.groundhog.RetryBuilders;
 import com.arjie.groundhog.RetryResult;
@@ -37,6 +39,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.viewfs.ViewFileSystem;
 import org.apache.hadoop.io.retry.RetryUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class contains helper methods for working with files, filepaths, and
@@ -45,6 +49,7 @@ import org.apache.hadoop.io.retry.RetryUtils;
 public class FileSystemHelper {
   private static final int DEFAULT_FS_OP_NUM_TRIES = 3;
   private static final long DEFAULT_FS_OP_DELAY_BETWEEN_TRIES = 5 * 1000L;
+  private static Logger LOG = LoggerFactory.getLogger(FileSystemHelper.class);
 
   /**
    * @deprecated Please use {@link #getFileSystemForPath(String)} where possible.
@@ -69,7 +74,7 @@ public class FileSystemHelper {
 
   @Deprecated
   public static FileSystem getFileSystemForPath(Path path) {
-    return getFileSystemForPath(path, new Configuration());
+    return getFileSystemForPath(path, () -> new Configuration());
   }
 
   public static FileSystem getFileSystemForPath(String path, Configuration config) {
@@ -81,11 +86,24 @@ public class FileSystemHelper {
    * loading.
    */
   public static FileSystem getFileSystemForPath(Path path, Configuration config) {
+    return getFileSystemForPath(path, () -> config);
+  }
+
+  private static FileSystem getFileSystemForPath(Path path, Supplier<Configuration> config) {
     try {
 
+      AtomicInteger numTries = new AtomicInteger(0);
+      long start = System.currentTimeMillis();
+
       Callable<RetryResult<FileSystem, NumTries>> callable = RetryBuilders
-          .fixedTriesFixedDelay(10, 6000)
-          .annotate(() -> path.getFileSystem(config));
+          .fixedTriesExponentialBackoff(10, 1.5, 1000)
+          .annotate(() -> {
+            numTries.getAndIncrement();
+            return path.getFileSystem(config.get());
+          });
+
+      LOG.info("Getting filesystem for path " + path + " took " + numTries.get() +
+          " attempts and " + (System.currentTimeMillis() - start) + " milliseconds");
 
       return callable.call().getReturnValue();
 
