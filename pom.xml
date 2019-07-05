@@ -131,6 +131,7 @@
       <groupId>com.liveramp.generative</groupId>
       <artifactId>generative_thrift</artifactId>
       <version>1.1</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
