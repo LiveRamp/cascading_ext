@@ -3,7 +3,9 @@ package com.liveramp.cascading_ext.yarn;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,9 +81,9 @@ public class YarnApiHelper {
   }
 
   public static Optional<ApplicationInfo> getYarnAppInfo(Configuration conf, String appId) {
-    String yarnApiAddress = getYarnApiAddress(conf);
-    if (!yarnApiAddress.isEmpty()) {
-      return getYarnAppInfo(yarnApiAddress, appId);
+    Optional<String> yarnApiAddress = getYarnApiAddress(conf);
+    if (yarnApiAddress.isPresent()) {
+      return getYarnAppInfo(yarnApiAddress.get(), appId);
     } else {
       return Optional.empty();
     }
@@ -93,43 +95,43 @@ public class YarnApiHelper {
    * resource manager with which it was able to successfully connect to. It will return an empty
    * string if there were no resource manager it could successfully connect to.
    */
-  private static String getYarnApiAddress(Configuration conf) {
+  private static Optional<String> getYarnApiAddress(Configuration conf) {
     Set<String> yarnApiAddresses = getYarnApiAddresses(conf);
-
     try {
       for (String yarnApiAddress : yarnApiAddresses) {
         if (successfulConnection(yarnApiAddress)) {
-          return yarnApiAddress;
+          return Optional.of(yarnApiAddress);
         }
       }
     } catch (IOException e) {
       LOG.error("Error getting yarn api address:", e);
     }
 
-    return "";
+    return Optional.empty();
   }
 
   static Set<String> getYarnApiAddresses(Configuration conf) {
-    String emptyString = "";
-    String rmIdsConf = conf.get("yarn.resourcemanager.ha.rm-ids", emptyString);
+    String[] rmIds = conf.getStrings("yarn.resourcemanager.ha.rm-ids");
 
-    if (rmIdsConf.isEmpty()) {
-      String yarnApiAddress = conf.get("yarn.resourcemanager.webapp.address", emptyString);
-      return yarnApiAddress.isEmpty() ? Sets.newHashSet() : Sets.newHashSet(yarnApiAddress);
+    if (rmIds == null) {
+      String yarnApiAddress = conf.get("yarn.resourcemanager.webapp.address");
+      return yarnApiAddress == null ? Sets.newHashSet() : Sets.newHashSet(yarnApiAddress);
     }
 
-    String[] allRmIds = rmIdsConf.split(",");
-    return Arrays.stream(allRmIds)
-        .map(rmId -> conf.get("yarn.resourcemanager.webapp.address." + rmId, emptyString))
-        .filter(address -> !address.isEmpty())
+    return Arrays.stream(rmIds)
+        .map(rmId -> conf.get("yarn.resourcemanager.webapp.address." + rmId))
+        .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }
 
-  private static boolean successfulConnection(String urlString) throws IOException {
+  private static boolean successfulConnection(String yarnApiAddress) throws IOException {
+    String urlString = "http://" + yarnApiAddress + "/ws/v1/cluster";
     URL url = new URL(urlString);
     HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-    urlConnection.setConnectTimeout(10000);
-    urlConnection.setReadTimeout(10000);
+    urlConnection.setConnectTimeout((int)Duration.ofSeconds(10).toMillis());
+    urlConnection.setReadTimeout((int)Duration.ofSeconds(10).toMillis());
+    urlConnection.setRequestMethod("GET");
+
     int responseCode = urlConnection.getResponseCode();
 
     return responseCode == 200;
