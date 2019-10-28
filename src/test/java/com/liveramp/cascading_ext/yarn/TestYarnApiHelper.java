@@ -44,6 +44,11 @@ public class TestYarnApiHelper {
 
   @Test
   public void testGetYarnApiAddressNoRMs() {
+    conf.unset("yarn.resourcemanager.ha.rm-ids");
+    conf.unset("yarn.resourcemanager.webapp.address." + RM1);
+    conf.unset("yarn.resourcemanager.webapp.address." + RM2);
+    conf.unset("yarn.resourcemanager.webapp.address");
+
     Set<String> yarnApiAddresses = YarnApiHelper.getYarnApiAddresses(conf);
     assertEquals(Sets.newHashSet(), yarnApiAddresses);
   }
