@@ -97,16 +97,12 @@ public class YarnApiHelper {
    */
   private static Optional<String> getYarnApiAddress(Configuration conf) {
     Set<String> yarnApiAddresses = getYarnApiAddresses(conf);
-    try {
-      for (String yarnApiAddress : yarnApiAddresses) {
-        if (successfulConnection(yarnApiAddress)) {
-          return Optional.of(yarnApiAddress);
-        }
+    for (String yarnApiAddress : yarnApiAddresses) {
+      if (successfulConnection(yarnApiAddress)) {
+        return Optional.of(yarnApiAddress);
       }
-    } catch (IOException e) {
-      LOG.error("Error getting yarn api address:", e);
     }
-
+    LOG.error("Failed to connect to a all yarn api addresses: " + yarnApiAddresses);
     return Optional.empty();
   }
 
