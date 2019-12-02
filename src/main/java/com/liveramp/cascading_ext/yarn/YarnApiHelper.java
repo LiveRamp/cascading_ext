@@ -97,16 +97,12 @@ public class YarnApiHelper {
    */
   private static Optional<String> getYarnApiAddress(Configuration conf) {
     Set<String> yarnApiAddresses = getYarnApiAddresses(conf);
-    try {
-      for (String yarnApiAddress : yarnApiAddresses) {
-        if (successfulConnection(yarnApiAddress)) {
-          return Optional.of(yarnApiAddress);
-        }
+    for (String yarnApiAddress : yarnApiAddresses) {
+      if (successfulConnection(yarnApiAddress)) {
+        return Optional.of(yarnApiAddress);
       }
-    } catch (IOException e) {
-      LOG.error("Error getting yarn api address:", e);
     }
-
+    LOG.error("Failed to connect to a all yarn api addresses: " + yarnApiAddresses);
     return Optional.empty();
   }
 
@@ -124,17 +120,20 @@ public class YarnApiHelper {
         .collect(Collectors.toSet());
   }
 
-  private static boolean successfulConnection(String yarnApiAddress) throws IOException {
-    String urlString = "http://" + yarnApiAddress + "/ws/v1/cluster";
-    URL url = new URL(urlString);
-    HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-    urlConnection.setConnectTimeout((int)Duration.ofSeconds(10).toMillis());
-    urlConnection.setReadTimeout((int)Duration.ofSeconds(10).toMillis());
-    urlConnection.setRequestMethod("GET");
-
-    int responseCode = urlConnection.getResponseCode();
-
-    return responseCode == 200;
+  private static boolean successfulConnection(String yarnApiAddress) {
+    try {
+      String urlString = "http://" + yarnApiAddress + "/ws/v1/cluster";
+      URL url = new URL(urlString);
+      HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+      urlConnection.setConnectTimeout((int)Duration.ofSeconds(10).toMillis());
+      urlConnection.setReadTimeout((int)Duration.ofSeconds(10).toMillis());
+      urlConnection.setRequestMethod("GET");
+      int responseCode = urlConnection.getResponseCode();
+      return responseCode == 200;
+    } catch (IOException e) {
+      LOG.warn("Error while conntecting to " + yarnApiAddress, e);
+      return false;
+    }
   }
 
   public static Optional<ApplicationInfo> getYarnAppInfo(String yarnApiAddress, String appId) {
