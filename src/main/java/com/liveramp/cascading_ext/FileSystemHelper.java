@@ -102,10 +102,10 @@ public class FileSystemHelper {
             return path.getFileSystem(config.get());
           });
 
+      FileSystem ret = callable.call().getReturnValue();
       LOG.info("Getting filesystem for path " + path + " took " + numTries.get() +
           " attempts and " + (System.currentTimeMillis() - start) + " milliseconds");
-
-      return callable.call().getReturnValue();
+      return ret;
 
     } catch (Exception e) {
       throw new RuntimeException(e);
