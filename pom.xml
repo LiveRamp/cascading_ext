@@ -112,7 +112,7 @@
     <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>maple</artifactId>
-      <version>0.2.4</version>
+      <version>0.17.4</version>
     </dependency>
 
     <dependency>
