@@ -1,0 +1,14 @@
+# BEGIN TERRAFORM MANAGED BLOCK
+"apiVersion": "backstage.io/v1alpha1"
+"kind": "Location"
+"metadata":
+  "annotations":
+    "github.com/project-slug": "LiveRamp/cascading_ext"
+    "github.com/team-slug": "LiveRamp/dev-bdi"
+  "description": "cascading_ext is a collection of tools built on top of the Cascading
+    platform which make it easy to build, debug, and run simple and high-performance
+    data workflows."
+  "name": "cascading_ext"
+  "tags": []
+"spec": {}
+# END TERRAFORM MANAGED BLOCK  
