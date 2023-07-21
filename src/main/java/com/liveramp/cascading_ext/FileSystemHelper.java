@@ -130,36 +130,6 @@ public class FileSystemHelper {
   }
 
   /**
-   * merge all files in <code>sourceDir</code> into local <code>targetFile</code>, retrying a few times on failure
-   */
-  @Deprecated
-  public static void copyMergeToLocal(String srcDir, String dstFile) throws IOException {
-    copyMergeToLocal(srcDir, dstFile, DEFAULT_FS_OP_NUM_TRIES, DEFAULT_FS_OP_DELAY_BETWEEN_TRIES);
-  }
-
-  /**
-   * merge all files in <code>sourceDir</code> into local <code>targetFile</code>, retrying on failure
-   */
-  @Deprecated
-  public static void copyMergeToLocal(String srcDir, String dstFile, int numTries, long delayBetweenTries) throws IOException {
-    Configuration conf = new Configuration();
-    FileSystem hdfs = getFS();
-    FileSystem localfs = FileSystem.getLocal(conf);
-
-    while (numTries-- > 0) {
-      if (FileUtil.copyMerge(hdfs, new Path(srcDir), localfs, new Path(dstFile), false, conf, null)) {
-        return;
-      }
-      try {
-        Thread.sleep(delayBetweenTries);
-      } catch (InterruptedException ie) {
-        throw new RuntimeException(ie);
-      }
-    }
-    throw new IOException("Could not copyMerge from \"" + srcDir + "\" to \"" + dstFile + "\"!");
-  }
-
-  /**
    * Safely renames a path by retrying the operation <code>numTries</code> times
    * and sleeping <code>delayBetweenTries</code> seconds between each try. If it
    * still fails, it throws an IOException.

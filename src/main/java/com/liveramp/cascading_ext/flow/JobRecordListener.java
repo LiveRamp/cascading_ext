@@ -43,7 +43,7 @@ public class JobRecordListener implements FlowStepListener {
     try {
 
       HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
-      RunningJob job = hdStepStats.getRunningJob();
+      RunningJob job = hdStepStats.getJobStatusClient();
 
       persister.onRunning(new LaunchedJob(job.getID().toString(),
           job.getJobName(),
@@ -65,7 +65,7 @@ public class JobRecordListener implements FlowStepListener {
 
   private void recordStepData(HadoopStepStats hdStepStats) {
 
-    String jobID = hdStepStats.getJobID();
+    String jobID = String.valueOf(hdStepStats.getJobStatusClient().getID().getId());
 
     try {
 
@@ -104,7 +104,7 @@ public class JobRecordListener implements FlowStepListener {
       LOG.info("Fetching task summaries...");
       TaskSummary taskSummary = JobUtil.getSummary(
           hdStepStats.getJobClient(),
-          hdStepStats.getRunningJob().getID(),
+          hdStepStats.getJobStatusClient().getID(),
           failed,
           counters
       );
@@ -146,7 +146,8 @@ public class JobRecordListener implements FlowStepListener {
   @Override
   public boolean onStepThrowable(FlowStep flowStep, Throwable throwable) {
     HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
-    recordTaskErrors(hdStepStats, hdStepStats.getJobID(), true, new TwoNestedMap<String, String, Long>());
+    String jobID = String.valueOf(hdStepStats.getJobStatusClient().getID().getId());
+    recordTaskErrors(hdStepStats, jobID, true, new TwoNestedMap<String, String, Long>());
     return false;
   }
 }

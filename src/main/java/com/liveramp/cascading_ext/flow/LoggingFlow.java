@@ -75,7 +75,7 @@ public class LoggingFlow extends HadoopFlow {
       for (FlowStepStats stat : stepStats) {
 
         try {
-          JobID jobid = ((HadoopStepStats)stat).getRunningJob().getID();
+          JobID jobid = ((HadoopStepStats)stat).getJobStatusClient().getID();
           String jtID = jobid.getJtIdentifier();
           String jobID = Integer.toString(jobid.getId());
           jobIDs.add(jtID + "_" + jobID);

@@ -71,7 +71,7 @@ public class OperationStatsUtils {
     }
   }
 
-  public static class ForwardingOperationCall<Context, Call extends OperationCall<Context>> implements OperationCall<Context>, Serializable {
+  public static abstract class ForwardingOperationCall<Context, Call extends OperationCall<Context>> implements OperationCall<Context>, Serializable {
     protected Call delegate;
     protected TupleEntryCollectorCounter collector = new TupleEntryCollectorCounter();
 
@@ -93,6 +93,8 @@ public class OperationStatsUtils {
     public Fields getArgumentFields() {
       return delegate.getArgumentFields();
     }
+
+    public abstract Fields getDeclaredFields();
 
     public TupleEntryCollectorCounter getOutputCollector() {
       return collector;

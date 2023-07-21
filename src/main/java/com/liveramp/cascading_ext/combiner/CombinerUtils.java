@@ -49,7 +49,7 @@ public class CombinerUtils {
     }
 
     for (int i = 0; i < selectorFieldsPos.size(); i++) {
-      outputTupleEntry.set(i, inputTupleEntry.getObject(selectorFieldsPos.get(i)));
+      outputTupleEntry.setRaw(i, inputTupleEntry.getObject(selectorFieldsPos.get(i)));
     }
   }
 }

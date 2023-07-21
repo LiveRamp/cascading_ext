@@ -52,12 +52,12 @@ public class RenameJobStrategy implements FlowStepStrategy<JobConf> {
     String jobName = String.format(
         "%s [(%d/%d) %s] -> %s",
         flowStep.getFlowName(),
-        flowStep.getStepNum(),
+        flowStep.getOrdinal(),
         flowStep.getFlow().getFlowSteps().size(),
         StringUtils.abbreviate(
-            join(getPrettyNamesForTaps(flowStep.getSources(), true)),
+            join(getPrettyNamesForTaps(flowStep.getFlowNodeGraph().getSourceTaps(), true)),
             MAX_SOURCE_PATH_NAMES_LENGTH),
-        join(getPrettyNamesForTaps(flowStep.getSinks(), false)));
+        join(getPrettyNamesForTaps(flowStep.getFlowNodeGraph().getSinkTaps(), false)));
 
     return StringUtils.abbreviate(jobName, MAX_JOB_NAME_LENGTH);
   }

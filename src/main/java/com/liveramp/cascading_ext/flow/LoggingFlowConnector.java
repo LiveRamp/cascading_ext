@@ -19,7 +19,7 @@ package com.liveramp.cascading_ext.flow;
 import cascading.flow.Flow;
 import cascading.flow.FlowDef;
 import cascading.flow.FlowStepStrategy;
-import cascading.flow.hadoop.HadoopFlowConnector;
+import cascading.flow.hadoop3.Hadoop3MRFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.scheme.Scheme;
 import cascading.scheme.hadoop.SequenceFile;
@@ -30,7 +30,7 @@ import org.apache.hadoop.mapred.JobConf;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class LoggingFlowConnector extends HadoopFlowConnector {
+public class LoggingFlowConnector extends Hadoop3MRFlowConnector {
 
   private static final Pattern CHECKPOINT_SAFE_NAME = Pattern.compile("[a-zA-Z0-9\\-_]+");
 
@@ -85,6 +85,6 @@ public class LoggingFlowConnector extends HadoopFlowConnector {
       definition.setRunID((String) getProperties().get(CascadingUtil.CASCADING_RUN_ID));
     }
 
-    return planner.buildFlow(definition);
+    return planner.buildFlow(definition, this.getRuleRegistrySet());
   }
 }

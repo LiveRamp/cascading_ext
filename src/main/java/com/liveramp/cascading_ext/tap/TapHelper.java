@@ -24,6 +24,7 @@ import cascading.tuple.TupleEntryCollector;
 import cascading.tuple.TupleEntryIterator;
 import com.google.common.collect.Lists;
 import com.liveramp.cascading_ext.CascadingUtil;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
@@ -32,18 +33,18 @@ import java.util.List;
 
 public class TapHelper {
 
-  public static void writeToTap(Tap<JobConf, ?, ?> t, List<Tuple> tuples) throws IOException {
+  public static void writeToTap(Tap<Configuration, ?, ?> t, List<Tuple> tuples) throws IOException {
     writeToTap(t, CascadingUtil.get().getFlowProcess(), tuples);
   }
 
-  public static void writeToTap(Tap<JobConf, ?, ?> t, Tuple... tuples) throws IOException {
+  public static void writeToTap(Tap<Configuration, ?, ?> t, Tuple... tuples) throws IOException {
     writeToTap(t, CascadingUtil.get().getFlowProcess(), tuples);
   }
-  public static void writeToTap(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf, Tuple... tuples) throws IOException {
+  public static void writeToTap(Tap<Configuration, ?, ?> t, FlowProcess<JobConf> conf, Tuple... tuples) throws IOException {
     writeToTap(t, conf, Lists.newArrayList(tuples));
   }
 
-  public static void writeToTap(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf, List<Tuple> tuples) throws IOException {
+  public static void writeToTap(Tap<Configuration, ?, ?> t, FlowProcess<JobConf> conf, List<Tuple> tuples) throws IOException {
     TupleEntryCollector collector = t.openForWrite(conf);
     for (Tuple tuple : tuples) {
       collector.add(tuple);
@@ -51,7 +52,7 @@ public class TapHelper {
     collector.close();
   }
 
-  public static List<TupleEntry> getAllTupleEntries(Tap<JobConf, ?, ?> t) throws IOException {
+  public static List<TupleEntry> getAllTupleEntries(Tap<Configuration, ?, ?> t) throws IOException {
     TupleEntryIterator iter = t.openForRead(CascadingUtil.get().getFlowProcess());
     List<TupleEntry> tuples = new ArrayList<TupleEntry>();
     while (iter.hasNext()) {
@@ -60,11 +61,11 @@ public class TapHelper {
     return tuples;
   }
 
-  public static List<Tuple> getAllTuples(Tap<JobConf, ?, ?> t) throws IOException {
+  public static List<Tuple> getAllTuples(Tap<Configuration, ?, ?> t) throws IOException {
     return getAllTuples(t, CascadingUtil.get().getFlowProcess());
   }
 
-  public static List<Tuple> getAllTuples(Tap<JobConf, ?, ?> t, FlowProcess<JobConf> conf) throws IOException {
+  public static List<Tuple> getAllTuples(Tap<Configuration, ?, ?> t, FlowProcess<JobConf> conf) throws IOException {
     TupleEntryIterator iter = t.openForRead(conf);
     List<Tuple> tuples = new ArrayList<Tuple>();
     while (iter.hasNext()) {
