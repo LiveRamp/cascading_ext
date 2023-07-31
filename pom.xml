@@ -76,19 +76,19 @@
     <dependency>
       <groupId>net.wensel</groupId>
       <artifactId>cascading-core</artifactId>
-      <version>4.5.0</version>
+      <version>4.5.1</version>
     </dependency>
 
     <dependency>
       <groupId>net.wensel</groupId>
       <artifactId>cascading-hadoop3-common</artifactId>
-      <version>4.5.0</version>
+      <version>4.5.1</version>
     </dependency>
 
     <dependency>
       <groupId>net.wensel</groupId>
       <artifactId>cascading-hadoop3-mr1</artifactId>
-      <version>4.5.0</version>
+      <version>4.5.1</version>
     </dependency>
 
     <dependency>
