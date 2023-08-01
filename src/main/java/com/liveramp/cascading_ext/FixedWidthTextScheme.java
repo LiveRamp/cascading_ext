@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
 import org.slf4j.Logger;
@@ -56,13 +56,13 @@ public class FixedWidthTextScheme extends TextLine {
   }
 
   @Override
-  public void sourcePrepare(FlowProcess<JobConf> flowProcess, SourceCall<Object[], RecordReader> sourceCall) {
+  public void sourcePrepare(FlowProcess<? extends Configuration> flowProcess, SourceCall<Object[], RecordReader> sourceCall) {
     super.sourcePrepare(flowProcess, sourceCall);
     sourceCall.getIncomingEntry().setTuple(TupleViews.createObjectArray());
   }
 
   @Override
-  public boolean source(FlowProcess<JobConf> flowProcess, SourceCall<Object[], RecordReader> sourceCall) throws IOException {
+  public boolean source(FlowProcess<? extends Configuration> flowProcess, SourceCall<Object[], RecordReader> sourceCall) throws IOException {
     Object[] context = sourceCall.getContext();
 
     while (sourceCall.getInput().next(context[0], context[1])) {
@@ -93,7 +93,7 @@ public class FixedWidthTextScheme extends TextLine {
   }
 
   @Override
-  public void sink(FlowProcess<JobConf> flowProcess, SinkCall<Object[], OutputCollector> sinkCall) throws IOException {
+  public void sink(FlowProcess<? extends Configuration> flowProcess, SinkCall<Object[], OutputCollector> sinkCall) throws IOException {
     throw new UnsupportedOperationException("Sinking to this tap is not allowed.");
   }
 

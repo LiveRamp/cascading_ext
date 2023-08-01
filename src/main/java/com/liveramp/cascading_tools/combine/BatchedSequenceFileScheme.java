@@ -21,7 +21,6 @@ public class BatchedSequenceFileScheme extends cascading.scheme.hadoop.SequenceF
     super(fields);
   }
 
-  @Override
   public void sourceConfInit(FlowProcess<JobConf> flowProcess, Tap<JobConf, RecordReader, OutputCollector> tap, JobConf conf) {
 
     conf.setLong(MAPRED_MIN_SPLIT_SIZE_PROPERTY_NAME, DEFAULT_MIN_SPLIT_SIZE);

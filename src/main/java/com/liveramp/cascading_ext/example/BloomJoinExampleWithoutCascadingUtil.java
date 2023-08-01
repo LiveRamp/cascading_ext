@@ -17,7 +17,7 @@
 package com.liveramp.cascading_ext.example;
 
 import cascading.flow.Flow;
-import cascading.flow.hadoop.HadoopFlowConnector;
+import cascading.flow.hadoop3.Hadoop3MRFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.Tap;
@@ -62,7 +62,7 @@ public class BloomJoinExampleWithoutCascadingUtil {
     sources.put("source2", ExampleFixtures.SOURCE_TAP_2);
 
     //  set some default properties and set the flow step strategy
-    Flow f = new HadoopFlowConnector(BloomProps.getDefaultProperties()).connect("Example BloomJoin", sources, sink, joined);
+    Flow f = new Hadoop3MRFlowConnector(BloomProps.getDefaultProperties()).connect("Example BloomJoin", sources, sink, joined);
     f.setFlowStepStrategy(new BloomAssemblyStrategy());
 
     f.complete();

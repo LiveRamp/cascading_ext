@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.UUID;
 
+import cascading.tap.SinkMode;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
@@ -47,7 +49,7 @@ public class NullTap extends Tap<JobConf, RecordReader, OutputCollector> impleme
   final UUID id;
 
   public NullTap() {
-    super(new NullScheme<JobConf, RecordReader, OutputCollector, Object, Object>());
+    super(new NullScheme<JobConf, RecordReader, OutputCollector, Object, Object>(), SinkMode.REPLACE);
     id = UUID.randomUUID();
   }
 
@@ -57,11 +59,12 @@ public class NullTap extends Tap<JobConf, RecordReader, OutputCollector> impleme
   }
 
   @Override
-  public TupleEntryIterator openForRead(FlowProcess<JobConf> flowProcess, RecordReader recordReader) throws IOException {
+  public TupleEntryIterator openForRead(FlowProcess<? extends JobConf> flowProcess, RecordReader recordReader) throws IOException {
     return new NullIterator(new Fields("null"));
   }
 
-  public TupleEntryCollector openForWrite(FlowProcess<JobConf> flowProcess, OutputCollector output) {
+  @Override
+  public TupleEntryCollector openForWrite(FlowProcess<? extends JobConf> flowProcess, OutputCollector outputCollector) throws IOException {
     return outCollector;
   }
 
