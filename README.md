@@ -1,5 +1,7 @@
 # cascading_ext
 
+This project has not been in active development in many years. We are going to close the source to this project in 24 hours and make this repo private, effective August 2nd, 2023.
+
 [![Build Status](https://api.travis-ci.com/LiveRamp/cascading_ext.svg?branch=master)](https://travis-ci.com/LiveRamp/cascading_ext)
 
 cascading_ext is a collection of tools built on top of the [Cascading](https://github.com/cwensel/cascading) platform which make it easy to build, debug, and run simple and high-performance data workflows.
