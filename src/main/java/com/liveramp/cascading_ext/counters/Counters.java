@@ -262,7 +262,7 @@ public class Counters {
       HadoopStepStats hadoopStep = (HadoopStepStats)step;
       RunningJob runningJob = hadoopStep.getJobStatusClient();
       if (runningJob != null) {
-        counters.put(String.valueOf(runningJob.getID().getId()), getCounterMap(runningJob));
+        counters.put(runningJob.getID().toString(), getCounterMap(runningJob));
       } else {
         LOG.info("Skipping null running job.  Assume job failed on setup.");
       }
