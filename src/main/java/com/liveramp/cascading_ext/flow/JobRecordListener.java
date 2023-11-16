@@ -65,7 +65,7 @@ public class JobRecordListener implements FlowStepListener {
 
   private void recordStepData(HadoopStepStats hdStepStats) {
 
-    String jobID = String.valueOf(hdStepStats.getJobStatusClient().getID().getId());
+    String jobID = hdStepStats.getJobStatusClient().getID().toString();
 
     try {
 
@@ -146,7 +146,7 @@ public class JobRecordListener implements FlowStepListener {
   @Override
   public boolean onStepThrowable(FlowStep flowStep, Throwable throwable) {
     HadoopStepStats hdStepStats = (HadoopStepStats)flowStep.getFlowStepStats();
-    String jobID = String.valueOf(hdStepStats.getJobStatusClient().getID().getId());
+    String jobID = hdStepStats.getJobStatusClient().getID().toString();
     recordTaskErrors(hdStepStats, jobID, true, new TwoNestedMap<String, String, Long>());
     return false;
   }
