@@ -107,7 +107,7 @@ public class BloomFilter implements Writable {
   }
 
   /**
-   * @return size of the the bloomfilter
+   * @return size of the bloomfilter
    */
   public long getVectorSize() {
     return this.vectorSize;

@@ -87,7 +87,7 @@ public class LocalityHelper {
       return hostToRack.get(host);
     }
 
-    //  prevent NPE later, but also don't count this as as local with anything else
+    //  prevent NPE later, but also don't count this as local with anything else
     LOG.warn("Did not find rack for host: "+host);
     return host+"__RACK_NOT_FOUND";
 

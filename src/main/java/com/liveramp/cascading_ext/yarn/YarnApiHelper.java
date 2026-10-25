@@ -102,7 +102,7 @@ public class YarnApiHelper {
         return Optional.of(yarnApiAddress);
       }
     }
-    LOG.error("Failed to connect to a all yarn api addresses: " + yarnApiAddresses);
+    LOG.error("Failed to connect to all yarn api addresses: " + yarnApiAddresses);
     return Optional.empty();
   }
 
@@ -131,7 +131,7 @@ public class YarnApiHelper {
       int responseCode = urlConnection.getResponseCode();
       return responseCode == 200;
     } catch (IOException e) {
-      LOG.warn("Error while conntecting to " + yarnApiAddress, e);
+      LOG.warn("Error while connecting to " + yarnApiAddress, e);
       return false;
     }
   }
